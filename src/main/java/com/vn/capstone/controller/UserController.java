@@ -43,8 +43,8 @@ public class UserController {
     public ResponseEntity<User> createUser(@Valid @RequestBody User takeUser)
             throws IdInvalidException {
 
-        boolean isEmailExists = this.userService.isEmailExists(takeUser.getEmail());
-        if (isEmailExists) {
+        boolean isEmailExist = this.userService.isEmailExist(takeUser.getEmail());
+        if (isEmailExist) {
             throw new IdInvalidException(
                     "Email" + takeUser.getEmail() + "already exists, please use another email.");
         }

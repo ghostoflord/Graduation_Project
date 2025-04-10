@@ -24,6 +24,7 @@ public class SecurityConfiguration {
         String[] whiteList = {
                 "/",
                 "/api/v1/users/**",
+                "/api/v1/auth/register"
         };
 
         http
