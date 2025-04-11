@@ -17,7 +17,7 @@ public class ResUserDTO {
 
     private long id;
     private String email;
-    private String lastName;
+    private String name;
     private GenderEnum gender;
     private String address;
     private String age;

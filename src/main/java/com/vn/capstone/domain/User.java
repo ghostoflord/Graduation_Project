@@ -14,6 +14,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 /**
@@ -35,13 +36,16 @@ public class User {
     @Column(name = "last_name", length = 50)
     private String lastName;
 
+    @Size(max = 256)
+    private String name;
+
     @Email
     @Size(min = 5, max = 254, message = "email must not exceed 254 characters.")
     @Column(length = 254, unique = true)
     private String email;
 
     @JsonIgnore
-    @Column(name = "password_hash")
+    // @NotNull(message = "email khong duoc de trong")
     private String password;
 
     @Size(max = 256)
@@ -99,6 +103,14 @@ public class User {
 
     public void setLastName(String lastName) {
         this.lastName = lastName;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getEmail() {
@@ -200,8 +212,8 @@ public class User {
     // prettier-ignore
     @Override
     public String toString() {
-        return "User [firstName=" + firstName + ", lastName=" + lastName + ", email=" + email + ", password=" + password
-                + ", address=" + address + ", gender=" + gender + ", age=" + age + ", avatar=" + avatar
-                + ", refreshToken=" + refreshToken + ", activationKey=" + activationKey + "]";
+        return "User [firstName=" + firstName + ", lastName=" + lastName + ", name=" + name + ", email=" + email
+                + ", password=" + password + ", address=" + address + ", gender=" + gender + ", age=" + age
+                + ", avatar=" + avatar + ", refreshToken=" + refreshToken + ", activationKey=" + activationKey + "]";
     }
 }

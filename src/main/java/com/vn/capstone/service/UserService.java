@@ -49,7 +49,7 @@ public class UserService {
     }
 
     // check email
-    public boolean isEmailExist(String email) {
+    public boolean isEmailExists(String email) {
         return userRepository.existsByEmail(email);
     }
 
@@ -62,7 +62,7 @@ public class UserService {
 
         res.setId(user.getId());
         res.setEmail(user.getEmail());
-        res.setLastName(user.getLastName());
+        res.setName(user.getName());
         res.setAge(user.getAge());
         res.setCreatedAt(user.getCreatedAt());
         res.setGender(user.getGender());
@@ -73,7 +73,7 @@ public class UserService {
     public ResUpdateUserDTO convertToResUpdateUserDTO(User user) {
         ResUpdateUserDTO res = new ResUpdateUserDTO();
         res.setId(user.getId());
-        res.setLastName(user.getLastName());
+        res.setName(user.getName());
         res.setAge(user.getAge());
         res.setUpdatedAt(user.getUpdatedAt());
         res.setGender(user.getGender());
@@ -85,7 +85,7 @@ public class UserService {
         ResUserDTO res = new ResUserDTO();
         res.setId(user.getId());
         res.setEmail(user.getEmail());
-        res.setLastName(user.getLastName());
+        res.setName(user.getName());
         res.setAge(user.getAge());
         res.setUpdatedAt(user.getUpdatedAt());
         res.setCreatedAt(user.getCreatedAt());

@@ -11,7 +11,7 @@ import lombok.Setter;
 @Setter
 public class ResCreateUserDTO {
     private long id;
-    private String lastName;
+    private String name;
     private String email;
     private GenderEnum gender;
     private String address;

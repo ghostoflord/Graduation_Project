@@ -21,7 +21,7 @@ public class ResLoginDTO {
     public static class UserLogin {
         private long id;
         private String email;
-        private String lastName;
+        private String name;
     }
 
     @Getter
@@ -39,7 +39,7 @@ public class ResLoginDTO {
     public static class UserInsideToken {
         private long id;
         private String email;
-        private String lastName;
+        private String name;
     }
 
 }

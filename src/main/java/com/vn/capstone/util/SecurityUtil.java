@@ -28,6 +28,7 @@ import com.vn.capstone.domain.response.ResLoginDTO;
 
 @Service
 public class SecurityUtil {
+
     private final JwtEncoder jwtEncoder;
 
     public SecurityUtil(JwtEncoder jwtEncoder) {
@@ -49,7 +50,7 @@ public class SecurityUtil {
         ResLoginDTO.UserInsideToken userToken = new ResLoginDTO.UserInsideToken();
         userToken.setId(dto.getUser().getId());
         userToken.setEmail(dto.getUser().getEmail());
-        userToken.setLastName(dto.getUser().getLastName());
+        userToken.setName(dto.getUser().getName());
 
         Instant now = Instant.now();
         Instant validity = now.plus(this.accessTokenExpiration, ChronoUnit.SECONDS);
@@ -81,7 +82,7 @@ public class SecurityUtil {
         ResLoginDTO.UserInsideToken userToken = new ResLoginDTO.UserInsideToken();
         userToken.setId(dto.getUser().getId());
         userToken.setEmail(dto.getUser().getEmail());
-        userToken.setLastName(dto.getUser().getLastName());
+        userToken.setName(dto.getUser().getName());
 
         // @formatter:off
         JwtClaimsSet claims = JwtClaimsSet.builder()
@@ -99,7 +100,7 @@ public class SecurityUtil {
     private SecretKey getSecretKey() {
         byte[] keyBytes = Base64.from(jwtKey).decode();
         return new SecretKeySpec(keyBytes, 0, keyBytes.length,
-                JWT_ALGORITHM.getLastName());
+                JWT_ALGORITHM.getName());
     }
 
     public Jwt checkValidRefreshToken(String token){
@@ -112,8 +113,8 @@ public class SecurityUtil {
                     throw e;
                 }
     }
-
-/**
+    
+    /**
      * Get the login of the current user.
      *
      * @return the login of the current user.
@@ -147,5 +148,52 @@ public class SecurityUtil {
             .filter(authentication -> authentication.getCredentials() instanceof String)
             .map(authentication -> (String) authentication.getCredentials());
     }
+
+    /**
+     * Check if a user is authenticated.
+     *
+     * @return true if the user is authenticated, false otherwise.
+     */
+    // public static boolean isAuthenticated() {
+    //     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    //     return authentication != null && getAuthorities(authentication).noneMatch(AuthoritiesConstants.ANONYMOUS::equals);
+    // }
+
+    /**
+     * Checks if the current user has any of the authorities.
+     *
+     * @param authorities the authorities to check.
+     * @return true if the current user has any of the authorities, false otherwise.
+     */
+    // public static boolean hasCurrentUserAnyOfAuthorities(String... authorities) {
+    //     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    //     return (
+    //         authentication != null && getAuthorities(authentication).anyMatch(authority -> Arrays.asList(authorities).contains(authority))
+    //     );
+    // }
+
+    /**
+     * Checks if the current user has none of the authorities.
+     *
+     * @param authorities the authorities to check.
+     * @return true if the current user has none of the authorities, false otherwise.
+     */
+    // public static boolean hasCurrentUserNoneOfAuthorities(String... authorities) {
+    //     return !hasCurrentUserAnyOfAuthorities(authorities);
+    // }
+
+    /**
+     * Checks if the current user has a specific authority.
+     *
+     * @param authority the authority to check.
+     * @return true if the current user has the authority, false otherwise.
+     */
+    // public static boolean hasCurrentUserThisAuthority(String authority) {
+    //     return hasCurrentUserAnyOfAuthorities(authority);
+    // }
+
+    // private static Stream<String> getAuthorities(Authentication authentication) {
+    //     return authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority);
+    // }
 
 }
