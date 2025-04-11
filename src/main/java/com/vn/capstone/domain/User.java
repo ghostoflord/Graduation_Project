@@ -27,58 +27,24 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-
-    @Size(max = 50, message = "First name must not exceed 50 characters.")
-    @Column(name = "first_name", length = 50)
     private String firstName;
-
-    @Size(max = 50, message = "Last name must not exceed 50 characters.")
-    @Column(name = "last_name", length = 50)
     private String lastName;
-
-    @Size(max = 256)
     private String name;
-
-    @Email
-    @Size(min = 5, max = 254, message = "email must not exceed 254 characters.")
-    @Column(length = 254, unique = true)
     private String email;
-
-    @JsonIgnore
-    // @NotNull(message = "email khong duoc de trong")
     private String password;
-
-    @Size(max = 256)
     private String address;
 
     @Enumerated(EnumType.STRING)
     private GenderEnum gender;
-
-    @Size(max = 256)
     private String age;
-
-    @Size(max = 256)
-    @Column(name = "image_url", length = 256)
     private String avatar;
 
     @Column(columnDefinition = "MEDIUMTEXT")
     private String refreshToken;
-
-    @Size(max = 20)
-    @Column(name = "activation_key", length = 20)
-    @JsonIgnore
     private String activationKey;
-
-    @Column(name = "create_at")
     private Instant createdAt;
-
-    @Column(name = "update_at")
     private Instant updatedAt;
-
-    @Column(name = "create_by")
     private String createdBy;
-
-    @Column(name = "update_by")
     private String updatedBy;
 
     public long getId() {
