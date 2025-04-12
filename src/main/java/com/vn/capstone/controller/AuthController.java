@@ -1,5 +1,7 @@
 package com.vn.capstone.controller;
 
+import java.util.UUID;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -22,13 +24,13 @@ import com.vn.capstone.domain.User;
 import com.vn.capstone.domain.request.ReqLoginDTO;
 import com.vn.capstone.domain.response.ResCreateUserDTO;
 import com.vn.capstone.domain.response.ResLoginDTO;
+import com.vn.capstone.service.EmailService;
 import com.vn.capstone.service.UserService;
 import com.vn.capstone.util.SecurityUtil;
 import com.vn.capstone.util.annotation.ApiMessage;
 import com.vn.capstone.util.error.IdInvalidException;
 
 import jakarta.validation.Valid;
-
 
 @RestController
 @RequestMapping("/api/v1")
@@ -38,16 +40,19 @@ public class AuthController {
         private final SecurityUtil securityUtil;
         private final UserService userService;
         private final PasswordEncoder passwordEncoder;
+        private final EmailService emailService;
 
         @Value("${ghost.jwt.refresh-token-validity-in-seconds}")
         private long refreshTokenExpiration;
 
         public AuthController(AuthenticationManagerBuilder authenticationManagerBuilder,
-                        SecurityUtil securityUtil, UserService userService,PasswordEncoder passwordEncoder) {
+                        SecurityUtil securityUtil, UserService userService, PasswordEncoder passwordEncoder,
+                        EmailService emailService) {
                 this.authenticationManagerBuilder = authenticationManagerBuilder;
                 this.securityUtil = securityUtil;
                 this.userService = userService;
                 this.passwordEncoder = passwordEncoder;
+                this.emailService = emailService;
         }
 
         @PostMapping("/auth/login")
@@ -210,8 +215,32 @@ public class AuthController {
 
                 String hashPassword = this.passwordEncoder.encode(postManUser.getPassword());
                 postManUser.setPassword(hashPassword);
+
+                // Gán và gửi thông tin kích hoạt
+                postManUser.setActivationKey(createActiveKey());
+                // postManUser.setDaKichHoat(false);
+
+                // Gửi email cho người dùng để họ kích hoạt
+                sendActiveEmail(postManUser.getEmail(), postManUser.getActivationKey());
+
                 User ericUser = this.userService.handleCreateUser(postManUser);
                 return ResponseEntity.status(HttpStatus.CREATED)
                                 .body(this.userService.convertToResCreateUserDTO(ericUser));
+        }
+
+        private String createActiveKey() {
+                // Tạo mã ngẫu nhiên
+                return UUID.randomUUID().toString();
+        }
+
+        private void sendActiveEmail(String email, String activationKey) {
+                String subject = "Kích hoạt tài khoản của bạn tại WebBanSach";
+                String text = "Vui lòng sử dụng mã sau để kich hoạt cho tài khoản <" + email + ">:<html><body><br/><h1>"
+                                + activationKey + "</h1></body></html>";
+                text += "<br/> Click vào đường link để kích hoạt tài khoản: ";
+                String url = "http://localhost:8008/" + email + "/" + activationKey;
+                text += ("<br/> <a href=" + url + ">" + url + "</a> ");
+
+                emailService.sendMessage("lovegau2892003@gmail.com", email, subject, text);
         }
 }

@@ -70,4 +70,20 @@ public class EmailService {
         this.sendEmailSync(to, subject, content, false, true);
     }
 
+    // active key
+    public void sendMessage(String from, String to, String subject, String text) {
+        MimeMessage message = javaMailSender.createMimeMessage();
+        try {
+            MimeMessageHelper helper = new MimeMessageHelper(message, true);
+            helper.setFrom(from);
+            helper.setTo(to);
+            helper.setSubject(subject);
+            helper.setText(text, true);
+        } catch (MessagingException e) {
+            throw new RuntimeException(e);
+        }
+        // thực hiện hành động gửi email
+        javaMailSender.send(message);
+    };
+
 }
