@@ -1,5 +1,7 @@
 package com.vn.capstone.controller;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -12,7 +14,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.turkraft.springfilter.boot.Filter;
+
 import com.vn.capstone.domain.User;
+import com.vn.capstone.domain.response.ResultPaginationDTO;
 import com.vn.capstone.service.UserService;
 import com.vn.capstone.util.annotation.ApiMessage;
 import com.vn.capstone.util.error.IdInvalidException;
@@ -29,6 +34,16 @@ public class UserController {
     public UserController(UserService userService, PasswordEncoder passwordEncoder) {
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
+    }
+
+    @GetMapping("/users")
+    @ApiMessage("fetch all user")
+    public ResponseEntity<ResultPaginationDTO> getAllUser(
+            @Filter Specification<User> spec,
+            Pageable pageable) {
+
+        return ResponseEntity.status(HttpStatus.OK).body(
+                this.userService.fetchAllUser(spec, pageable));
     }
 
     @GetMapping("/users/{id}")

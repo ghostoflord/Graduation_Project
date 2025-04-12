@@ -1,13 +1,19 @@
 package com.vn.capstone.service;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import com.vn.capstone.domain.User;
 import com.vn.capstone.domain.response.ResCreateUserDTO;
 import com.vn.capstone.domain.response.ResUpdateUserDTO;
 import com.vn.capstone.domain.response.ResUserDTO;
+import com.vn.capstone.domain.response.ResultPaginationDTO;
 import com.vn.capstone.repository.UserRepository;
 
 @Service
@@ -16,6 +22,29 @@ public class UserService {
 
     public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
+    }
+
+    public ResultPaginationDTO fetchAllUser(Specification<User> spec, Pageable pageable) {
+        Page<User> pageUser = this.userRepository.findAll(spec, pageable);
+        ResultPaginationDTO rs = new ResultPaginationDTO();
+        ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
+
+        mt.setPage(pageable.getPageNumber() + 1);
+        mt.setPageSize(pageable.getPageSize());
+
+        mt.setPages(pageUser.getTotalPages());
+        mt.setTotal(pageUser.getTotalElements());
+
+        rs.setMeta(mt);
+        rs.setResult(pageUser.getContent());
+
+        // remove sensitive data
+        List<ResUserDTO> listUser = pageUser.getContent()
+                .stream().map(item -> this.convertToResUserDTO(item))
+                .collect(Collectors.toList());
+
+        rs.setResult(listUser);
+        return rs;
     }
 
     public User fetchUserById(long id) {
