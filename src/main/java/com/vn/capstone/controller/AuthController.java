@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.vn.capstone.domain.User;
@@ -218,7 +219,7 @@ public class AuthController {
 
                 // Gán và gửi thông tin kích hoạt
                 postManUser.setActivationKey(createActiveKey());
-                // postManUser.setDaKichHoat(false);
+                postManUser.setActivate(false);
 
                 // Gửi email cho người dùng để họ kích hoạt
                 sendActiveEmail(postManUser.getEmail(), postManUser.getActivationKey());
@@ -238,9 +239,15 @@ public class AuthController {
                 String text = "Vui lòng sử dụng mã sau để kich hoạt cho tài khoản <" + email + ">:<html><body><br/><h1>"
                                 + activationKey + "</h1></body></html>";
                 text += "<br/> Click vào đường link để kích hoạt tài khoản: ";
-                String url = "http://localhost:8008/" + email + "/" + activationKey;
+                String url = "http://localhost:8008/api/v1/active" + email + "/" + activationKey;
                 text += ("<br/> <a href=" + url + ">" + url + "</a> ");
 
                 emailService.sendMessage("lovegau2892003@gmail.com", email, subject, text);
+        }
+
+        @GetMapping("/active")
+        public ResponseEntity<?> isActiveAccount(@RequestParam String email, @RequestParam String activationKey) {
+                ResponseEntity<?> response = userService.activeAccount(email, activationKey);
+                return response;
         }
 }

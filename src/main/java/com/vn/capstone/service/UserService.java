@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.vn.capstone.domain.User;
@@ -133,5 +134,25 @@ public class UserService {
 
     public User getUserByRefreshTokenAndEmail(String token, String email) {
         return this.userRepository.findByRefreshTokenAndEmail(token, email);
+    }
+
+    public ResponseEntity<?> activeAccount(String email, String activationKey) {
+        User activeUser = userRepository.findByEmail(email);
+
+        if (activeUser == null) {
+            return ResponseEntity.badRequest().body("Người dùng không tồn tại!");
+        }
+
+        if (activeUser.isActivate()) {
+            return ResponseEntity.badRequest().body("Tài khoản đã được kích hoạt!");
+        }
+
+        if (activationKey.equals(activeUser.getActivationKey())) {
+            activeUser.setActivate(true);
+            userRepository.save(activeUser);
+            return ResponseEntity.ok("Kích hoạt tài khoản thành công!");
+        } else {
+            return ResponseEntity.badRequest().body("Mã kích hoạt không chính xác!");
+        }
     }
 }

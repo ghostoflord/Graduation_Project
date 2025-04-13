@@ -46,6 +46,8 @@ public class User {
     private String createdBy;
     private String updatedBy;
 
+    private boolean activate;
+
     public long getId() {
         return id;
     }
@@ -174,6 +176,14 @@ public class User {
         this.updatedBy = updatedBy;
     }
 
+    public boolean isActivate() {
+        return activate;
+    }
+
+    public void setActivate(boolean activate) {
+        this.activate = activate;
+    }
+
     @PrePersist
     public void handleBeforeCreate() {
         this.createdBy = SecurityUtil.getCurrentUserLogin().isPresent() == true
@@ -199,4 +209,5 @@ public class User {
                 + ", password=" + password + ", address=" + address + ", gender=" + gender + ", age=" + age
                 + ", avatar=" + avatar + ", refreshToken=" + refreshToken + ", activationKey=" + activationKey + "]";
     }
+
 }
