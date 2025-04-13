@@ -1,28 +1,31 @@
 package com.vn.capstone.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.vn.capstone.domain.User;
+import com.vn.capstone.domain.VerificationToken;
 import com.vn.capstone.domain.response.ResCreateUserDTO;
 import com.vn.capstone.domain.response.ResUpdateUserDTO;
 import com.vn.capstone.domain.response.ResUserDTO;
 import com.vn.capstone.domain.response.ResultPaginationDTO;
 import com.vn.capstone.repository.UserRepository;
+import com.vn.capstone.repository.VerificationTokenRepository;
 
 @Service
 public class UserService {
     private final UserRepository userRepository;
+    private final VerificationTokenRepository verificationTokenRepository;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, VerificationTokenRepository verificationTokenRepository) {
         this.userRepository = userRepository;
+        this.verificationTokenRepository = verificationTokenRepository;
     }
 
     public ResultPaginationDTO fetchAllUser(Specification<User> spec, Pageable pageable) {
@@ -136,23 +139,16 @@ public class UserService {
         return this.userRepository.findByRefreshTokenAndEmail(token, email);
     }
 
-    public ResponseEntity<?> activeAccount(String email, String activationKey) {
-        User activeUser = userRepository.findByEmail(email);
+    public boolean verifyUser(String token) {
+        VerificationToken vt = verificationTokenRepository.findByToken(token);
+        if (vt == null || vt.getExpiryDate().isBefore(LocalDateTime.now()))
+            return false;
 
-        if (activeUser == null) {
-            return ResponseEntity.badRequest().body("Người dùng không tồn tại!");
-        }
+        User user = vt.getUser();
+        user.setActivate(true);
+        userRepository.save(user);
 
-        if (activeUser.isActivate()) {
-            return ResponseEntity.badRequest().body("Tài khoản đã được kích hoạt!");
-        }
-
-        if (activationKey.equals(activeUser.getActivationKey())) {
-            activeUser.setActivate(true);
-            userRepository.save(activeUser);
-            return ResponseEntity.ok("Kích hoạt tài khoản thành công!");
-        } else {
-            return ResponseEntity.badRequest().body("Mã kích hoạt không chính xác!");
-        }
+        verificationTokenRepository.delete(vt);
+        return true;
     }
 }

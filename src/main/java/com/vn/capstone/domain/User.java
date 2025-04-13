@@ -12,6 +12,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -47,6 +48,17 @@ public class User {
     private String updatedBy;
 
     private boolean activate;
+
+    @OneToOne
+    private VerificationToken verificationToken;
+
+    public VerificationToken getVerificationToken() {
+        return verificationToken;
+    }
+
+    public void setVerificationToken(VerificationToken verificationToken) {
+        this.verificationToken = verificationToken;
+    }
 
     public long getId() {
         return id;
@@ -198,7 +210,6 @@ public class User {
         this.updatedBy = SecurityUtil.getCurrentUserLogin().isPresent() == true
                 ? SecurityUtil.getCurrentUserLogin().get()
                 : "";
-
         this.updatedAt = Instant.now();
     }
 
@@ -209,5 +220,4 @@ public class User {
                 + ", password=" + password + ", address=" + address + ", gender=" + gender + ", age=" + age
                 + ", avatar=" + avatar + ", refreshToken=" + refreshToken + ", activationKey=" + activationKey + "]";
     }
-
 }

@@ -70,20 +70,16 @@ public class EmailService {
         this.sendEmailSync(to, subject, content, false, true);
     }
 
-    // active key
-    public void sendMessage(String from, String to, String subject, String text) {
-        MimeMessage message = javaMailSender.createMimeMessage();
-        try {
-            MimeMessageHelper helper = new MimeMessageHelper(message, true);
-            helper.setFrom(from);
-            helper.setTo(to);
-            helper.setSubject(subject);
-            helper.setText(text, true);
-        } catch (MessagingException e) {
-            throw new RuntimeException(e);
-        }
-        // thực hiện hành động gửi email
-        javaMailSender.send(message);
-    };
+    //send token active email
+    public void sendVerificationEmail(String toEmail, String token) {
+        String link = "http://localhost:8080/api/v1/verify?token=" + token;
+
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(toEmail);
+        message.setSubject("Email Verification");
+        message.setText("Click the link to verify your email:\n" + link);
+
+        mailSender.send(message);
+    }
 
 }
