@@ -22,7 +22,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
+import com.vn.capstone.config.CustomUserDetails;
 import com.vn.capstone.domain.User;
 import com.vn.capstone.domain.VerificationToken;
 import com.vn.capstone.domain.request.ReqLoginDTO;
@@ -71,6 +73,12 @@ public class AuthController {
                 // xác thực người dùng => cần viết hàm loadUserByUsername
                 Authentication authentication = authenticationManagerBuilder.getObject()
                                 .authenticate(authenticationToken);
+
+                // Kiểm tra tài khoản có active chưa
+                CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+                if (!userDetails.isEnabled()) {
+                        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Tài khoản chưa được kích hoạt.");
+                }
 
                 // set thông tin người dùng đăng nhập vào context (có thể sử dụng sau này)
                 SecurityContextHolder.getContext().setAuthentication(authentication);
