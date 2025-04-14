@@ -1,6 +1,7 @@
 package com.vn.capstone.domain;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 import com.vn.capstone.util.SecurityUtil;
 import com.vn.capstone.util.constant.GenderEnum;
@@ -49,16 +50,14 @@ public class User {
 
     private boolean activate;
 
+    @Column(name = "reset_password_token")
+    private String resetPasswordToken;
+
+    @Column(name = "reset_password_token_expiry")
+    private LocalDateTime resetPasswordTokenExpiry;
+
     @OneToOne
     private VerificationToken verificationToken;
-
-    public VerificationToken getVerificationToken() {
-        return verificationToken;
-    }
-
-    public void setVerificationToken(VerificationToken verificationToken) {
-        this.verificationToken = verificationToken;
-    }
 
     public long getId() {
         return id;
@@ -194,6 +193,30 @@ public class User {
 
     public void setActivate(boolean activate) {
         this.activate = activate;
+    }
+
+    public String getResetPasswordToken() {
+        return resetPasswordToken;
+    }
+
+    public void setResetPasswordToken(String resetPasswordToken) {
+        this.resetPasswordToken = resetPasswordToken;
+    }
+
+    public LocalDateTime getResetPasswordTokenExpiry() {
+        return resetPasswordTokenExpiry;
+    }
+
+    public void setResetPasswordTokenExpiry(LocalDateTime resetPasswordTokenExpiry) {
+        this.resetPasswordTokenExpiry = resetPasswordTokenExpiry;
+    }
+
+    public VerificationToken getVerificationToken() {
+        return verificationToken;
+    }
+
+    public void setVerificationToken(VerificationToken verificationToken) {
+        this.verificationToken = verificationToken;
     }
 
     @PrePersist

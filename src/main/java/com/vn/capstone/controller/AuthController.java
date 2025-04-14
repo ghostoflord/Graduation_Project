@@ -9,6 +9,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
@@ -30,6 +31,9 @@ import com.vn.capstone.domain.VerificationToken;
 import com.vn.capstone.domain.request.ReqLoginDTO;
 import com.vn.capstone.domain.response.ResCreateUserDTO;
 import com.vn.capstone.domain.response.ResLoginDTO;
+import com.vn.capstone.domain.response.dtoAuth.ForgotPasswordRequest;
+import com.vn.capstone.domain.response.dtoAuth.ResetPasswordRequest;
+import com.vn.capstone.domain.response.dtoAuth.VerifyTokenRequest;
 import com.vn.capstone.repository.VerificationTokenRepository;
 import com.vn.capstone.service.EmailService;
 import com.vn.capstone.service.UserService;
@@ -258,5 +262,28 @@ public class AuthController {
                 } else {
                         return ResponseEntity.badRequest().body("Invalid or expired verification token.");
                 }
+        }
+
+        // remake
+        @PostMapping("/auth/forgot-password")
+        public ResponseEntity<?> forgotPassword(@RequestBody ForgotPasswordRequest request) {
+                try {
+                        userService.sendPasswordResetEmail(request.getEmail());
+                        return ResponseEntity.ok("Password reset email sent");
+                } catch (RuntimeException e) {
+                        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+                }
+        }
+
+        @PostMapping("/auth/verify-reset-token")
+        public ResponseEntity<?> verifyResetToken(@RequestBody VerifyTokenRequest request) {
+                boolean isValid = userService.validatePasswordResetToken(request.getToken());
+                return ResponseEntity.ok(isValid ? "Token valid" : "Invalid token");
+        }
+
+        @PostMapping("/auth/reset-password")
+        public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request) {
+                userService.resetPassword(request.getToken(), request.getNewPassword());
+                return ResponseEntity.ok("Password reset successfully");
         }
 }

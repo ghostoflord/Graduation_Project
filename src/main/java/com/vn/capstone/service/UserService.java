@@ -3,10 +3,16 @@ package com.vn.capstone.service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.vn.capstone.domain.User;
@@ -22,6 +28,12 @@ import com.vn.capstone.repository.VerificationTokenRepository;
 public class UserService {
     private final UserRepository userRepository;
     private final VerificationTokenRepository verificationTokenRepository;
+
+    @Autowired
+    private JavaMailSender mailSender;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     public UserService(UserRepository userRepository, VerificationTokenRepository verificationTokenRepository) {
         this.userRepository = userRepository;
@@ -151,4 +163,49 @@ public class UserService {
         verificationTokenRepository.delete(vt);
         return true;
     }
+
+    // sendPasswordResetEmail
+    public void sendPasswordResetEmail(String email) {
+        User user = userRepository.findByEmail(email);
+        // Tạo token (có thể dùng UUID hoặc OTP 6 số)
+        String token = UUID.randomUUID().toString();
+        user.setResetPasswordToken(token);
+        user.setResetPasswordTokenExpiry(LocalDateTime.now().plusHours(1)); // Token hết hạn sau 1 giờ
+        userRepository.save(user);
+
+        // Gửi email
+        String resetLink = "http://localhost:8080/api/v1/auth/reset-password?token=" + token;
+        String emailBody = "Click the link to reset your password: " + resetLink;
+
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(email);
+        message.setSubject("Password Reset Request");
+        message.setText(emailBody);
+        mailSender.send(message);
+    }
+
+    public boolean validatePasswordResetToken(String token) {
+        User user = userRepository.findByResetPasswordToken(token)
+                .orElseThrow(() -> new RuntimeException("Invalid token"));
+
+        if (user.getResetPasswordTokenExpiry().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Token expired");
+        }
+        return true;
+    }
+
+    public void resetPassword(String token, String newPassword) {
+        User user = userRepository.findByResetPasswordToken(token)
+                .orElseThrow(() -> new RuntimeException("Invalid token"));
+
+        if (user.getResetPasswordTokenExpiry().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Token expired");
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setResetPasswordToken(null); // Xóa token sau khi dùng
+        user.setResetPasswordTokenExpiry(null);
+        userRepository.save(user);
+    }
+
 }
