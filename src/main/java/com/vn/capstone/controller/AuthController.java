@@ -1,5 +1,6 @@
 package com.vn.capstone.controller;
 
+import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -31,6 +32,7 @@ import com.vn.capstone.domain.VerificationToken;
 import com.vn.capstone.domain.request.ReqLoginDTO;
 import com.vn.capstone.domain.response.ResCreateUserDTO;
 import com.vn.capstone.domain.response.ResLoginDTO;
+import com.vn.capstone.domain.response.RestResponse;
 import com.vn.capstone.domain.response.dtoAuth.ForgotPasswordRequest;
 import com.vn.capstone.domain.response.dtoAuth.ResetPasswordRequest;
 import com.vn.capstone.domain.response.dtoAuth.VerifyTokenRequest;
@@ -69,7 +71,7 @@ public class AuthController {
         }
 
         @PostMapping("/auth/login")
-        public ResponseEntity<ResLoginDTO> login(@Valid @RequestBody ReqLoginDTO loginDto) {
+        public ResponseEntity<RestResponse<ResLoginDTO>> login(@Valid @RequestBody ReqLoginDTO loginDto) {
                 // Nạp input gồm username/password vào Security
                 UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
                                 loginDto.getUsername(), loginDto.getPassword());
@@ -116,9 +118,14 @@ public class AuthController {
                                 .maxAge(refreshTokenExpiration)
                                 .build();
 
+                RestResponse<ResLoginDTO> restResponse = new RestResponse<>();
+                restResponse.setStatusCode(HttpStatus.OK.value());
+                restResponse.setData(res);
+                restResponse.setMessage("Đăng nhập thành công");
+
                 return ResponseEntity.ok()
                                 .header(HttpHeaders.SET_COOKIE, resCookies.toString())
-                                .body(res);
+                                .body(restResponse);
         }
 
         @GetMapping("/auth/account")
@@ -258,9 +265,15 @@ public class AuthController {
         public ResponseEntity<String> verify(@RequestParam String token) {
                 boolean verified = userService.verifyUser(token);
                 if (verified) {
-                        return ResponseEntity.ok("Email verified. You can now log in.");
+                        URI redirectUri = URI.create("http://localhost:3000/login");
+                        HttpHeaders headers = new HttpHeaders();
+                        headers.setLocation(redirectUri);
+                        return new ResponseEntity<>(headers, HttpStatus.FOUND);
                 } else {
-                        return ResponseEntity.badRequest().body("Invalid or expired verification token.");
+                        URI redirectUri = URI.create("http://localhost:3000/verify-failed");
+                        HttpHeaders headers = new HttpHeaders();
+                        headers.setLocation(redirectUri);
+                        return new ResponseEntity<>(headers, HttpStatus.FOUND);
                 }
         }
 
