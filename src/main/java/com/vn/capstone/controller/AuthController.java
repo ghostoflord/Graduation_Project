@@ -2,6 +2,8 @@ package com.vn.capstone.controller;
 
 import java.net.URI;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.vn.capstone.config.CustomUserDetails;
+import com.vn.capstone.domain.response.dtoAuth.ResponseUtils;
 import com.vn.capstone.domain.User;
 import com.vn.capstone.domain.VerificationToken;
 import com.vn.capstone.domain.request.ReqLoginDTO;
@@ -231,7 +234,7 @@ public class AuthController {
 
         @PostMapping("/auth/register")
         @ApiMessage("Register a new user")
-        public ResponseEntity<ResCreateUserDTO> register(@Valid @RequestBody User postManUser)
+        public ResponseEntity<RestResponse<ResCreateUserDTO>> register(@Valid @RequestBody User postManUser)
                         throws IdInvalidException {
                 boolean isEmailExist = this.userService.isEmailExists(postManUser.getEmail());
                 if (isEmailExist) {
@@ -255,9 +258,14 @@ public class AuthController {
 
                 // Gửi email cho người dùng để họ kích hoạt
                 emailService.sendVerificationEmail(postManUser.getEmail(), token);
+                // Response wrap
+                ResCreateUserDTO data = this.userService.convertToResCreateUserDTO(ericUser);
+                RestResponse<ResCreateUserDTO> response = new RestResponse<>();
+                response.setStatusCode(HttpStatus.CREATED.value());
+                response.setMessage("Đăng ký tài khoản thành công, vui lòng kiểm tra email để kích hoạt.");
+                response.setData(data);
 
-                return ResponseEntity.status(HttpStatus.CREATED)
-                                .body(this.userService.convertToResCreateUserDTO(ericUser));
+                return ResponseEntity.status(HttpStatus.CREATED).body(response);
         }
 
         // active acc
@@ -279,12 +287,28 @@ public class AuthController {
 
         // remake
         @PostMapping("/auth/forgot-password")
-        public ResponseEntity<?> forgotPassword(@RequestBody ForgotPasswordRequest request) {
+        public ResponseEntity<RestResponse<Map<String, String>>> forgotPassword(
+                        @RequestBody ForgotPasswordRequest request) {
                 try {
                         userService.sendPasswordResetEmail(request.getEmail());
-                        return ResponseEntity.ok("Password reset email sent");
+
+                        RestResponse<Map<String, String>> res = new RestResponse<>();
+                        res.setStatusCode(HttpStatus.OK.value());
+                        res.setMessage("Password reset email sent");
+
+                        Map<String, String> data = new HashMap<>();
+                        data.put("email", request.getEmail());
+                        res.setData(data);
+
+                        return ResponseEntity.ok(res);
+
                 } catch (RuntimeException e) {
-                        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+                        RestResponse<Map<String, String>> res = new RestResponse<>();
+                        res.setStatusCode(HttpStatus.NOT_FOUND.value());
+                        res.setError("Not Found");
+                        res.setMessage(e.getMessage());
+                        res.setData(null); // hoặc new HashMap<>()
+                        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(res);
                 }
         }
 
@@ -295,8 +319,15 @@ public class AuthController {
         }
 
         @PostMapping("/auth/reset-password")
-        public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request) {
-                userService.resetPassword(request.getToken(), request.getNewPassword());
-                return ResponseEntity.ok("Password reset successfully");
+        public ResponseEntity<RestResponse<Void>> resetPassword(@RequestBody ResetPasswordRequest request) {
+                try {
+                        userService.resetPassword(request.getToken(), request.getNewPassword());
+                        return ResponseEntity.ok(ResponseUtils.success(null, "Password reset successfully"));
+                } catch (RuntimeException e) {
+                        return ResponseEntity
+                                        .status(HttpStatus.BAD_REQUEST)
+                                        .body(ResponseUtils.error(e.getMessage(), HttpStatus.BAD_REQUEST.value()));
+                }
         }
+
 }
