@@ -322,11 +322,21 @@ public class AuthController {
         public ResponseEntity<RestResponse<Void>> resetPassword(@RequestBody ResetPasswordRequest request) {
                 try {
                         userService.resetPassword(request.getToken(), request.getNewPassword());
-                        return ResponseEntity.ok(ResponseUtils.success(null, "Password reset successfully"));
+
+                        RestResponse<Void> res = new RestResponse<>();
+                        res.setStatusCode(HttpStatus.OK.value());
+                        res.setMessage("Password reset successfully");
+                        res.setData(null);
+
+                        return ResponseEntity.ok(res);
                 } catch (RuntimeException e) {
-                        return ResponseEntity
-                                        .status(HttpStatus.BAD_REQUEST)
-                                        .body(ResponseUtils.error(e.getMessage(), HttpStatus.BAD_REQUEST.value()));
+                        RestResponse<Void> res = new RestResponse<>();
+                        res.setStatusCode(HttpStatus.BAD_REQUEST.value());
+                        res.setError("Bad Request");
+                        res.setMessage(e.getMessage());
+                        res.setData(null);
+
+                        return ResponseEntity.badRequest().body(res);
                 }
         }
 
