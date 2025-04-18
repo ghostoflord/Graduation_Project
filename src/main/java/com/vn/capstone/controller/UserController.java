@@ -112,7 +112,7 @@ public class UserController {
         newUser.setEmail(userDTO.getEmail());
         newUser.setPassword(passwordEncoder.encode(userDTO.getPassword()));
         newUser.setAvatar(avatarUrl); // Lưu đường dẫn avatar
-
+        newUser.setGender(userDTO.getGender());
         // 4. Lưu vào database
         User savedUser = userService.handleCreateUser(newUser);
 
