@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
@@ -75,60 +76,79 @@ public class AuthController {
 
         @PostMapping("/auth/login")
         public ResponseEntity<RestResponse<ResLoginDTO>> login(@Valid @RequestBody ReqLoginDTO loginDto) {
-                // Nạp input gồm username/password vào Security
-                UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
-                                loginDto.getUsername(), loginDto.getPassword());
+                try {
+                        // Nạp input gồm username/password vào Security
+                        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
+                                        loginDto.getUsername(), loginDto.getPassword());
 
-                // xác thực người dùng => cần viết hàm loadUserByUsername
-                Authentication authentication = authenticationManagerBuilder.getObject()
-                                .authenticate(authenticationToken);
+                        // Xác thực người dùng => nếu sai username hoặc password sẽ ném lỗi ở đây
+                        Authentication authentication = authenticationManagerBuilder.getObject()
+                                        .authenticate(authenticationToken);
 
-                // Kiểm tra tài khoản có active chưa
-                CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-                if (!userDetails.isEnabled()) {
-                        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Tài khoản chưa được kích hoạt.");
+                        // Kiểm tra tài khoản có active chưa
+                        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+                        if (!userDetails.isEnabled()) {
+                                RestResponse<ResLoginDTO> response = new RestResponse<>();
+                                response.setStatusCode(HttpStatus.UNAUTHORIZED.value());
+                                response.setMessage("Tài khoản chưa được kích hoạt.");
+                                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+                        }
+
+                        // set thông tin người dùng đăng nhập vào context (có thể sử dụng sau này)
+                        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+                        // Chuẩn bị dữ liệu trả về
+                        ResLoginDTO res = new ResLoginDTO();
+                        User currentUserDB = this.userService.handleGetUserByUsername(loginDto.getUsername());
+                        if (currentUserDB != null) {
+                                ResLoginDTO.UserLogin userLogin = new ResLoginDTO.UserLogin(
+                                                currentUserDB.getId(),
+                                                currentUserDB.getEmail(),
+                                                currentUserDB.getName());
+                                res.setUser(userLogin);
+                        }
+
+                        // Tạo access token
+                        String access_token = this.securityUtil.createAccessToken(authentication.getName(), res);
+                        res.setAccessToken(access_token);
+
+                        // Tạo refresh token
+                        String refresh_token = this.securityUtil.createRefreshToken(loginDto.getUsername(), res);
+
+                        // Cập nhật refresh token cho user
+                        this.userService.updateUserToken(refresh_token, loginDto.getUsername());
+
+                        // Tạo cookie
+                        ResponseCookie resCookies = ResponseCookie
+                                        .from("refresh_token", refresh_token)
+                                        .httpOnly(true)
+                                        .secure(true)
+                                        .path("/")
+                                        .maxAge(refreshTokenExpiration)
+                                        .build();
+
+                        // Trả response thành công
+                        RestResponse<ResLoginDTO> restResponse = new RestResponse<>();
+                        restResponse.setStatusCode(HttpStatus.OK.value());
+                        restResponse.setData(res);
+                        restResponse.setMessage("Đăng nhập thành công");
+
+                        return ResponseEntity.ok()
+                                        .header(HttpHeaders.SET_COOKIE, resCookies.toString())
+                                        .body(restResponse);
+                } catch (BadCredentialsException e) {
+                        // Trả response sai tài khoản/mật khẩu
+                        RestResponse<ResLoginDTO> response = new RestResponse<>();
+                        response.setStatusCode(HttpStatus.UNAUTHORIZED.value());
+                        response.setMessage("Tài khoản hoặc mật khẩu không đúng");
+                        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+                } catch (Exception e) {         
+                        // Các lỗi khác
+                        RestResponse<ResLoginDTO> response = new RestResponse<>();
+                        response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+                        response.setMessage("Đã xảy ra lỗi không xác định: " + e.getMessage());
+                        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
                 }
-
-                // set thông tin người dùng đăng nhập vào context (có thể sử dụng sau này)
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-
-                ResLoginDTO res = new ResLoginDTO();
-                User currentUserDB = this.userService.handleGetUserByUsername(loginDto.getUsername());
-                if (currentUserDB != null) {
-                        ResLoginDTO.UserLogin userLogin = new ResLoginDTO.UserLogin(
-                                        currentUserDB.getId(),
-                                        currentUserDB.getEmail(),
-                                        currentUserDB.getName());
-                        res.setUser(userLogin);
-                }
-
-                // create access token
-                String access_token = this.securityUtil.createAccessToken(authentication.getName(), res);
-                res.setAccessToken(access_token);
-
-                // create refresh token
-                String refresh_token = this.securityUtil.createRefreshToken(loginDto.getUsername(), res);
-
-                // update user
-                this.userService.updateUserToken(refresh_token, loginDto.getUsername());
-
-                // set cookies
-                ResponseCookie resCookies = ResponseCookie
-                                .from("refresh_token", refresh_token)
-                                .httpOnly(true)
-                                .secure(true)
-                                .path("/")
-                                .maxAge(refreshTokenExpiration)
-                                .build();
-
-                RestResponse<ResLoginDTO> restResponse = new RestResponse<>();
-                restResponse.setStatusCode(HttpStatus.OK.value());
-                restResponse.setData(res);
-                restResponse.setMessage("Đăng nhập thành công");
-
-                return ResponseEntity.ok()
-                                .header(HttpHeaders.SET_COOKIE, resCookies.toString())
-                                .body(restResponse);
         }
 
         @GetMapping("/auth/account")
