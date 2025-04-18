@@ -47,19 +47,18 @@ public class UserService {
 
         mt.setPage(pageable.getPageNumber() + 1);
         mt.setPageSize(pageable.getPageSize());
-
         mt.setPages(pageUser.getTotalPages());
         mt.setTotal(pageUser.getTotalElements());
 
         rs.setMeta(mt);
-        rs.setResult(pageUser.getContent());
 
-        // remove sensitive data
+        // Chỉ dùng DTO, không set raw entity
         List<ResUserDTO> listUser = pageUser.getContent()
-                .stream().map(item -> this.convertToResUserDTO(item))
+                .stream()
+                .map(this::convertToResUserDTO)
                 .collect(Collectors.toList());
 
-        rs.setResult(listUser);
+        rs.setResult(listUser); // CHỈ set DTO
         return rs;
     }
 
