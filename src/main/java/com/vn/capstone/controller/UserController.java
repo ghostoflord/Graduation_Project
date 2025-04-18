@@ -1,7 +1,6 @@
 package com.vn.capstone.controller;
 
 import java.io.IOException;
-import java.nio.file.Paths;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -22,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.turkraft.springfilter.boot.Filter;
 
 import com.vn.capstone.domain.User;
+import com.vn.capstone.domain.response.RestResponse;
 import com.vn.capstone.domain.response.ResultPaginationDTO;
 import com.vn.capstone.domain.response.file.CreateUserDTO;
 import com.vn.capstone.service.UserService;
@@ -54,12 +54,18 @@ public class UserController {
 
     @GetMapping("/users")
     @ApiMessage("fetch all user")
-    public ResponseEntity<ResultPaginationDTO> getAllUser(
+    public ResponseEntity<RestResponse<ResultPaginationDTO>> getAllUser(
             @Filter Specification<User> spec,
             Pageable pageable) {
 
-        return ResponseEntity.status(HttpStatus.OK).body(
-                this.userService.fetchAllUser(spec, pageable));
+        ResultPaginationDTO result = this.userService.fetchAllUser(spec, pageable);
+
+        RestResponse<ResultPaginationDTO> response = new RestResponse<>();
+        response.setStatusCode(HttpStatus.OK.value());
+        response.setMessage("fetch all user");
+        response.setData(result);
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @GetMapping("/users/{id}")

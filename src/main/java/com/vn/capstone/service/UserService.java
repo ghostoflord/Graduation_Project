@@ -135,6 +135,8 @@ public class UserService {
         res.setCreatedAt(user.getCreatedAt());
         res.setGender(user.getGender());
         res.setAddress(user.getAddress());
+        res.setActivate(user.isActivate());
+        res.setAddress(user.getAddress());
         return res;
     }
 

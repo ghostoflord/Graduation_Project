@@ -23,5 +23,6 @@ public class ResUserDTO {
     private String age;
     private Instant updatedAt;
     private Instant createdAt;
-
+    private boolean activate;
+    private String avatar;
 }
