@@ -108,11 +108,13 @@ public class UserController {
 
         // 3. Tạo user mới
         User newUser = new User();
-        newUser.setName(userDTO.getUsername());
+        newUser.setName(userDTO.getName());
         newUser.setEmail(userDTO.getEmail());
         newUser.setPassword(passwordEncoder.encode(userDTO.getPassword()));
         newUser.setAvatar(avatarUrl); // Lưu đường dẫn avatar
         newUser.setGender(userDTO.getGender());
+        newUser.setAddress(userDTO.getAddress());
+        newUser.setAge(userDTO.getAge());
         // 4. Lưu vào database
         User savedUser = userService.handleCreateUser(newUser);
 

@@ -75,6 +75,7 @@ public class UserService {
         if (currentUser != null) {
             currentUser.setFirstName(reqUser.getFirstName());
             currentUser.setLastName(reqUser.getLastName());
+            currentUser.setName(reqUser.getName());
             currentUser.setAddress(reqUser.getAddress());
             currentUser.setGender(reqUser.getGender());
             currentUser.setAge(reqUser.getAge());
