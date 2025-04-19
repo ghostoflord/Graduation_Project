@@ -138,6 +138,7 @@ public class UserService {
         res.setAddress(user.getAddress());
         res.setActivate(user.isActivate());
         res.setAddress(user.getAddress());
+        res.setAvatar(user.getAvatar());
         return res;
     }
 
