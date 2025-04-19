@@ -38,6 +38,7 @@ public class User {
     @Enumerated(EnumType.STRING)
     private GenderEnum gender;
     private String age;
+    @Column(columnDefinition = "MEDIUMTEXT")
     private String avatar;
 
     @Column(columnDefinition = "MEDIUMTEXT")

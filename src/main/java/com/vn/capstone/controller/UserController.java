@@ -1,7 +1,5 @@
 package com.vn.capstone.controller;
 
-import java.io.IOException;
-
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
@@ -35,6 +33,7 @@ import org.springframework.http.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.*;
 import java.nio.file.*;
+import java.util.Base64;
 import java.io.*;
 
 @RestController
@@ -92,50 +91,99 @@ public class UserController {
     // }
 
     @PostMapping("/users")
-    public ResponseEntity<User> createUser(
-            @Valid @ModelAttribute CreateUserDTO userDTO) throws IOException {
+    public ResponseEntity<RestResponse<User>> createUser(@RequestBody CreateUserDTO userDTO) throws IOException {
 
-        // 1. Kiểm tra email tồn tại
         if (userService.isEmailExists(userDTO.getEmail())) {
-            throw new RuntimeException("Email đã tồn tại");
+            RestResponse<User> errorResponse = new RestResponse<>();
+            errorResponse.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            errorResponse.setError("Email đã tồn tại");
+            errorResponse.setMessage("Không thể tạo tài khoản với email đã tồn tại");
+            errorResponse.setData(null);
+            return ResponseEntity.badRequest().body(errorResponse);
         }
 
-        // 2. Xử lý avatar (nếu có)
+        if (userDTO.getPassword() == null || userDTO.getPassword().trim().isEmpty()) {
+            RestResponse<User> errorResponse = new RestResponse<>();
+            errorResponse.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            errorResponse.setError("Password không được để trống hoặc null");
+            errorResponse.setMessage("Password không được để trống hoặc null");
+            errorResponse.setData(null);
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+
         String avatarUrl = null;
         if (userDTO.getAvatar() != null && !userDTO.getAvatar().isEmpty()) {
             avatarUrl = saveAvatar(userDTO.getAvatar());
         }
 
-        // 3. Tạo user mới
         User newUser = new User();
         newUser.setName(userDTO.getName());
         newUser.setEmail(userDTO.getEmail());
         newUser.setPassword(passwordEncoder.encode(userDTO.getPassword()));
-        newUser.setAvatar(avatarUrl); // Lưu đường dẫn avatar
+        newUser.setAvatar(avatarUrl); // Set avatar to the saved file path
         newUser.setGender(userDTO.getGender());
         newUser.setAddress(userDTO.getAddress());
         newUser.setAge(userDTO.getAge());
-        // 4. Lưu vào database
+
         User savedUser = userService.handleCreateUser(newUser);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedUser);
+        RestResponse<User> response = new RestResponse<>();
+        response.setStatusCode(HttpStatus.CREATED.value());
+        response.setError(null);
+        response.setMessage("Tạo người dùng thành công");
+        response.setData(savedUser);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    private String saveAvatar(MultipartFile avatarFile) throws IOException {
+    // private String saveAvatar(String avatarBase64) throws IOException {
+    // if (avatarBase64 == null || avatarBase64.isEmpty())
+    // return null;
+
+    // String fileName = "user_" + System.currentTimeMillis() + ".jpg";
+    // String filePath = "path_to_your_directory" + fileName;
+
+    // byte[] decodedImg = Base64.getDecoder().decode(avatarBase64.split(",")[1]);
+    // try (FileOutputStream fos = new FileOutputStream(filePath)) {
+    // fos.write(decodedImg);
+    // }
+    // return fileName;
+    // }
+
+    public String saveAvatar(String avatarBase64) throws IOException {
+        if (avatarBase64 == null || avatarBase64.trim().isEmpty()) {
+            return null;
+        }
+
+        // Xử lý base64 nếu có prefix như "data:image/jpeg;base64,..."
+        String[] parts = avatarBase64.split(",");
+        String imageData = parts.length > 1 ? parts[1] : parts[0];
+
+        byte[] decodedImg = Base64.getDecoder().decode(imageData);
+
         // Tạo tên file duy nhất
         String fileName = "user_" + System.currentTimeMillis() + ".jpg";
 
-        // Tạo thư mục nếu chưa tồn tại
-        Path uploadPath = Paths.get(avatarUploadDir);
-        if (!Files.exists(uploadPath)) {
-            Files.createDirectories(uploadPath);
+        // Đảm bảo thư mục tồn tại
+        File uploadDir = new File(avatarUploadDir);
+        if (!uploadDir.exists()) {
+            uploadDir.mkdirs();
         }
 
-        // Lưu file vào thư mục
-        Path filePath = uploadPath.resolve(fileName);
-        Files.copy(avatarFile.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+        // Tạo đường dẫn đầy đủ đến file
+        String fullPath = avatarUploadDir;
+        if (!fullPath.endsWith("/") && !fullPath.endsWith("\\")) {
+            fullPath += File.separator;
+        }
+        fullPath += fileName;
 
-        return fileName; // Đường dẫn tương đối để lưu DB
+        // Ghi file ra ổ cứng
+        try (FileOutputStream fos = new FileOutputStream(fullPath)) {
+            fos.write(decodedImg);
+        }
+
+        // Trả về tên file (hoặc đường dẫn tương đối nếu cần)
+        return fileName;
     }
 
     @DeleteMapping("/users/{id}")
