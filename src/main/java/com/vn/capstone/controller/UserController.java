@@ -190,12 +190,25 @@ public class UserController {
     }
 
     @PutMapping("/users")
-    public ResponseEntity<User> updateUser(@Valid @RequestBody User user) throws IdInvalidException {
-        User pressUser = this.userService.handleUpdateUser(user);
-        if (pressUser == null) {
-            throw new IdInvalidException("User with id = " + user.getId() + " does not exist");
+    public ResponseEntity<RestResponse<User>> updateUser(@Valid @RequestBody User user) {
+        User updatedUser = this.userService.handleUpdateUser(user);
+        
+        RestResponse<User> response = new RestResponse<>();
+        
+        if (updatedUser == null) {
+            response.setStatusCode(HttpStatus.NOT_FOUND.value());
+            response.setError("User not found");
+            response.setMessage("User with id = " + user.getId() + " does not exist");
+            response.setData(null);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
-        return ResponseEntity.ok(pressUser);
+        
+        response.setStatusCode(HttpStatus.OK.value());
+        response.setError(null);
+        response.setMessage("User updated successfully");
+        response.setData(updatedUser);
+        
+        return ResponseEntity.ok(response);
     }
 
 }
