@@ -116,7 +116,7 @@ public class UserController {
         // Xử lý avatar nếu có
         String avatarUrl = null;
         if (userDTO.getAvatar() != null && !userDTO.getAvatar().isEmpty()) {
-            avatarUrl = saveAvatar(userDTO.getAvatar());  // Gọi method saveAvatar để lưu file
+            avatarUrl = saveAvatar(userDTO.getAvatar()); // Gọi method saveAvatar để lưu file
         }
 
         // Tạo người dùng mới
@@ -156,7 +156,7 @@ public class UserController {
 
         // Tạo tên file duy nhất
         String fileName = "user_" + System.currentTimeMillis() + ".jpg";
-        String avatarUploadDir = "path_to_your_directory";  // Cập nhật với đường dẫn thư mục tải lên
+        String avatarUploadDir = "path_to_your_directory"; // Cập nhật với đường dẫn thư mục tải lên
 
         // Đảm bảo thư mục tồn tại
         java.io.File uploadDir = new java.io.File(avatarUploadDir);
@@ -178,23 +178,32 @@ public class UserController {
 
     @DeleteMapping("/users/{id}")
     @ApiMessage("Delete a user")
-    public ResponseEntity<Void> deleteUser(@PathVariable("id") long id)
-            throws IdInvalidException {
+    public ResponseEntity<RestResponse<Void>> deleteUser(@PathVariable("id") long id) {
         User currentUser = this.userService.fetchUserById(id);
+
+        RestResponse<Void> response = new RestResponse<>();
+
         if (currentUser == null) {
-            throw new IdInvalidException("User with id = " + id + " does not exist");
+            response.setStatusCode(HttpStatus.NOT_FOUND.value());
+            response.setError("User not found");
+            response.setMessage("User with id = " + id + " does not exist");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
 
         this.userService.handleDeleteUser(id);
-        return ResponseEntity.ok(null);
+
+        response.setStatusCode(HttpStatus.OK.value());
+        response.setMessage("User deleted successfully");
+
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping("/users")
     public ResponseEntity<RestResponse<User>> updateUser(@Valid @RequestBody User user) {
         User updatedUser = this.userService.handleUpdateUser(user);
-        
+
         RestResponse<User> response = new RestResponse<>();
-        
+
         if (updatedUser == null) {
             response.setStatusCode(HttpStatus.NOT_FOUND.value());
             response.setError("User not found");
@@ -202,12 +211,12 @@ public class UserController {
             response.setData(null);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
-        
+
         response.setStatusCode(HttpStatus.OK.value());
         response.setError(null);
         response.setMessage("User updated successfully");
         response.setData(updatedUser);
-        
+
         return ResponseEntity.ok(response);
     }
 
