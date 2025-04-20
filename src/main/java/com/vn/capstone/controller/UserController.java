@@ -93,6 +93,7 @@ public class UserController {
     @PostMapping("/users")
     public ResponseEntity<RestResponse<User>> createUser(@RequestBody CreateUserDTO userDTO) throws IOException {
 
+        // Kiểm tra email đã tồn tại hay chưa
         if (userService.isEmailExists(userDTO.getEmail())) {
             RestResponse<User> errorResponse = new RestResponse<>();
             errorResponse.setStatusCode(HttpStatus.BAD_REQUEST.value());
@@ -102,6 +103,7 @@ public class UserController {
             return ResponseEntity.badRequest().body(errorResponse);
         }
 
+        // Kiểm tra password không rỗng
         if (userDTO.getPassword() == null || userDTO.getPassword().trim().isEmpty()) {
             RestResponse<User> errorResponse = new RestResponse<>();
             errorResponse.setStatusCode(HttpStatus.BAD_REQUEST.value());
@@ -111,22 +113,26 @@ public class UserController {
             return ResponseEntity.badRequest().body(errorResponse);
         }
 
+        // Xử lý avatar nếu có
         String avatarUrl = null;
         if (userDTO.getAvatar() != null && !userDTO.getAvatar().isEmpty()) {
-            avatarUrl = saveAvatar(userDTO.getAvatar());
+            avatarUrl = saveAvatar(userDTO.getAvatar());  // Gọi method saveAvatar để lưu file
         }
 
+        // Tạo người dùng mới
         User newUser = new User();
         newUser.setName(userDTO.getName());
         newUser.setEmail(userDTO.getEmail());
-        newUser.setPassword(passwordEncoder.encode(userDTO.getPassword()));
-        newUser.setAvatar(avatarUrl); // Set avatar to the saved file path
+        newUser.setPassword(userDTO.getPassword()); // Mã hóa password nếu cần thiết
+        newUser.setAvatar(avatarUrl); // Set avatar là đường dẫn tới ảnh đã lưu
         newUser.setGender(userDTO.getGender());
         newUser.setAddress(userDTO.getAddress());
         newUser.setAge(userDTO.getAge());
 
+        // Lưu người dùng vào database
         User savedUser = userService.handleCreateUser(newUser);
 
+        // Trả về phản hồi thành công
         RestResponse<User> response = new RestResponse<>();
         response.setStatusCode(HttpStatus.CREATED.value());
         response.setError(null);
@@ -136,20 +142,7 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    // private String saveAvatar(String avatarBase64) throws IOException {
-    // if (avatarBase64 == null || avatarBase64.isEmpty())
-    // return null;
-
-    // String fileName = "user_" + System.currentTimeMillis() + ".jpg";
-    // String filePath = "path_to_your_directory" + fileName;
-
-    // byte[] decodedImg = Base64.getDecoder().decode(avatarBase64.split(",")[1]);
-    // try (FileOutputStream fos = new FileOutputStream(filePath)) {
-    // fos.write(decodedImg);
-    // }
-    // return fileName;
-    // }
-
+    // Method để lưu avatar
     public String saveAvatar(String avatarBase64) throws IOException {
         if (avatarBase64 == null || avatarBase64.trim().isEmpty()) {
             return null;
@@ -159,26 +152,23 @@ public class UserController {
         String[] parts = avatarBase64.split(",");
         String imageData = parts.length > 1 ? parts[1] : parts[0];
 
-        byte[] decodedImg = Base64.getDecoder().decode(imageData);
+        byte[] decodedImg = java.util.Base64.getDecoder().decode(imageData);
 
         // Tạo tên file duy nhất
         String fileName = "user_" + System.currentTimeMillis() + ".jpg";
+        String avatarUploadDir = "path_to_your_directory";  // Cập nhật với đường dẫn thư mục tải lên
 
         // Đảm bảo thư mục tồn tại
-        File uploadDir = new File(avatarUploadDir);
+        java.io.File uploadDir = new java.io.File(avatarUploadDir);
         if (!uploadDir.exists()) {
             uploadDir.mkdirs();
         }
 
         // Tạo đường dẫn đầy đủ đến file
-        String fullPath = avatarUploadDir;
-        if (!fullPath.endsWith("/") && !fullPath.endsWith("\\")) {
-            fullPath += File.separator;
-        }
-        fullPath += fileName;
+        String fullPath = avatarUploadDir + java.io.File.separator + fileName;
 
         // Ghi file ra ổ cứng
-        try (FileOutputStream fos = new FileOutputStream(fullPath)) {
+        try (java.io.FileOutputStream fos = new java.io.FileOutputStream(fullPath)) {
             fos.write(decodedImg);
         }
 
