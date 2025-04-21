@@ -66,7 +66,7 @@ public class ProductController {
 
     @DeleteMapping("/products/{id}")
     @ApiMessage("Delete a Product")
-    public ResponseEntity<Void> deleteProduct(@PathVariable("id") long id)
+    public ResponseEntity<RestResponse<Void>> deleteProduct(@PathVariable("id") long id)
             throws IdInvalidException {
         Product currentProduct = this.productService.fetchProductById(id);
         if (currentProduct == null) {
@@ -74,7 +74,13 @@ public class ProductController {
         }
 
         this.productService.handleDeleteProduct(id);
-        return ResponseEntity.ok(null);
+
+        RestResponse<Void> response = new RestResponse<>();
+        response.setStatusCode(HttpStatus.OK.value());
+        response.setMessage("Delete product successfully");
+        response.setData(null);
+
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping("/products")
