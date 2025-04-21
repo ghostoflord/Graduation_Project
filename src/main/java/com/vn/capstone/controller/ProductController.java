@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.turkraft.springfilter.boot.Filter;
 
 import com.vn.capstone.domain.Product;
+import com.vn.capstone.domain.response.RestResponse;
 import com.vn.capstone.domain.response.ResultPaginationDTO;
 import com.vn.capstone.service.ProductService;
 import com.vn.capstone.util.annotation.ApiMessage;
@@ -35,12 +36,18 @@ public class ProductController {
 
     @GetMapping("/products")
     @ApiMessage("fetch all Product")
-    public ResponseEntity<ResultPaginationDTO> getAllProduct(
+    public ResponseEntity<RestResponse<ResultPaginationDTO>> getAllProduct(
             @Filter Specification<Product> spec,
             Pageable pageable) {
 
-        return ResponseEntity.status(HttpStatus.OK).body(
-                this.productService.fetchAllProduct(spec, pageable));
+        ResultPaginationDTO result = this.productService.fetchAllProduct(spec, pageable);
+
+        RestResponse<ResultPaginationDTO> response = new RestResponse<>();
+        response.setStatusCode(HttpStatus.OK.value());
+        response.setMessage("Lấy danh sách sản phẩm thành công");
+        response.setData(result);
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @GetMapping("/products/{id}")
