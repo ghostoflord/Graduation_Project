@@ -1,5 +1,8 @@
 package com.vn.capstone.domain;
 
+import java.time.Instant;
+
+import com.vn.capstone.util.SecurityUtil;
 import com.vn.capstone.util.constant.GuaranteeEnum;
 
 import jakarta.persistence.Entity;
@@ -8,6 +11,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 
 @Entity
@@ -30,6 +35,11 @@ public class Product {
     private String sold;
     private String quantity;
     private String shortDescription;
+
+    private Instant createdAt;
+    private Instant updatedAt;
+    private String createdBy;
+    private String updatedBy;
 
     public long getId() {
         return id;
@@ -119,10 +129,62 @@ public class Product {
         this.shortDescription = shortDescription;
     }
 
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Instant updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
+    }
+
+    @PrePersist
+    public void handleBeforeCreate() {
+        this.createdBy = SecurityUtil.getCurrentUserLogin().isPresent() == true
+                ? SecurityUtil.getCurrentUserLogin().get()
+                : "";
+
+        this.createdAt = Instant.now();
+    }
+
+    @PreUpdate
+    public void handleBeforeUpdate() {
+        this.updatedBy = SecurityUtil.getCurrentUserLogin().isPresent() == true
+                ? SecurityUtil.getCurrentUserLogin().get()
+                : "";
+        this.updatedAt = Instant.now();
+    }
+
     @Override
     public String toString() {
         return "Product [name=" + name + ", productCode=" + productCode + ", detailDescription=" + detailDescription
                 + ", guarantee=" + guarantee + ", image=" + image + ", factory=" + factory + ", price=" + price
-                + ", sold=" + sold + ", quantity=" + quantity + ", shortDescription=" + shortDescription + "]";
+                + ", sold=" + sold + ", quantity=" + quantity + ", shortDescription=" + shortDescription
+                + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + ", createdBy=" + createdBy + ", updatedBy="
+                + updatedBy + "]";
     }
+
 }

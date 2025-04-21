@@ -23,7 +23,7 @@ public class ResProductDTO {
     // in_stock,out_of_stock
     private GuaranteeEnum guarantee;
     private String image;
-
+    private String slide;
     private String factory;
     private String price;
     private String sold;

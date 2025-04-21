@@ -59,9 +59,16 @@ public class ProductController {
 
     @PostMapping("/products")
     @ApiMessage("Create a new Product")
-    public ResponseEntity<Product> createProduct(@Valid @RequestBody Product takeProduct) {
+    public ResponseEntity<RestResponse<Product>> createProduct(@Valid @RequestBody Product takeProduct) {
         Product pressProduct = this.productService.handleCreateProduct(takeProduct);
-        return ResponseEntity.status(HttpStatus.CREATED).body(pressProduct);
+
+        RestResponse<Product> response = new RestResponse<>();
+        response.setStatusCode(HttpStatus.CREATED.value());
+        response.setMessage("Tạo sản phẩm thành công");
+        response.setData(pressProduct);
+        response.setError(null); // hoặc bỏ qua nếu không có lỗi
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @DeleteMapping("/products/{id}")
