@@ -91,12 +91,21 @@ public class ProductController {
     }
 
     @PutMapping("/products")
-    public ResponseEntity<Product> updateProduct(@Valid @RequestBody Product product) throws IdInvalidException {
+    public ResponseEntity<RestResponse<Product>> updateProduct(@Valid @RequestBody Product product)
+            throws IdInvalidException {
         Product pressProduct = this.productService.handleUpdateProduct(product);
+
         if (pressProduct == null) {
             throw new IdInvalidException("Product with id = " + product.getId() + " does not exist");
         }
-        return ResponseEntity.ok(pressProduct);
+
+        RestResponse<Product> response = new RestResponse<>();
+        response.setStatusCode(HttpStatus.OK.value());
+        response.setMessage("Cập nhật sản phẩm thành công");
+        response.setData(pressProduct);
+        response.setError(null);
+
+        return ResponseEntity.ok(response);
     }
 
 }
