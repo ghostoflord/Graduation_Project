@@ -15,6 +15,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.vn.capstone.domain.Role;
 import com.vn.capstone.domain.User;
 import com.vn.capstone.domain.VerificationToken;
 import com.vn.capstone.domain.response.ResCreateUserDTO;
@@ -28,6 +29,7 @@ import com.vn.capstone.repository.VerificationTokenRepository;
 public class UserService {
     private final UserRepository userRepository;
     private final VerificationTokenRepository verificationTokenRepository;
+    private final RoleService roleService;
 
     @Autowired
     private JavaMailSender mailSender;
@@ -35,9 +37,11 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository, VerificationTokenRepository verificationTokenRepository) {
+    public UserService(UserRepository userRepository, VerificationTokenRepository verificationTokenRepository,
+            RoleService roleService) {
         this.userRepository = userRepository;
         this.verificationTokenRepository = verificationTokenRepository;
+        this.roleService = roleService;
     }
 
     public ResultPaginationDTO fetchAllUser(Specification<User> spec, Pageable pageable) {
@@ -79,6 +83,11 @@ public class UserService {
             currentUser.setAddress(reqUser.getAddress());
             currentUser.setGender(reqUser.getGender());
             currentUser.setAge(reqUser.getAge());
+            // check role
+            if (reqUser.getRole() != null) {
+                Role r = this.roleService.fetchRoleById(reqUser.getRole().getId());
+                currentUser.setRole(r != null ? r : null);
+            }
             // update
             currentUser = this.userRepository.save(currentUser);
         }
@@ -86,6 +95,11 @@ public class UserService {
     }
 
     public User handleCreateUser(User user) {
+        // check role
+        if (user.getRole() != null) {
+            Role r = this.roleService.fetchRoleById(user.getRole().getId());
+            user.setRole(r != null ? r : null);
+        }
         return this.userRepository.save(user);
     }
 

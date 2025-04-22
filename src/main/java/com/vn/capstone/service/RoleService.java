@@ -9,48 +9,91 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import com.vn.capstone.domain.Permission;
 import com.vn.capstone.domain.Role;
-import com.vn.capstone.domain.User;
-import com.vn.capstone.domain.response.ResUserDTO;
 import com.vn.capstone.domain.response.ResultPaginationDTO;
+import com.vn.capstone.repository.PermissionRepository;
 import com.vn.capstone.repository.RoleRepository;
+
 
 @Service
 public class RoleService {
+
     private final RoleRepository roleRepository;
+    private final PermissionRepository permissionRepository;
 
-    public RoleService(RoleRepository roleRepository) {
+    public RoleService(RoleRepository roleRepository, PermissionRepository permissionRepository) {
         this.roleRepository = roleRepository;
+        this.permissionRepository = permissionRepository;
     }
 
-    public List<Role> fetchAllRole() {
-        return this.roleRepository.findAll();
-    }
-
+    // get role by id
     public Role fetchRoleById(long id) {
-        Optional<Role> RoleOptional = this.roleRepository.findById(id);
-        if (RoleOptional.isPresent()) {
-            return RoleOptional.get();
+        Optional<Role> Orole = this.roleRepository.findById(id);
+        if (Orole.isPresent()) {
+            return Orole.get();
         }
         return null;
     }
 
-    public Role handleUpdateRole(Role reqRole) {
-        Role currentRole = this.fetchRoleById(reqRole.getId());
-        if (currentRole != null) {
-            currentRole.setName(reqRole.getName());
-            currentRole.setDescription(reqRole.getDescription());
-            // update
-            currentRole = this.roleRepository.save(currentRole);
-        }
-        return currentRole;
+    // get all role
+    public ResultPaginationDTO fetchAllRole(Specification<Role> spec, Pageable pageable) {
+        Page<Role> pageRole = this.roleRepository.findAll(spec, pageable);
+        ResultPaginationDTO rs = new ResultPaginationDTO();
+        ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
+
+        mt.setPage(pageable.getPageNumber() + 1);
+        mt.setPageSize(pageable.getPageSize());
+
+        mt.setPages(pageRole.getTotalPages());
+        mt.setTotal(pageRole.getTotalElements());
+
+        rs.setMeta(mt);
+        rs.setResult(pageRole.getContent());
+        return rs;
     }
 
-    public Role handleCreateRole(Role Role) {
-        return this.roleRepository.save(Role);
-    }
-
+    // delete role
     public void handleDeleteRole(long id) {
         this.roleRepository.deleteById(id);
     }
+
+    // post role
+    public Role handleCreateRole(Role role) {
+        // check permissions
+        if (role.getPermissions() != null) {
+            List<Long> reqPermissions = role.getPermissions()
+                    .stream().map(x -> x.getId())
+                    .collect(Collectors.toList());
+
+            List<Permission> dbPermissions = this.permissionRepository.findByIdIn(reqPermissions);
+            role.setPermissions(dbPermissions);
+        }
+        return this.roleRepository.save(role);
+    }
+
+    // put role
+    public Role handleUpdateRole(Role reqRole) {
+        Role roleDB = this.fetchRoleById(reqRole.getId());
+        // check permissions
+        if (reqRole.getPermissions() != null) {
+            List<Long> reqPermissions = reqRole.getPermissions()
+                    .stream().map(x -> x.getId())
+                    .collect(Collectors.toList());
+
+            List<Permission> dbPermissions = this.permissionRepository.findByIdIn(reqPermissions);
+            reqRole.setPermissions(dbPermissions);
+        }
+
+        roleDB.setName(reqRole.getName());
+        roleDB.setDescription(reqRole.getDescription());
+        roleDB.setPermissions(reqRole.getPermissions());
+        roleDB = this.roleRepository.save(roleDB);
+        return roleDB;
+    }
+
+    public boolean existByName(String name) {
+        return this.roleRepository.existsByName(name);
+    }
+
 }
