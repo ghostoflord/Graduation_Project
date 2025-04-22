@@ -37,6 +37,13 @@ public class Permission {
     @JsonIgnore
     private List<Role> roles;
 
+    public Permission(String name, String apiPath, String method, String module) {
+        this.name = name;
+        this.apiPath = apiPath;
+        this.method = method;
+        this.module = module;
+    }
+
     public long getId() {
         return id;
     }
