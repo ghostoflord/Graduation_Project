@@ -13,6 +13,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
@@ -59,6 +61,10 @@ public class User {
 
     @OneToOne
     private VerificationToken verificationToken;
+
+    @ManyToOne
+    @JoinColumn(name = "role_id")
+    private Role role;
 
     public long getId() {
         return id;
@@ -243,5 +249,13 @@ public class User {
         return "User [firstName=" + firstName + ", lastName=" + lastName + ", name=" + name + ", email=" + email
                 + ", password=" + password + ", address=" + address + ", gender=" + gender + ", age=" + age
                 + ", avatar=" + avatar + ", refreshToken=" + refreshToken + ", activationKey=" + activationKey + "]";
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
     }
 }

@@ -4,7 +4,6 @@ import java.time.Instant;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.vn.capstone.util.SecurityUtil;
 
 import jakarta.persistence.Entity;
@@ -12,36 +11,31 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "roles")
-public class Role {
+@Table(name = "permissions")
+public class Permission {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
     private String name;
-    private String description;
+    private String apiPath;
+    private String method;
+    private String module;
+
     private Instant createdAt;
     private Instant updatedAt;
     private String createdBy;
     private String updatedBy;
 
-    @OneToMany(mappedBy = "role", fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "permissions")
     @JsonIgnore
-    List<User> users;
-
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JsonIgnoreProperties(value = { "roles" })
-    @JoinTable(name = "permission_role", joinColumns = @JoinColumn(name = "role_id"), inverseJoinColumns = @JoinColumn(name = "permission_id"))
-    private List<Permission> permissions;
+    private List<Role> roles;
 
     public long getId() {
         return id;
@@ -59,12 +53,28 @@ public class Role {
         this.name = name;
     }
 
-    public String getDescription() {
-        return description;
+    public String getApiPath() {
+        return apiPath;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public void setApiPath(String apiPath) {
+        this.apiPath = apiPath;
+    }
+
+    public String getMethod() {
+        return method;
+    }
+
+    public void setMethod(String method) {
+        this.method = method;
+    }
+
+    public String getModule() {
+        return module;
+    }
+
+    public void setModule(String module) {
+        this.module = module;
     }
 
     public Instant getCreatedAt() {
@@ -99,14 +109,6 @@ public class Role {
         this.updatedBy = updatedBy;
     }
 
-    public List<User> getUsers() {
-        return users;
-    }
-
-    public void setUsers(List<User> users) {
-        this.users = users;
-    }
-
     @PrePersist
     public void handleBeforeCreate() {
         this.createdBy = SecurityUtil.getCurrentUserLogin().isPresent() == true
@@ -125,11 +127,10 @@ public class Role {
         this.updatedAt = Instant.now();
     }
 
-    // prettier-ignore
     @Override
     public String toString() {
-        return "Role [name=" + name + ", description=" + description + ", createdAt=" + createdAt + ", updatedAt="
-                + updatedAt + "]";
+        return "Permission [id=" + id + ", name=" + name + ", apiPath=" + apiPath + ", method=" + method + ", module="
+                + module + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + ", createdBy=" + createdBy
+                + ", updatedBy=" + updatedBy + "]";
     }
-
 }
