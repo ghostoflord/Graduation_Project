@@ -3,6 +3,8 @@ package com.vn.capstone.domain;
 import java.io.Serializable;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -23,7 +25,7 @@ public class Cart implements Serializable {
     private long id;
 
     @Min(value = 0)
-    private int sum;
+    private long sum;
 
     // user_id
     @OneToOne()
@@ -32,6 +34,7 @@ public class Cart implements Serializable {
 
     // cart_detail_id
     @OneToMany(mappedBy = "cart")
+    @JsonIgnore
     List<CartDetail> cartDetails;
 
     public long getId() {
@@ -42,11 +45,11 @@ public class Cart implements Serializable {
         this.id = id;
     }
 
-    public int getSum() {
+    public long getSum() {
         return sum;
     }
 
-    public void setSum(int sum) {
+    public void setSum(long sum) {
         this.sum = sum;
     }
 

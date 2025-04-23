@@ -1,0 +1,68 @@
+package com.vn.capstone.service;
+
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.vn.capstone.domain.Cart;
+import com.vn.capstone.domain.CartDetail;
+import com.vn.capstone.domain.Order;
+import com.vn.capstone.domain.OrderDetail;
+import com.vn.capstone.repository.CartDetailRepository;
+import com.vn.capstone.repository.CartRepository;
+import com.vn.capstone.repository.OrderDetailRepository;
+import com.vn.capstone.repository.OrderRepository;
+
+@Service
+public class OrderService {
+    private final OrderRepository orderRepository;
+    private final OrderDetailRepository orderDetailRepository;
+    private final CartRepository cartRepository;
+    private final CartDetailRepository cartDetailRepository;
+
+    public OrderService(OrderRepository orderRepository, OrderDetailRepository orderDetailRepository,
+            CartRepository cartRepository, CartDetailRepository cartDetailRepository) {
+        this.orderRepository = orderRepository;
+        this.orderDetailRepository = orderDetailRepository;
+        this.cartRepository = cartRepository;
+        this.cartDetailRepository = cartDetailRepository;
+    }
+
+    @Transactional
+    public Order placeOrder(Long userId, String receiverName, String address, String phone) {
+        Cart cart = cartRepository.findByUserId(userId);
+        if (cart == null || cart.getCartDetails().isEmpty()) {
+            throw new IllegalStateException("Cart is empty");
+        }
+
+        Order order = new Order();
+        order.setUser(cart.getUser());
+        order.setReceiverName(receiverName);
+        order.setReceiverAddress(address);
+        order.setReceiverPhone(phone);
+        order.setStatus("PENDING");
+        order.setTotalPrice(cart.getSum());
+        Order savedOrder = orderRepository.save(order);
+
+        List<CartDetail> cartDetails = cartDetailRepository.findByCartId(cart.getId());
+        for (CartDetail cd : cartDetails) {
+            OrderDetail od = new OrderDetail();
+            od.setOrder(savedOrder);
+            od.setProduct(cd.getProduct());
+            od.setQuantity(cd.getQuantity());
+            od.setPrice(cd.getPrice());
+            orderDetailRepository.save(od);
+        }
+
+        cartDetailRepository.deleteAll(cartDetails);
+        cart.setSum(0);
+        cartRepository.save(cart);
+
+        return savedOrder;
+    }
+
+    public List<Order> getAllOrders() {
+        return orderRepository.findAll();
+    }
+}

@@ -57,6 +57,14 @@ public class User {
 
     private boolean activate;
 
+    public User() {
+
+    }
+
+    public User(Long id) {
+        this.id = id;
+    }
+
     @Column(name = "reset_password_token")
     private String resetPasswordToken;
 
