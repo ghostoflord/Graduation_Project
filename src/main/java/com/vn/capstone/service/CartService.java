@@ -13,6 +13,8 @@ import com.vn.capstone.repository.CartDetailRepository;
 import com.vn.capstone.repository.CartRepository;
 import com.vn.capstone.repository.ProductRepository;
 
+import jakarta.persistence.EntityNotFoundException;
+
 @Service
 public class CartService {
     private final CartRepository cartRepository;
@@ -70,7 +72,11 @@ public class CartService {
         return cartDetailRepository.findByCartId(cartId);
     }
 
-    public void clearCart(Cart cart) {
+    @Transactional
+    public void clearCart(Long cartId) {
+        Cart cart = cartRepository.findById(cartId)
+                .orElseThrow(() -> new EntityNotFoundException("Cart not found"));
+
         List<CartDetail> details = cartDetailRepository.findByCartId(cart.getId());
         cartDetailRepository.deleteAll(details);
         cart.setSum(0);

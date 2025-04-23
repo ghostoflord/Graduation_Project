@@ -1,5 +1,7 @@
 package com.vn.capstone.controller;
 
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -41,6 +43,13 @@ public class CartController {
         return convertCartDetailToDTO(cartDetail);
     }
 
+    // delete sản phẩm trong giỏ hàng
+    @DeleteMapping("/{cartId}/clear")
+    public ResponseEntity<Void> clearCart(@PathVariable Long cartId) {
+        cartService.clearCart(cartId); // gọi service
+        return ResponseEntity.noContent().build(); // 204 No Content
+    }
+
     private SimplifiedCartDetailDTO convertCartDetailToDTO(CartDetail cartDetail) {
         SimplifiedCartDetailDTO dto = new SimplifiedCartDetailDTO();
         dto.setId(cartDetail.getId());
@@ -48,7 +57,7 @@ public class CartController {
         dto.setPrice(cartDetail.getPrice());
         dto.setCartId(cartDetail.getCart().getId());
         dto.setUserId(cartDetail.getCart().getUser().getId());
-        return dto; 
+        return dto;
     }
 
     // Định nghĩa lớp request để nhận dữ liệu dưới dạng JSON
@@ -85,6 +94,7 @@ public class CartController {
         public double getPrice() {
             return price;
         }
+
         public void setPrice(double price) {
             this.price = price;
         }
