@@ -72,7 +72,6 @@ public class CartService {
         return cartDetailRepository.findByCartId(cartId);
     }
 
-    @Transactional
     public void clearCart(Long cartId) {
         Cart cart = cartRepository.findById(cartId)
                 .orElseThrow(() -> new EntityNotFoundException("Cart not found"));

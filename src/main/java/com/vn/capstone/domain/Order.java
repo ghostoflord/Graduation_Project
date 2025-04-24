@@ -1,6 +1,7 @@
 package com.vn.capstone.domain;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.List;
 
 import jakarta.persistence.Entity;
@@ -30,6 +31,16 @@ public class Order implements Serializable {
     private String receiverPhone;
 
     private String status;
+
+    private Instant createdAt;
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
+    }
 
     // user id
     @ManyToOne

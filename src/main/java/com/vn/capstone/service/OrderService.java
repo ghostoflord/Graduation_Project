@@ -1,5 +1,6 @@
 package com.vn.capstone.service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -30,12 +31,16 @@ public class OrderService {
     }
 
     @Transactional
-    public Order placeOrder(Long userId, String receiverName, String address, String phone) {
+    public Order placeOrder(Long userId, String receiverName,
+            String address, String phone) {
+
+        /* 1. Lấy Cart của user, kiểm tra rỗng */
         Cart cart = cartRepository.findByUserId(userId);
         if (cart == null || cart.getCartDetails().isEmpty()) {
             throw new IllegalStateException("Cart is empty");
         }
 
+        /* 2. Tạo Order */
         Order order = new Order();
         order.setUser(cart.getUser());
         order.setReceiverName(receiverName);
@@ -43,23 +48,27 @@ public class OrderService {
         order.setReceiverPhone(phone);
         order.setStatus("PENDING");
         order.setTotalPrice(cart.getSum());
-        Order savedOrder = orderRepository.save(order);
+        order = orderRepository.save(order); // lưu để có ID
 
-        List<CartDetail> cartDetails = cartDetailRepository.findByCartId(cart.getId());
-        for (CartDetail cd : cartDetails) {
+        /* 3. Chuyển CartDetail → OrderDetail */
+        // (đã có cart.getCartDetails() nên không cần query lại)
+        List<OrderDetail> orderDetails = new ArrayList<>();
+        for (CartDetail cd : cart.getCartDetails()) {
             OrderDetail od = new OrderDetail();
-            od.setOrder(savedOrder);
+            od.setOrder(order);
             od.setProduct(cd.getProduct());
             od.setQuantity(cd.getQuantity());
             od.setPrice(cd.getPrice());
-            orderDetailRepository.save(od);
+            orderDetails.add(od);
         }
+        orderDetailRepository.saveAll(orderDetails); // bulk insert
 
-        cartDetailRepository.deleteAll(cartDetails);
+        /* 4. Clear Cart */
+        cartDetailRepository.deleteAllInBatch(cart.getCartDetails());
         cart.setSum(0);
         cartRepository.save(cart);
 
-        return savedOrder;
+        return order;
     }
 
     public List<Order> getAllOrders() {
