@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.vn.capstone.domain.*;
 import com.vn.capstone.domain.response.SimplifiedCartDetailDTO;
+import com.vn.capstone.domain.response.cart.CartSummaryDTO;
 import com.vn.capstone.service.*;
 
 @RestController
@@ -26,8 +27,8 @@ public class CartController {
 
     // Lấy giỏ hàng của người dùng
     @GetMapping("/{userId}")
-    public Cart getCartByUser(@PathVariable Long userId) {
-        return cartService.getCartByUserId(userId);
+    public CartSummaryDTO getCartByUser(@PathVariable Long userId) {
+        return cartService.getCartSummaryByUserId(userId);
     }
 
     // Thêm sản phẩm vào giỏ hàng

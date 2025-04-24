@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.vn.capstone.domain.Order;
+import com.vn.capstone.domain.response.order.OrderResponse;
+import com.vn.capstone.domain.response.order.PlaceOrderRequest;
 import com.vn.capstone.service.OrderService;
 
 import jakarta.validation.Valid;
@@ -42,64 +44,6 @@ public class OrderController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(OrderResponse.from(order));
-    }
-
-    public static class PlaceOrderRequest {
-        private Long userId;
-        private String name;
-        private String address;
-        private String phone;
-
-        public Long getUserId() {
-            return userId;
-        }
-
-        public void setUserId(Long userId) {
-            this.userId = userId;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public String getAddress() {
-            return address;
-        }
-
-        public void setAddress(String address) {
-            this.address = address;
-        }
-
-        public String getPhone() {
-            return phone;
-        }
-
-        public void setPhone(String phone) {
-            this.phone = phone;
-        }
-    }
-
-    @Getter
-    @AllArgsConstructor
-    static class OrderResponse {
-        private Long id;
-        private Long userId;
-        private Double total;
-        private String status;
-        private Instant createdAt;
-
-        public static OrderResponse from(Order o) {
-            return new OrderResponse(
-                    o.getId(),
-                    o.getUser().getId(),
-                    o.getTotalPrice(),
-                    o.getStatus(),
-                    o.getCreatedAt());
-        }
     }
 
     @GetMapping("/all")

@@ -34,13 +34,13 @@ public class OrderService {
     public Order placeOrder(Long userId, String receiverName,
             String address, String phone) {
 
-        /* 1. Lấy Cart của user, kiểm tra rỗng */
+        // Lấy Cart của user, kiểm tra rỗng
         Cart cart = cartRepository.findByUserId(userId);
         if (cart == null || cart.getCartDetails().isEmpty()) {
             throw new IllegalStateException("Cart is empty");
         }
 
-        /* 2. Tạo Order */
+        // Tạo Order
         Order order = new Order();
         order.setUser(cart.getUser());
         order.setReceiverName(receiverName);
@@ -50,8 +50,8 @@ public class OrderService {
         order.setTotalPrice(cart.getSum());
         order = orderRepository.save(order); // lưu để có ID
 
-        /* 3. Chuyển CartDetail → OrderDetail */
-        // (đã có cart.getCartDetails() nên không cần query lại)
+        // chuyển CartDetail thành OrderDetail
+        // nếu có cart.getCartDetails() không cần query lại
         List<OrderDetail> orderDetails = new ArrayList<>();
         for (CartDetail cd : cart.getCartDetails()) {
             OrderDetail od = new OrderDetail();
@@ -63,7 +63,7 @@ public class OrderService {
         }
         orderDetailRepository.saveAll(orderDetails); // bulk insert
 
-        /* 4. Clear Cart */
+        // Clear Cart
         cartDetailRepository.deleteAllInBatch(cart.getCartDetails());
         cart.setSum(0);
         cartRepository.save(cart);

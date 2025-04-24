@@ -1,7 +1,9 @@
 package com.vn.capstone.service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
+import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -9,6 +11,7 @@ import com.vn.capstone.domain.Cart;
 import com.vn.capstone.domain.CartDetail;
 import com.vn.capstone.domain.Product;
 import com.vn.capstone.domain.User;
+import com.vn.capstone.domain.response.cart.CartSummaryDTO;
 import com.vn.capstone.repository.CartDetailRepository;
 import com.vn.capstone.repository.CartRepository;
 import com.vn.capstone.repository.ProductRepository;
@@ -82,4 +85,26 @@ public class CartService {
         cartRepository.save(cart);
     }
 
+    // cart take sum
+    public CartSummaryDTO getCartSummaryByUserId(Long userId) {
+        Cart cart = cartRepository.findByUserId(userId);
+        if (cart == null) {
+            throw new EntityNotFoundException("Cart not found for user ID: " + userId);
+        }
+        // Tính quantity & price (giá của từng dòng * số lượng)
+        long totalQuantity = cart.getCartDetails()
+                .stream()
+                .mapToLong(CartDetail::getQuantity)
+                .sum();
+
+        double totalPrice = cart.getCartDetails()
+                .stream()
+                .mapToDouble(cd -> cd.getPrice() * cd.getQuantity())
+                .sum();
+
+        long sum = totalQuantity;
+        double priceStr = Double.valueOf(totalPrice);
+
+        return new CartSummaryDTO(totalQuantity, priceStr, sum, userId);
+    }
 }
