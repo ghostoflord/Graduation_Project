@@ -10,6 +10,7 @@ import com.vn.capstone.domain.Cart;
 import com.vn.capstone.domain.CartDetail;
 import com.vn.capstone.domain.Order;
 import com.vn.capstone.domain.OrderDetail;
+import com.vn.capstone.domain.response.order.OrderSummaryDTO;
 import com.vn.capstone.repository.CartDetailRepository;
 import com.vn.capstone.repository.CartRepository;
 import com.vn.capstone.repository.OrderDetailRepository;
@@ -73,5 +74,24 @@ public class OrderService {
 
     public List<Order> getAllOrders() {
         return orderRepository.findAll();
+    }
+
+    public List<OrderSummaryDTO> getAllOrderSummaries() {
+        return orderRepository.findAll() // trả về List<Order>
+                .stream()
+                .map(this::toDto) // map sang DTO
+                .toList();
+    }
+
+    public OrderSummaryDTO toDto(Order order) {
+        OrderSummaryDTO dto = new OrderSummaryDTO();
+        dto.setId(order.getId());
+        dto.setTotalPrice(order.getTotalPrice());
+        dto.setReceiverName(order.getReceiverName());
+        dto.setReceiverAddress(order.getReceiverAddress());
+        dto.setReceiverPhone(order.getReceiverPhone());
+        dto.setStatus(order.getStatus());
+        dto.setUserId(order.getUser().getId());
+        return dto;
     }
 }

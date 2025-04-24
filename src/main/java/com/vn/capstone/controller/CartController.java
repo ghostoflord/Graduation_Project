@@ -7,11 +7,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.vn.capstone.domain.*;
+import com.vn.capstone.domain.CartDetail;
+import com.vn.capstone.domain.Product;
 import com.vn.capstone.domain.response.SimplifiedCartDetailDTO;
+import com.vn.capstone.domain.response.cart.AddToCartRequest;
 import com.vn.capstone.domain.response.cart.CartSummaryDTO;
 import com.vn.capstone.service.*;
 
@@ -32,7 +33,7 @@ public class CartController {
     }
 
     // Thêm sản phẩm vào giỏ hàng
-    @PostMapping("/add-product-json")
+    @PostMapping("/add-product")
     public SimplifiedCartDetailDTO addProductToCartJson(@RequestBody AddToCartRequest request) {
         Product product = new Product();
         product.setId(request.getProductId());
@@ -61,43 +62,4 @@ public class CartController {
         return dto;
     }
 
-    // Định nghĩa lớp request để nhận dữ liệu dưới dạng JSON
-    public static class AddToCartRequest {
-        private Long userId;
-        private Long productId;
-        private long quantity;
-        private double price;
-
-        public Long getUserId() {
-            return userId;
-        }
-
-        public void setUserId(Long userId) {
-            this.userId = userId;
-        }
-
-        public Long getProductId() {
-            return productId;
-        }
-
-        public void setProductId(Long productId) {
-            this.productId = productId;
-        }
-
-        public long getQuantity() {
-            return quantity;
-        }
-
-        public void setQuantity(long quantity) {
-            this.quantity = quantity;
-        }
-
-        public double getPrice() {
-            return price;
-        }
-
-        public void setPrice(double price) {
-            this.price = price;
-        }
-    }
 }

@@ -1,7 +1,5 @@
 package com.vn.capstone.controller;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
@@ -10,17 +8,15 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.vn.capstone.domain.Order;
 import com.vn.capstone.domain.response.order.OrderResponse;
+import com.vn.capstone.domain.response.order.OrderSummaryDTO;
 import com.vn.capstone.domain.response.order.PlaceOrderRequest;
 import com.vn.capstone.service.OrderService;
 
 import jakarta.validation.Valid;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 
 @RestController
 @RequestMapping("/api/v1/orders")
@@ -37,7 +33,7 @@ public class OrderController {
 
         Order order = orderService.placeOrder(
                 req.getUserId(),
-                req.getName(), // hoặc req.getName()
+                req.getName(),
                 req.getAddress(),
                 req.getPhone());
 
@@ -47,7 +43,7 @@ public class OrderController {
     }
 
     @GetMapping("/all")
-    public List<Order> getAllOrders() {
-        return orderService.getAllOrders();
+    public List<OrderSummaryDTO> getAllOrders() {
+        return orderService.getAllOrderSummaries();
     }
 }
