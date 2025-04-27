@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.vn.capstone.domain.CartDetail;
 import com.vn.capstone.domain.Product;
+import com.vn.capstone.domain.response.RestResponse;
 import com.vn.capstone.domain.response.SimplifiedCartDetailDTO;
 import com.vn.capstone.domain.response.cart.AddToCartRequest;
 import com.vn.capstone.domain.response.cart.CartSummaryDTO;
@@ -27,9 +28,17 @@ public class CartController {
     }
 
     // Lấy giỏ hàng của người dùng
-    @GetMapping("/{userId}")
-    public CartSummaryDTO getCartByUser(@PathVariable Long userId) {
-        return cartService.getCartSummaryByUserId(userId);
+    @GetMapping("/users/{userId}")
+    public RestResponse<CartSummaryDTO> getCartByUser(@PathVariable Long userId) {
+        CartSummaryDTO cartSummary = cartService.getCartSummaryByUserId(userId);
+
+        RestResponse<CartSummaryDTO> response = new RestResponse<>();
+        response.setStatusCode(200); // hoặc HttpStatus.OK.value()
+        response.setError(null);
+        response.setMessage("Success");
+        response.setData(cartSummary);
+
+        return response;
     }
 
     // Thêm sản phẩm vào giỏ hàng

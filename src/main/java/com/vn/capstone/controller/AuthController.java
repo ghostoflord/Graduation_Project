@@ -105,6 +105,7 @@ public class AuthController {
                                                 currentUserDB.getId(),
                                                 currentUserDB.getEmail(),
                                                 currentUserDB.getName());
+                                userLogin.setRole(currentUserDB.getRole().getName());
                                 res.setUser(userLogin);
                         }
 
@@ -142,7 +143,7 @@ public class AuthController {
                         response.setStatusCode(HttpStatus.UNAUTHORIZED.value());
                         response.setMessage("Tài khoản hoặc mật khẩu không đúng");
                         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
-                } catch (Exception e) {         
+                } catch (Exception e) {
                         // Các lỗi khác
                         RestResponse<ResLoginDTO> response = new RestResponse<>();
                         response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
@@ -166,6 +167,7 @@ public class AuthController {
                         userLogin.setId(currentUserDB.getId());
                         userLogin.setEmail(currentUserDB.getEmail());
                         userLogin.setName(currentUserDB.getName());
+                        userLogin.setRole(currentUserDB.getRole().getName());
                         userGetAccount.setUser(userLogin);
                 }
 
@@ -198,6 +200,7 @@ public class AuthController {
                                         currentUserDB.getId(),
                                         currentUserDB.getEmail(),
                                         currentUserDB.getName());
+                        userLogin.setRole(currentUserDB.getRole().getName());
                         res.setUser(userLogin);
                 }
 
