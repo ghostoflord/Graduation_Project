@@ -51,11 +51,18 @@ public class ProductController {
     }
 
     @GetMapping("/products/{id}")
-    @ApiMessage("fetch Product by id")
-    public ResponseEntity<Product> getProductById(@PathVariable("id") long id) {
+    @ApiMessage("Fetch Product by id")
+    public ResponseEntity<RestResponse<Product>> getProductById(@PathVariable("id") long id) {
         Product fetchProduct = this.productService.fetchProductById(id);
-        return ResponseEntity.status(HttpStatus.OK).body(fetchProduct);
+    
+        RestResponse<Product> response = new RestResponse<>();
+        response.setStatusCode(HttpStatus.OK.value());
+        response.setMessage("Lấy sản phẩm thành công");
+        response.setData(fetchProduct);
+    
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
+    
 
     @PostMapping("/products")
     @ApiMessage("Create a new Product")
