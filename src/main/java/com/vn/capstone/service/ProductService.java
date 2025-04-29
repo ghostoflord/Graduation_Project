@@ -13,6 +13,7 @@ import com.vn.capstone.domain.Product;
 import com.vn.capstone.domain.response.ResProductDTO;
 import com.vn.capstone.domain.response.ResultPaginationDTO;
 import com.vn.capstone.repository.ProductRepository;
+import com.vn.capstone.util.SlugUtils;
 
 @Service
 public class ProductService {
@@ -53,6 +54,26 @@ public class ProductService {
         return null;
     }
 
+    // Thêm fetchProductBySlug
+    public Product fetchProductBySlug(String slug) {
+        Optional<Product> ProductOptional = this.productRepository.findBySlug(slug);
+        if (ProductOptional.isPresent()) {
+            return ProductOptional.get();
+        }
+        return null;
+    }
+
+    public void updateSlugsForExistingProducts() {
+        List<Product> products = productRepository.findAll();
+        for (Product product : products) {
+            if (product.getSlug() == null || product.getSlug().isEmpty()) {
+                String generatedSlug = SlugUtils.toSlug(product.getName());
+                product.setSlug(generatedSlug);
+            }
+        }
+        productRepository.saveAll(products);
+    }
+
     public Product handleUpdateProduct(Product reqProduct) {
         Product currentProduct = this.fetchProductById(reqProduct.getId());
         if (currentProduct != null) {
@@ -72,8 +93,11 @@ public class ProductService {
         return currentProduct;
     }
 
-    public Product handleCreateProduct(Product Product) {
-        return this.productRepository.save(Product);
+    public Product handleCreateProduct(Product product) {
+        if (product.getSlug() == null || product.getSlug().isEmpty()) {
+            product.setSlug(SlugUtils.toSlug(product.getName()));
+        }
+        return this.productRepository.save(product);
     }
 
     public void handleDeleteProduct(long id) {

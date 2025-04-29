@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.vn.capstone.util.SecurityUtil;
 import com.vn.capstone.util.constant.GuaranteeEnum;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -39,6 +40,8 @@ public class Product {
     private String sold;
     private String quantity;
     private String shortDescription;
+
+    private String slug;
 
     private Instant createdAt;
     private Instant updatedAt;
@@ -167,6 +170,14 @@ public class Product {
 
     public void setUpdatedBy(String updatedBy) {
         this.updatedBy = updatedBy;
+    }
+
+    public String getSlug() {
+        return slug;
+    }
+
+    public void setSlug(String slug) {
+        this.slug = slug;
     }
 
     @PrePersist
