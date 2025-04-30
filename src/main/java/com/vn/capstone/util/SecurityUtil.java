@@ -60,7 +60,9 @@ public class SecurityUtil {
 
         listAuthority.add("ROLE_USER_CREATE");
         listAuthority.add("ROLE_USER_UPDATE");
-
+        listAuthority.add("ROLE_PRODUCT_CREATE");
+        listAuthority.add("ROLE_PRODUCT_UPDATE");
+        listAuthority.add("ROLE_ADMIN"); // nếu cần role tổng
         // @formatter:off
         JwtClaimsSet claims = JwtClaimsSet.builder()
             .issuedAt(now)

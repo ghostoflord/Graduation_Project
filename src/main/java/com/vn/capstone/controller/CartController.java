@@ -42,16 +42,25 @@ public class CartController {
     }
 
     // Thêm sản phẩm vào giỏ hàng
-    @PostMapping("/add-product")
-    public SimplifiedCartDetailDTO addProductToCartJson(@RequestBody AddToCartRequest request) {
+    @PostMapping("/addproduct")
+    public RestResponse<SimplifiedCartDetailDTO> addProductToCartJson(@RequestBody AddToCartRequest request) {
         Product product = new Product();
         product.setId(request.getProductId());
+
         CartDetail cartDetail = cartService.addCartDetail(
                 request.getUserId(),
                 product,
                 request.getQuantity(),
                 request.getPrice());
-        return convertCartDetailToDTO(cartDetail);
+
+        SimplifiedCartDetailDTO dto = convertCartDetailToDTO(cartDetail);
+
+        RestResponse<SimplifiedCartDetailDTO> response = new RestResponse<>();
+        response.setStatusCode(200); // hoặc HttpStatus.OK.value()
+        response.setMessage("Thêm sản phẩm vào giỏ hàng thành công!");
+        response.setData(dto);
+        System.out.println("Received request: " + request);
+        return response;
     }
 
     // delete sản phẩm trong giỏ hàng
