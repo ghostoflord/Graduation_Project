@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.vn.capstone.domain.Order;
+import com.vn.capstone.domain.response.RestResponse;
 import com.vn.capstone.domain.response.order.OrderResponse;
 import com.vn.capstone.domain.response.order.OrderSummaryDTO;
 import com.vn.capstone.domain.response.order.PlaceOrderRequest;
@@ -29,17 +30,24 @@ public class OrderController {
     }
 
     @PostMapping("/place")
-    public ResponseEntity<OrderResponse> placeOrder(@Valid @RequestBody PlaceOrderRequest req) {
-
+    public ResponseEntity<RestResponse<OrderResponse>> placeOrder(@Valid @RequestBody PlaceOrderRequest req) {
         Order order = orderService.placeOrder(
                 req.getUserId(),
                 req.getName(),
                 req.getAddress(),
                 req.getPhone());
 
+        OrderResponse orderResponse = OrderResponse.from(order);
+
+        RestResponse<OrderResponse> restResponse = new RestResponse<>();
+        restResponse.setStatusCode(HttpStatus.CREATED.value());
+        restResponse.setMessage("Đặt hàng thành công");
+        restResponse.setData(orderResponse);
+        restResponse.setError(null);
+
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(OrderResponse.from(order));
+                .body(restResponse);
     }
 
     @GetMapping("/all")
