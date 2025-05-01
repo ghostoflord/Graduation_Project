@@ -11,6 +11,7 @@ import com.vn.capstone.domain.Cart;
 import com.vn.capstone.domain.CartDetail;
 import com.vn.capstone.domain.Product;
 import com.vn.capstone.domain.User;
+import com.vn.capstone.domain.response.cart.CartItemDTO;
 import com.vn.capstone.domain.response.cart.CartSummaryDTO;
 import com.vn.capstone.repository.CartDetailRepository;
 import com.vn.capstone.repository.CartRepository;
@@ -91,20 +92,39 @@ public class CartService {
         if (cart == null) {
             throw new EntityNotFoundException("Cart not found for user ID: " + userId);
         }
-        // Tính quantity & price (giá của từng dòng * số lượng)
-        long totalQuantity = cart.getCartDetails()
-                .stream()
+
+        // Tính tổng số lượng
+        long totalQuantity = cart.getCartDetails().stream()
                 .mapToLong(CartDetail::getQuantity)
                 .sum();
 
-        double totalPrice = cart.getCartDetails()
-                .stream()
+        // Tính tổng giá
+        double totalPrice = cart.getCartDetails().stream()
                 .mapToDouble(cd -> cd.getPrice() * cd.getQuantity())
                 .sum();
 
-        long sum = totalQuantity;
-        double priceStr = Double.valueOf(totalPrice);
+        // Map sang CartItemDTO
+        List<CartItemDTO> items = cart.getCartDetails().stream()
+                .map(detail -> {
+                    Product product = detail.getProduct();
+                    CartItemDTO dto = new CartItemDTO();
+                    dto.setProductId(product.getId());
+                    dto.setName(product.getName());
+                    dto.setImage(product.getImage());
+                    dto.setDetailDescription(product.getDetailDescription()); // hoặc getShortDescription tuỳ bạn
+                    dto.setShortDescription(product.getShortDescription());                                                             // 
+                    dto.setPrice(detail.getPrice());
+                    dto.setQuantity((int) detail.getQuantity());
+                    return dto;
+                })
+                .toList();
 
-        return new CartSummaryDTO(totalQuantity, priceStr, sum, userId);
+        return new CartSummaryDTO(
+                totalQuantity,
+                totalPrice,
+                totalQuantity,
+                userId,
+                items);
     }
+
 }

@@ -1,7 +1,5 @@
 package com.vn.capstone.domain.response.cart;
 
-import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,10 +9,12 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class CartSummaryDTO {
-    private long quantity;
+public class CartItemDTO {
+    private Long productId;
+    private String name;
     private double price;
-    private long sum;
-    private Long userId;
-    private List<CartItemDTO> items;
+    private long quantity;
+    private String image;
+    private String detailDescription;
+    private String shortDescription;
 }
