@@ -51,7 +51,15 @@ public class OrderController {
     }
 
     @GetMapping("/all")
-    public List<OrderSummaryDTO> getAllOrders() {
-        return orderService.getAllOrderSummaries();
+    public ResponseEntity<RestResponse<List<OrderSummaryDTO>>> getAllOrders() {
+        List<OrderSummaryDTO> orders = orderService.getAllOrderSummaries();
+
+        RestResponse<List<OrderSummaryDTO>> response = new RestResponse<>();
+        response.setStatusCode(200);
+        response.setMessage("Lấy danh sách đơn hàng thành công");
+        response.setData(orders);
+        response.setError(null); // không có lỗi
+
+        return ResponseEntity.ok(response);
     }
 }
