@@ -63,18 +63,18 @@ public class ProductController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @GetMapping("/products/slug/{slug}")
-    @ApiMessage("Fetch Product by slug")
-    public ResponseEntity<RestResponse<Product>> getProductBySlug(@PathVariable("slug") String slug) {
-        Product fetchProduct = productService.fetchProductBySlug(slug);
+        @GetMapping("/products/slug/{slug}")
+        @ApiMessage("Fetch Product by slug")
+        public ResponseEntity<RestResponse<Product>> getProductBySlug(@PathVariable("slug") String slug) {
+            Product fetchProduct = productService.fetchProductBySlug(slug);
 
-        RestResponse<Product> response = new RestResponse<>();
-        response.setStatusCode(HttpStatus.OK.value());
-        response.setMessage("Lấy sản phẩm thành công theo slug");
-        response.setData(fetchProduct);
+            RestResponse<Product> response = new RestResponse<>();
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setMessage("Lấy sản phẩm thành công theo slug");
+            response.setData(fetchProduct);
 
-        return ResponseEntity.status(HttpStatus.OK).body(response);
-    }
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+        }
 
     @PostMapping("/products/slug/generate")
     @ApiMessage("Generate missing slugs for all products")

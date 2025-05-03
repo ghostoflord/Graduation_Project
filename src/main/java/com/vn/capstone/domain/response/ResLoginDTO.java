@@ -23,6 +23,7 @@ public class ResLoginDTO {
         private String email;
         private String name;
         private String role;
+        private boolean active;
 
         // Đây là constructor 3 tham số
         public UserLogin(long id, String email, String name) {

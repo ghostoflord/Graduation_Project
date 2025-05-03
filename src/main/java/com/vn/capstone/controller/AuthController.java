@@ -14,6 +14,7 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
@@ -81,18 +82,10 @@ public class AuthController {
                         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
                                         loginDto.getUsername(), loginDto.getPassword());
 
-                        // Xác thực người dùng => nếu sai username hoặc password sẽ ném lỗi ở đây
+                        // Xác thực người dùng => nếu sai username, password hoặc tài khoản chưa active
+                        // sẽ ném lỗi tại đây
                         Authentication authentication = authenticationManagerBuilder.getObject()
                                         .authenticate(authenticationToken);
-
-                        // Kiểm tra tài khoản có active chưa
-                        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-                        if (!userDetails.isEnabled()) {
-                                RestResponse<ResLoginDTO> response = new RestResponse<>();
-                                response.setStatusCode(HttpStatus.UNAUTHORIZED.value());
-                                response.setMessage("Tài khoản chưa được kích hoạt.");
-                                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
-                        }
 
                         // set thông tin người dùng đăng nhập vào context (có thể sử dụng sau này)
                         SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -106,6 +99,7 @@ public class AuthController {
                                                 currentUserDB.getEmail(),
                                                 currentUserDB.getName());
                                 userLogin.setRole(currentUserDB.getRole().getName());
+                                userLogin.setActive(currentUserDB.isActivate());
                                 res.setUser(userLogin);
                         }
 
@@ -137,12 +131,35 @@ public class AuthController {
                         return ResponseEntity.ok()
                                         .header(HttpHeaders.SET_COOKIE, resCookies.toString())
                                         .body(restResponse);
+
+                } catch (DisabledException e) {
+                        // Tài khoản chưa kích hoạt
+                        User currentUserDB = this.userService.handleGetUserByUsername(loginDto.getUsername());
+
+                        ResLoginDTO res = new ResLoginDTO();
+                        if (currentUserDB != null) {
+                                ResLoginDTO.UserLogin userLogin = new ResLoginDTO.UserLogin(
+                                                currentUserDB.getId(),
+                                                currentUserDB.getEmail(),
+                                                currentUserDB.getName());
+                                userLogin.setRole(currentUserDB.getRole().getName());
+                                userLogin.setActive(currentUserDB.isActivate());
+                                res.setUser(userLogin);
+                        }
+
+                        RestResponse<ResLoginDTO> response = new RestResponse<>();
+                        response.setStatusCode(HttpStatus.UNAUTHORIZED.value());
+                        response.setMessage("Tài khoản chưa được kích hoạt.");
+                        response.setData(res);
+                        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+
                 } catch (BadCredentialsException e) {
-                        // Trả response sai tài khoản/mật khẩu
+                        // Sai tài khoản hoặc mật khẩu
                         RestResponse<ResLoginDTO> response = new RestResponse<>();
                         response.setStatusCode(HttpStatus.UNAUTHORIZED.value());
                         response.setMessage("Tài khoản hoặc mật khẩu không đúng");
                         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+
                 } catch (Exception e) {
                         // Các lỗi khác
                         RestResponse<ResLoginDTO> response = new RestResponse<>();
