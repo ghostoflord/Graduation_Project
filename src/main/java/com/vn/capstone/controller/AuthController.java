@@ -21,6 +21,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -38,6 +39,7 @@ import com.vn.capstone.domain.request.ReqLoginDTO;
 import com.vn.capstone.domain.response.ResCreateUserDTO;
 import com.vn.capstone.domain.response.ResLoginDTO;
 import com.vn.capstone.domain.response.RestResponse;
+import com.vn.capstone.domain.response.dtoAuth.EmailRequest;
 import com.vn.capstone.domain.response.dtoAuth.ForgotPasswordRequest;
 import com.vn.capstone.domain.response.dtoAuth.ResetPasswordRequest;
 import com.vn.capstone.domain.response.dtoAuth.VerifyTokenRequest;
@@ -378,6 +380,44 @@ public class AuthController {
 
                         return ResponseEntity.badRequest().body(res);
                 }
+        }
+
+        @PostMapping("/auth/resend-verification")
+        @Transactional
+        public ResponseEntity<RestResponse<Void>> resendVerification(@RequestBody EmailRequest request) {
+                String email = request.getEmail();
+
+                // Kiểm tra người dùng tồn tại
+                User user = userService.handleGetUserByUsername(email);
+                if (user == null) {
+                        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Email không tồn tại trong hệ thống.");
+                }
+
+                // Nếu tài khoản đã kích hoạt thì không gửi lại
+                if (user.isActivate()) {
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tài khoản đã được kích hoạt.");
+                }
+
+                // Xóa token cũ (nếu có)
+                verificationTokenRepository.deleteByUser(user);
+
+                // Tạo token mới
+                String token = UUID.randomUUID().toString();
+                VerificationToken verificationToken = new VerificationToken();
+                verificationToken.setToken(token);
+                verificationToken.setUser(user);
+                verificationToken.setExpiryDate(LocalDateTime.now().plusMinutes(5));
+
+                verificationTokenRepository.save(verificationToken);
+
+                // Gửi lại email xác thực
+                emailService.sendVerificationEmail(email, token);
+
+                RestResponse<Void> res = new RestResponse<>();
+                res.setStatusCode(HttpStatus.OK.value());
+                res.setMessage("Đã gửi lại email xác thực. Vui lòng kiểm tra hòm thư.");
+
+                return ResponseEntity.ok(res);
         }
 
 }
