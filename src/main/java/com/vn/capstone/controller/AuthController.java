@@ -102,6 +102,7 @@ public class AuthController {
                                                 currentUserDB.getName());
                                 userLogin.setRole(currentUserDB.getRole().getName());
                                 userLogin.setActive(currentUserDB.isActivate());
+                                userLogin.setAvatar(currentUserDB.getAvatar());
                                 res.setUser(userLogin);
                         }
 
