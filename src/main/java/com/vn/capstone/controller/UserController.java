@@ -113,11 +113,7 @@ public class UserController {
             return ResponseEntity.badRequest().body(errorResponse);
         }
 
-        // Xử lý avatar nếu có
-        String avatarUrl = null;
-        if (userDTO.getAvatar() != null && !userDTO.getAvatar().isEmpty()) {
-            avatarUrl = saveAvatar(userDTO.getAvatar()); // Gọi method saveAvatar để lưu file
-        }
+        String avatarUrl = userDTO.getAvatar() != null ? saveAvatar(userDTO.getAvatar()) : null;
 
         // Tạo người dùng mới
         User newUser = new User();
@@ -143,38 +139,36 @@ public class UserController {
     }
 
     // Method để lưu avatar
-    public String saveAvatar(String avatarBase64) throws IOException {
+    private String saveAvatar(String avatarBase64) throws IOException {
         if (avatarBase64 == null || avatarBase64.trim().isEmpty()) {
             return null;
         }
-
-        // Xử lý base64 nếu có prefix như "data:image/jpeg;base64,..."
-        String[] parts = avatarBase64.split(",");
-        String imageData = parts.length > 1 ? parts[1] : parts[0];
-
-        byte[] decodedImg = java.util.Base64.getDecoder().decode(imageData);
-
-        // Tạo tên file duy nhất
-        String fileName = "user_" + System.currentTimeMillis() + ".jpg";
-        String avatarUploadDir = "path_to_your_directory"; // Cập nhật với đường dẫn thư mục tải lên
-
-        // Đảm bảo thư mục tồn tại
-        java.io.File uploadDir = new java.io.File(avatarUploadDir);
-        if (!uploadDir.exists()) {
-            uploadDir.mkdirs();
+    
+        // Nếu có prefix như "data:image/jpeg;base64,...", thì tách ra
+        String base64Image;
+        if (avatarBase64.contains(",")) {
+            base64Image = avatarBase64.substring(avatarBase64.indexOf(",") + 1);
+        } else {
+            base64Image = avatarBase64;
         }
-
-        // Tạo đường dẫn đầy đủ đến file
-        String fullPath = avatarUploadDir + java.io.File.separator + fileName;
-
-        // Ghi file ra ổ cứng
-        try (java.io.FileOutputStream fos = new java.io.FileOutputStream(fullPath)) {
+    
+        // Decode base64
+        byte[] decodedImg = Base64.getDecoder().decode(base64Image);
+    
+        // Tạo tên file
+        String fileName = "user_" + System.currentTimeMillis() + ".jpg";
+    
+        File uploadDir = new File(avatarUploadDir);
+        if (!uploadDir.exists()) uploadDir.mkdirs();
+    
+        String fullPath = avatarUploadDir + File.separator + fileName;
+        try (FileOutputStream fos = new FileOutputStream(fullPath)) {
             fos.write(decodedImg);
         }
-
-        // Trả về tên file (hoặc đường dẫn tương đối nếu cần)
+    
         return fileName;
     }
+    
 
     @DeleteMapping("/users/{id}")
     @ApiMessage("Delete a user")
