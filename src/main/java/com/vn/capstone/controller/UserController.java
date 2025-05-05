@@ -17,12 +17,15 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.turkraft.springfilter.boot.Filter;
-
+import com.vn.capstone.domain.Order;
+import com.vn.capstone.domain.Product;
 import com.vn.capstone.domain.User;
 import com.vn.capstone.domain.response.RestResponse;
 import com.vn.capstone.domain.response.ResultPaginationDTO;
 import com.vn.capstone.domain.response.file.CreateUserDTO;
+import com.vn.capstone.domain.response.user.OrderResponseDTO;
 import com.vn.capstone.domain.response.user.UserAccountInfoDto;
+import com.vn.capstone.repository.OrderRepository;
 import com.vn.capstone.repository.UserRepository;
 import com.vn.capstone.service.UserService;
 import com.vn.capstone.util.SecurityUtil;
@@ -37,6 +40,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.*;
 import java.nio.file.*;
 import java.util.Base64;
+import java.util.List;
+import java.util.stream.Collectors;
 import java.io.*;
 
 @RestController
@@ -49,11 +54,14 @@ public class UserController {
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
+    private final OrderRepository orderRepository;
 
-    public UserController(UserService userService, PasswordEncoder passwordEncoder, UserRepository userRepository) {
+    public UserController(UserService userService, PasswordEncoder passwordEncoder, UserRepository userRepository,
+            OrderRepository orderRepository) {
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
         this.userRepository = userRepository;
+        this.orderRepository = orderRepository;
     }
 
     @GetMapping("/users")
@@ -253,4 +261,45 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/users/account/order")
+    public ResponseEntity<List<OrderResponseDTO>> getUserOrders() {
+        String currentUsername = SecurityUtil.getCurrentUserLogin().orElseThrow();
+        User user = userRepository.findByEmail(currentUsername);
+
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+
+        List<Order> orders = orderRepository.findByUser(user);
+
+        List<OrderResponseDTO> dtos = orders.stream().map(order -> {
+            OrderResponseDTO dto = new OrderResponseDTO();
+            dto.setId(order.getId());
+            dto.setTotalPrice(order.getTotalPrice());
+            dto.setReceiverName(order.getReceiverName());
+            dto.setReceiverPhone(order.getReceiverPhone());
+            dto.setReceiverAddress(order.getReceiverAddress());
+            dto.setStatus(order.getStatus());
+            dto.setCreatedAt(order.getCreatedAt());
+
+            // User info
+            dto.setUser(new OrderResponseDTO.UserDTO(
+                    order.getUser().getName(), order.getUser().getEmail()));
+
+            // Products in order
+            List<OrderResponseDTO.OrderProductDTO> products = order.getOrderDetails().stream().map(detail -> {
+                Product product = detail.getProduct();
+                return new OrderResponseDTO.OrderProductDTO(
+                        product.getName(),
+                        product.getImage(), // optional: thêm ảnh đại diện sản phẩm
+                        detail.getQuantity(),
+                        detail.getPrice());
+            }).collect(Collectors.toList());
+
+            dto.setProducts(products);
+            return dto;
+        }).collect(Collectors.toList());
+
+        return ResponseEntity.ok(dtos);
+    }
 }
