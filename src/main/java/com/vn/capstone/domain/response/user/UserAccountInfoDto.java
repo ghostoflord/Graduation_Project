@@ -1,0 +1,41 @@
+package com.vn.capstone.domain.response.user;
+
+public class UserAccountInfoDto {
+    private String name;
+    private String email;
+    private int orderCount;
+    private long cartSum;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public int getOrderCount() {
+        return orderCount;
+    }
+
+    public void setOrderCount(int orderCount) {
+        this.orderCount = orderCount;
+    }
+
+    public long getCartSum() {
+        return cartSum;
+    }
+
+    public void setCartSum(long cartSum) {
+        this.cartSum = cartSum;
+    }
+
+}

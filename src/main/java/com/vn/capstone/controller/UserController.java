@@ -22,7 +22,10 @@ import com.vn.capstone.domain.User;
 import com.vn.capstone.domain.response.RestResponse;
 import com.vn.capstone.domain.response.ResultPaginationDTO;
 import com.vn.capstone.domain.response.file.CreateUserDTO;
+import com.vn.capstone.domain.response.user.UserAccountInfoDto;
+import com.vn.capstone.repository.UserRepository;
 import com.vn.capstone.service.UserService;
+import com.vn.capstone.util.SecurityUtil;
 import com.vn.capstone.util.annotation.ApiMessage;
 import com.vn.capstone.util.error.IdInvalidException;
 
@@ -45,10 +48,12 @@ public class UserController {
 
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
 
-    public UserController(UserService userService, PasswordEncoder passwordEncoder) {
+    public UserController(UserService userService, PasswordEncoder passwordEncoder, UserRepository userRepository) {
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
+        this.userRepository = userRepository;
     }
 
     @GetMapping("/users")
@@ -143,7 +148,7 @@ public class UserController {
         if (avatarBase64 == null || avatarBase64.trim().isEmpty()) {
             return null;
         }
-    
+
         // Nếu có prefix như "data:image/jpeg;base64,...", thì tách ra
         String base64Image;
         if (avatarBase64.contains(",")) {
@@ -151,24 +156,24 @@ public class UserController {
         } else {
             base64Image = avatarBase64;
         }
-    
+
         // Decode base64
         byte[] decodedImg = Base64.getDecoder().decode(base64Image);
-    
+
         // Tạo tên file
         String fileName = "user_" + System.currentTimeMillis() + ".jpg";
-    
+
         File uploadDir = new File(avatarUploadDir);
-        if (!uploadDir.exists()) uploadDir.mkdirs();
-    
+        if (!uploadDir.exists())
+            uploadDir.mkdirs();
+
         String fullPath = avatarUploadDir + File.separator + fileName;
         try (FileOutputStream fos = new FileOutputStream(fullPath)) {
             fos.write(decodedImg);
         }
-    
+
         return fileName;
     }
-    
 
     @DeleteMapping("/users/{id}")
     @ApiMessage("Delete a user")
@@ -210,6 +215,40 @@ public class UserController {
         response.setError(null);
         response.setMessage("User updated successfully");
         response.setData(updatedUser);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/users/account/info")
+    public ResponseEntity<RestResponse<UserAccountInfoDto>> getAccountInfo() {
+        String currentEmail = SecurityUtil.getCurrentUserLogin().orElse(null);
+        if (currentEmail == null) {
+            RestResponse<UserAccountInfoDto> response = new RestResponse<>();
+            response.setStatusCode(HttpStatus.UNAUTHORIZED.value());
+            response.setError("Unauthorized");
+            response.setMessage("Bạn chưa đăng nhập.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+        }
+
+        User user = userRepository.findByEmail(currentEmail);
+        if (user == null) {
+            RestResponse<UserAccountInfoDto> response = new RestResponse<>();
+            response.setStatusCode(HttpStatus.NOT_FOUND.value());
+            response.setError("Not Found");
+            response.setMessage("Không tìm thấy người dùng.");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+
+        UserAccountInfoDto dto = new UserAccountInfoDto();
+        dto.setName(user.getName());
+        dto.setEmail(user.getEmail());
+        dto.setOrderCount(user.getOrders() != null ? user.getOrders().size() : 0);
+        dto.setCartSum(user.getCart() != null ? user.getCart().getSum() : 0);
+
+        RestResponse<UserAccountInfoDto> response = new RestResponse<>();
+        response.setStatusCode(HttpStatus.OK.value());
+        response.setData(dto);
+        response.setMessage("Lấy thông tin tài khoản thành công");
 
         return ResponseEntity.ok(response);
     }
