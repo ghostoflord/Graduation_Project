@@ -1,5 +1,15 @@
 package com.vn.capstone.controller;
 
+import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.*;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.*;
+import java.nio.file.*;
+import java.util.Base64;
+import java.io.*;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
@@ -16,6 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.turkraft.springfilter.boot.Filter;
 
 import com.vn.capstone.domain.Product;
+import com.vn.capstone.domain.response.CreateProductDTO;
 import com.vn.capstone.domain.response.RestResponse;
 import com.vn.capstone.domain.response.ResultPaginationDTO;
 import com.vn.capstone.service.ProductService;
@@ -27,6 +38,9 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/api/v1")
 public class ProductController {
+
+    @Value("${upload.product-dir}")
+    private String productUploadDir;
 
     private final ProductService productService;
 
@@ -63,18 +77,18 @@ public class ProductController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-        @GetMapping("/products/slug/{slug}")
-        @ApiMessage("Fetch Product by slug")
-        public ResponseEntity<RestResponse<Product>> getProductBySlug(@PathVariable("slug") String slug) {
-            Product fetchProduct = productService.fetchProductBySlug(slug);
+    @GetMapping("/products/slug/{slug}")
+    @ApiMessage("Fetch Product by slug")
+    public ResponseEntity<RestResponse<Product>> getProductBySlug(@PathVariable("slug") String slug) {
+        Product fetchProduct = productService.fetchProductBySlug(slug);
 
-            RestResponse<Product> response = new RestResponse<>();
-            response.setStatusCode(HttpStatus.OK.value());
-            response.setMessage("Lấy sản phẩm thành công theo slug");
-            response.setData(fetchProduct);
+        RestResponse<Product> response = new RestResponse<>();
+        response.setStatusCode(HttpStatus.OK.value());
+        response.setMessage("Lấy sản phẩm thành công theo slug");
+        response.setData(fetchProduct);
 
-            return ResponseEntity.status(HttpStatus.OK).body(response);
-        }
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
 
     @PostMapping("/products/slug/generate")
     @ApiMessage("Generate missing slugs for all products")
@@ -90,17 +104,75 @@ public class ProductController {
     }
 
     @PostMapping("/products")
-    @ApiMessage("Create a new Product")
-    public ResponseEntity<RestResponse<Product>> createProduct(@Valid @RequestBody Product takeProduct) {
-        Product pressProduct = this.productService.handleCreateProduct(takeProduct);
+    public ResponseEntity<RestResponse<Product>> createProduct(@RequestBody CreateProductDTO dto) throws IOException {
+        String savedImage = dto.getImage() != null ? saveImage(dto.getImage()) : null;
+
+        if (savedImage != null) {
+            System.out.println("Image saved: " + savedImage); // Log giá trị ảnh
+        }
+
+        Product product = new Product();
+        product.setName(dto.getName());
+        product.setDetailDescription(dto.getDetailDescription());
+        product.setPrice(dto.getPrice());
+        product.setImage(savedImage); // Đảm bảo gán đúng tên ảnh
+
+        // Kiểm tra lại giá trị trước khi lưu vào cơ sở dữ liệu
+        System.out.println("Saving product: " + product);
+
+        Product savedProduct = productService.handleCreateProduct(product);
 
         RestResponse<Product> response = new RestResponse<>();
         response.setStatusCode(HttpStatus.CREATED.value());
         response.setMessage("Tạo sản phẩm thành công");
-        response.setData(pressProduct);
-        response.setError(null); // hoặc bỏ qua nếu không có lỗi
+        response.setData(savedProduct);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    private String saveImage(String imageBase64) throws IOException {
+        if (imageBase64 == null || imageBase64.trim().isEmpty()) {
+            return null;
+        }
+
+        // Log lại Base64 để kiểm tra
+        System.out.println("Received Base64 Image: " + imageBase64);
+
+        // Kiểm tra và tách bỏ phần tiền tố nếu có
+        String base64Image;
+        if (imageBase64.contains(",")) {
+            base64Image = imageBase64.substring(imageBase64.indexOf(",") + 1);
+        } else {
+            base64Image = imageBase64;
+        }
+
+        // Log Base64 sau khi tách tiền tố
+        System.out.println("Base64 Image after stripping prefix: " + base64Image);
+
+        try {
+            // Decode base64
+            byte[] decoded = Base64.getDecoder().decode(base64Image);
+
+            // Tạo tên file duy nhất cho ảnh sản phẩm
+            String fileName = "product_" + System.currentTimeMillis() + ".jpg";
+
+            // Tạo thư mục lưu trữ nếu chưa có
+            File uploadDir = new File(productUploadDir);
+            if (!uploadDir.exists()) {
+                uploadDir.mkdirs();
+            }
+
+            String fullPath = productUploadDir + File.separator + fileName;
+            try (FileOutputStream fos = new FileOutputStream(fullPath)) {
+                fos.write(decoded);
+            }
+
+            return fileName; // Trả về tên file của ảnh đã lưu
+        } catch (IllegalArgumentException e) {
+            // Log lỗi nếu Base64 không hợp lệ
+            System.err.println("Base64 decoding error: " + e.getMessage());
+            return null;
+        }
     }
 
     @DeleteMapping("/products/{id}")
