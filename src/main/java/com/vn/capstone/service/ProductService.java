@@ -14,6 +14,8 @@ import com.vn.capstone.domain.Product;
 import com.vn.capstone.domain.response.ResProductDTO;
 import com.vn.capstone.domain.response.ResultPaginationDTO;
 import com.vn.capstone.domain.response.product.ProductUpdateRequest;
+import com.vn.capstone.repository.CommentRepository;
+import com.vn.capstone.repository.OrderDetailRepository;
 import com.vn.capstone.repository.ProductRepository;
 import com.vn.capstone.util.SlugUtils;
 
@@ -32,9 +34,14 @@ import java.io.*;
 @Service
 public class ProductService {
     private final ProductRepository productRepository;
+    private final CommentRepository commentRepository;
+    private final OrderDetailRepository orderDetailRepository;
 
-    public ProductService(ProductRepository productRepository) {
+    public ProductService(ProductRepository productRepository, CommentRepository commentRepository,
+            OrderDetailRepository orderDetailRepository) {
         this.productRepository = productRepository;
+        this.commentRepository = commentRepository;
+        this.orderDetailRepository = orderDetailRepository;
     }
 
     public ResultPaginationDTO fetchAllProduct(Specification<Product> spec, Pageable pageable) {
@@ -114,7 +121,11 @@ public class ProductService {
         return this.productRepository.save(product);
     }
 
+    @Transactional
     public void handleDeleteProduct(long id) {
+        this.commentRepository.deleteByProductId(id);
+        // Xóa order_detail liên quan
+        orderDetailRepository.deleteByProductId(id);
         this.productRepository.deleteById(id);
     }
 
@@ -135,7 +146,7 @@ public class ProductService {
         return res;
     }
 
-    //test thuss
+    // test thuss
     public Optional<Product> findById(Long id) {
         return productRepository.findById(id);
     }

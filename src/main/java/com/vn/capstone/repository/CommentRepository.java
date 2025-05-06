@@ -10,4 +10,6 @@ import com.vn.capstone.domain.Comment;
 @Repository
 public interface CommentRepository extends JpaRepository<Comment, Long> {
     List<Comment> findByProductId(Long productId);
+
+    void deleteByProductId(Long productId);
 }

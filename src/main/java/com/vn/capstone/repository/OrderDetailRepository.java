@@ -7,4 +7,5 @@ import com.vn.capstone.domain.OrderDetail;
 
 @Repository
 public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> {
+    void deleteByProductId(Long productId);
 }
