@@ -29,6 +29,7 @@ import com.vn.capstone.domain.Product;
 import com.vn.capstone.domain.response.CreateProductDTO;
 import com.vn.capstone.domain.response.RestResponse;
 import com.vn.capstone.domain.response.ResultPaginationDTO;
+import com.vn.capstone.domain.response.product.ProductUpdateRequest;
 import com.vn.capstone.service.ProductService;
 import com.vn.capstone.util.annotation.ApiMessage;
 import com.vn.capstone.util.error.IdInvalidException;
@@ -209,6 +210,51 @@ public class ProductController {
         response.setData(pressProduct);
         response.setError(null);
 
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/products/update")
+    public ResponseEntity<RestResponse<Product>> updateProduct(@RequestBody ProductUpdateRequest request)
+            throws IOException {
+
+        // Tìm sản phẩm theo id
+        Product product = productService.findById(request.getId())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với ID: " + request.getId()));
+
+        // Cập nhật thông tin sản phẩm
+        product.setName(request.getName());
+        product.setProductCode(request.getProductCode());
+        product.setDetailDescription(request.getDetailDescription());
+        product.setGuarantee(request.getGuarantee());
+        product.setFactory(request.getFactory());
+        product.setPrice(request.getPrice());
+        product.setSold(request.getSold());
+        product.setQuantity(request.getQuantity());
+        product.setShortDescription(request.getShortDescription());
+
+        // Nếu có ảnh mới
+        if (request.getImage() != null && !request.getImage().trim().isEmpty()) {
+            // Xóa ảnh cũ nếu có
+            if (product.getImage() != null) {
+                File oldImage = new File(productUploadDir + File.separator + product.getImage());
+                if (oldImage.exists()) {
+                    oldImage.delete();
+                }
+            }
+
+            // Lưu ảnh mới (không cần base64 nữa, sử dụng tên file)
+            String newImageFileName = request.getImage(); // Trực tiếp lấy tên file từ frontend
+            product.setImage(newImageFileName);
+        }
+
+        // Cập nhật sản phẩm trong DB
+        Product updatedProduct = productService.handleUpdateProduct(product);
+
+        // Trả về response
+        RestResponse<Product> response = new RestResponse<>();
+        response.setStatusCode(HttpStatus.OK.value());
+        response.setMessage("Cập nhật sản phẩm thành công");
+        response.setData(updatedProduct);
         return ResponseEntity.ok(response);
     }
 

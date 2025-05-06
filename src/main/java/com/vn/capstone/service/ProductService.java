@@ -2,6 +2,7 @@ package com.vn.capstone.service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
@@ -12,8 +13,21 @@ import org.springframework.stereotype.Service;
 import com.vn.capstone.domain.Product;
 import com.vn.capstone.domain.response.ResProductDTO;
 import com.vn.capstone.domain.response.ResultPaginationDTO;
+import com.vn.capstone.domain.response.product.ProductUpdateRequest;
 import com.vn.capstone.repository.ProductRepository;
 import com.vn.capstone.util.SlugUtils;
+
+import jakarta.transaction.Transactional;
+
+import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.*;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.*;
+import java.nio.file.*;
+import java.util.Base64;
+import java.io.*;
 
 @Service
 public class ProductService {
@@ -119,5 +133,10 @@ public class ProductService {
         res.setSold(product.getSold());
         res.setShortDescription(product.getShortDescription());
         return res;
+    }
+
+    //test thuss
+    public Optional<Product> findById(Long id) {
+        return productRepository.findById(id);
     }
 }
