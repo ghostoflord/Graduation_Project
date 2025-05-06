@@ -25,6 +25,7 @@ import com.vn.capstone.domain.response.ResultPaginationDTO;
 import com.vn.capstone.domain.response.file.CreateUserDTO;
 import com.vn.capstone.domain.response.user.OrderResponseDTO;
 import com.vn.capstone.domain.response.user.UserAccountInfoDto;
+import com.vn.capstone.domain.response.user.UserImportDTO;
 import com.vn.capstone.repository.OrderRepository;
 import com.vn.capstone.repository.UserRepository;
 import com.vn.capstone.service.UserService;
@@ -301,5 +302,24 @@ public class UserController {
         }).collect(Collectors.toList());
 
         return ResponseEntity.ok(dtos);
+    }
+
+    @PostMapping("/users/import")
+    public ResponseEntity<RestResponse<Void>> importUsers(@RequestBody List<UserImportDTO> users) {
+        for (UserImportDTO dto : users) {
+            User user = new User();
+            user.setName(dto.getName());
+            user.setEmail(dto.getEmail());
+            user.setAddress(dto.getAddress());
+            userRepository.save(user);
+        }
+
+        RestResponse<Void> response = new RestResponse<>();
+        response.setStatusCode(200);
+        response.setMessage("Imported successfully");
+        response.setData(null);
+        response.setError(null);
+
+        return ResponseEntity.ok(response);
     }
 }
