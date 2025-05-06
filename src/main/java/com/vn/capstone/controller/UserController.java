@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.turkraft.springfilter.boot.Filter;
 import com.vn.capstone.domain.Order;
@@ -24,6 +25,7 @@ import com.vn.capstone.domain.response.RestResponse;
 import com.vn.capstone.domain.response.ResultPaginationDTO;
 import com.vn.capstone.domain.response.file.CreateUserDTO;
 import com.vn.capstone.domain.response.user.OrderResponseDTO;
+import com.vn.capstone.domain.response.user.UpdateUserDTO;
 import com.vn.capstone.domain.response.user.UserAccountInfoDto;
 import com.vn.capstone.domain.response.user.UserImportDTO;
 import com.vn.capstone.repository.OrderRepository;
@@ -42,6 +44,7 @@ import org.springframework.core.io.*;
 import java.nio.file.*;
 import java.util.Base64;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.io.*;
 
@@ -322,4 +325,42 @@ public class UserController {
 
         return ResponseEntity.ok(response);
     }
+
+    // upload avt when update user
+    @PostMapping("/users/update")
+    public ResponseEntity<RestResponse<User>> updateUser(@RequestBody UpdateUserDTO userDTO) throws IOException {
+        // Tìm user theo id
+        User user = userService.findById(userDTO.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy user"));
+
+        // Cập nhật thông tin
+        user.setName(userDTO.getName());
+        user.setGender(userDTO.getGender());
+        user.setAddress(userDTO.getAddress());
+        user.setAge(userDTO.getAge());
+
+        // Nếu có avatar mới
+        if (userDTO.getAvatar() != null && !userDTO.getAvatar().trim().isEmpty()) {
+            // Xóa avatar cũ nếu có
+            if (user.getAvatar() != null) {
+                File oldAvatar = new File(avatarUploadDir + File.separator + user.getAvatar());
+                if (oldAvatar.exists()) {
+                    oldAvatar.delete();
+                }
+            }
+
+            // Lưu avatar mới
+            String newAvatarFileName = saveAvatar(userDTO.getAvatar());
+            user.setAvatar(newAvatarFileName);
+        }
+
+        User updatedUser = userService.handleUpdateUser(user);
+
+        RestResponse<User> response = new RestResponse<>();
+        response.setStatusCode(HttpStatus.OK.value());
+        response.setMessage("Cập nhật người dùng thành công");
+        response.setData(updatedUser);
+        return ResponseEntity.ok(response);
+    }
+
 }
