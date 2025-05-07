@@ -112,7 +112,7 @@ public class CartService {
                     dto.setName(product.getName());
                     dto.setImage(product.getImage());
                     dto.setDetailDescription(product.getDetailDescription()); // hoặc getShortDescription tuỳ bạn
-                    dto.setShortDescription(product.getShortDescription());                                                             // 
+                    dto.setShortDescription(product.getShortDescription()); //
                     dto.setPrice(detail.getPrice());
                     dto.setQuantity((int) detail.getQuantity());
                     return dto;
@@ -125,6 +125,27 @@ public class CartService {
                 totalQuantity,
                 userId,
                 items);
+    }
+
+    @Transactional
+    public void deleteItemFromCart(Long userId, Long productId) {
+        cartDetailRepository.deleteByCartUserIdAndProductId(userId, productId);
+        recalculateCartTotal(userId);
+    }
+
+    private void recalculateCartTotal(Long userId) {
+        Cart cart = cartRepository.findByUser_Id(userId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy giỏ hàng cho userId: " + userId));
+
+        List<CartDetail> cartDetails = cartDetailRepository.findByCartId(cart.getId());
+
+        long newSum = 0;
+        for (CartDetail detail : cartDetails) {
+            newSum += (long) (detail.getPrice() * detail.getQuantity());
+        }
+
+        cart.setSum(newSum);
+        cartRepository.save(cart);
     }
 
 }

@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.vn.capstone.domain.CartDetail;
@@ -38,7 +39,7 @@ public class CartController {
         response.setMessage("Success");
         response.setData(cartSummary);
 
-        return response;    
+        return response;
     }
 
     // Thêm sản phẩm vào giỏ hàng
@@ -78,6 +79,22 @@ public class CartController {
         dto.setCartId(cartDetail.getCart().getId());
         dto.setUserId(cartDetail.getCart().getUser().getId());
         return dto;
+    }
+
+    // delete one product in cart page
+    @DeleteMapping("/remove")
+    public ResponseEntity<RestResponse<Void>> removeCartItem(
+            @RequestParam Long userId,
+            @RequestParam Long productId) {
+
+        cartService.deleteItemFromCart(userId, productId);
+
+        RestResponse<Void> response = new RestResponse<>();
+        response.setStatusCode(200);
+        response.setMessage("Đã xóa sản phẩm khỏi giỏ hàng");
+        response.setData(null);
+
+        return ResponseEntity.ok(response);
     }
 
 }
