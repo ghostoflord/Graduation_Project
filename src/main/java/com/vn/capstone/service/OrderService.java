@@ -110,6 +110,7 @@ public class OrderService {
         return dto;
     }
 
+    // user delete order @PostMapping("/{id}/cancel")
     public void cancelOrder(Long orderId, String username) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
@@ -134,7 +135,7 @@ public class OrderService {
         saveOrderStatusHistory(order, oldStatus, OrderStatus.CANCELED);
     }
 
-    // take order of user
+    // take order of user of @GetMapping("/my-orders")
     public List<OrderSummaryDTO> getOrderSummariesForUser(String email) {
         User user = userRepository.findByEmail(email);
         if (user == null) {
@@ -148,7 +149,7 @@ public class OrderService {
                 .collect(Collectors.toList());
     }
 
-    // in order of user
+    /// in order of user
     public OrderSummaryDTO toSummaryDTO(Order order) {
         OrderSummaryDTO dto = new OrderSummaryDTO();
         dto.setId(order.getId());
@@ -161,23 +162,7 @@ public class OrderService {
         return dto;
     }
 
-    public List<OrderStatusHistoryDTO> getOrderStatusHistory(Long orderId, String username) {
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
-
-        if (!order.getUser().getName().equals(username)) {
-            throw new AccessDeniedException("Không được phép xem đơn hàng này");
-        }
-
-        return orderStatusHistoryRepository.findByOrderIdOrderByChangedAtDesc(orderId)
-                .stream()
-                .map(history -> new OrderStatusHistoryDTO(
-                        history.getOldStatus(),
-                        history.getNewStatus(),
-                        history.getChangedAt()))
-                .collect(Collectors.toList());
-    }
-
+    // save order in order status history
     private void saveOrderStatusHistory(Order order, OrderStatus oldStatus, OrderStatus newStatus) {
         OrderStatusHistory history = new OrderStatusHistory();
         history.setOrder(order);

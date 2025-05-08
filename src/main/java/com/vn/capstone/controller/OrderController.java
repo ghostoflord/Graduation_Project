@@ -93,11 +93,4 @@ public class OrderController {
 
         return ResponseEntity.ok(response);
     }
-
-    // kiểm tra trạng thái của lịch sử
-    @GetMapping("/{id}/status-history")
-    public ResponseEntity<List<OrderStatusHistoryDTO>> getStatusHistory(@PathVariable Long id, Principal principal) {
-        List<OrderStatusHistoryDTO> history = orderService.getOrderStatusHistory(id, principal.getName());
-        return ResponseEntity.ok(history);
-    }
 }

@@ -9,5 +9,5 @@ import com.vn.capstone.domain.OrderStatusHistory;
 
 @Repository
 public interface OrderStatusHistoryRepository extends JpaRepository<OrderStatusHistory, Long> {
-    List<OrderStatusHistory> findByOrderIdOrderByChangedAtDesc(Long orderId);
+    // List<OrderStatusHistory> findByOrderIdOrderByChangedAtDesc(Long orderId);
 }
