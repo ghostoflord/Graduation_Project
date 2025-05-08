@@ -1,5 +1,7 @@
 package com.vn.capstone.domain.response.order;
 
+import com.vn.capstone.util.constant.OrderStatus;
+
 public class OrderSummaryDTO {
     private long id;
 
@@ -7,9 +9,8 @@ public class OrderSummaryDTO {
     private String receiverName;
     private String receiverAddress;
     private String receiverPhone;
-    private String status;
+    private OrderStatus status;
     private long userId;
-
 
     public long getId() {
         return id;
@@ -51,13 +52,7 @@ public class OrderSummaryDTO {
         this.receiverPhone = receiverPhone;
     }
 
-    public String getStatus() {
-        return status;
-    }
 
-    public void setStatus(String status) {
-        this.status = status;
-    }
 
     public long getUserId() {
         return userId;
@@ -65,5 +60,13 @@ public class OrderSummaryDTO {
 
     public void setUserId(long userId) {
         this.userId = userId;
+    }
+
+    public OrderStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(OrderStatus status) {
+        this.status = status;
     }
 }

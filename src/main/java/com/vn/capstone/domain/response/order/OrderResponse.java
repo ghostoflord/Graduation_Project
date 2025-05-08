@@ -3,6 +3,7 @@ package com.vn.capstone.domain.response.order;
 import java.time.Instant;
 
 import com.vn.capstone.domain.Order;
+import com.vn.capstone.util.constant.OrderStatus;
 
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
@@ -17,7 +18,7 @@ public class OrderResponse {
     private Long id;
     private Long userId;
     private Double total;
-    private String status;
+    private OrderStatus status;
     private Instant createdAt;
 
     public static OrderResponse from(Order o) {

@@ -23,6 +23,9 @@ public class OrderDetail implements Serializable {
     private long quantity;
     private double price;
 
+    private String productNameSnapshot; // để tránh mất tên nếu sản phẩm bị xoá
+    private String productImageSnapshot;
+
     // order_id: long
     @ManyToOne
     @JoinColumn(name = "order_id")
@@ -72,5 +75,27 @@ public class OrderDetail implements Serializable {
     public void setProduct(Product product) {
         this.product = product;
     }
+
+    public static long getSerialversionuid() {
+        return serialVersionUID;
+    }
+
+    public String getProductNameSnapshot() {
+        return productNameSnapshot;
+    }
+
+    public void setProductNameSnapshot(String productNameSnapshot) {
+        this.productNameSnapshot = productNameSnapshot;
+    }
+
+    public String getProductImageSnapshot() {
+        return productImageSnapshot;
+    }
+
+    public void setProductImageSnapshot(String productImageSnapshot) {
+        this.productImageSnapshot = productImageSnapshot;
+    }
+
+    
 
 }

@@ -3,6 +3,8 @@ package com.vn.capstone.domain.response.user;
 import java.time.Instant;
 import java.util.List;
 
+import com.vn.capstone.util.constant.OrderStatus;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,7 +20,7 @@ public class OrderResponseDTO {
     private String receiverName;
     private String receiverAddress;
     private String receiverPhone;
-    private String status;
+    private OrderStatus status;
     private Instant createdAt;
     private UserDTO user;
     private List<OrderProductDTO> products;
