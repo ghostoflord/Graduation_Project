@@ -5,6 +5,7 @@ import com.vn.capstone.util.constant.OrderStatus;
 public class OrderSummaryDTO {
     private long id;
 
+    
     private double totalPrice;
     private String receiverName;
     private String receiverAddress;

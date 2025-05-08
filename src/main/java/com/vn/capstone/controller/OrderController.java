@@ -80,6 +80,20 @@ public class OrderController {
         return ResponseEntity.ok(response);
     }
 
+    // get order by user
+    @GetMapping("/my-orders")
+    public ResponseEntity<RestResponse<List<OrderSummaryDTO>>> getMyOrders(Principal principal) {
+        String email = principal.getName();
+        List<OrderSummaryDTO> orderSummaries = orderService.getOrderSummariesForUser(email);
+
+        RestResponse<List<OrderSummaryDTO>> response = new RestResponse<>();
+        response.setStatusCode(200); // Set status code
+        response.setData(orderSummaries); // Set data
+        response.setMessage("Danh sách đơn hàng"); // Có thể dùng thông điệp tùy ý
+
+        return ResponseEntity.ok(response);
+    }
+
     // kiểm tra trạng thái của lịch sử
     @GetMapping("/{id}/status-history")
     public ResponseEntity<List<OrderStatusHistoryDTO>> getStatusHistory(@PathVariable Long id, Principal principal) {

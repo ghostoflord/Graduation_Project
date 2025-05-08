@@ -13,6 +13,7 @@ import com.vn.capstone.domain.CartDetail;
 import com.vn.capstone.domain.Order;
 import com.vn.capstone.domain.OrderDetail;
 import com.vn.capstone.domain.OrderStatusHistory;
+import com.vn.capstone.domain.User;
 import com.vn.capstone.domain.response.order.OrderStatusHistoryDTO;
 import com.vn.capstone.domain.response.order.OrderSummaryDTO;
 import com.vn.capstone.repository.CartDetailRepository;
@@ -20,8 +21,10 @@ import com.vn.capstone.repository.CartRepository;
 import com.vn.capstone.repository.OrderDetailRepository;
 import com.vn.capstone.repository.OrderRepository;
 import com.vn.capstone.repository.OrderStatusHistoryRepository;
+import com.vn.capstone.repository.UserRepository;
 import com.vn.capstone.util.constant.OrderStatus;
 import com.vn.capstone.util.error.AccessDeniedException;
+import com.vn.capstone.util.error.NotFoundException;
 
 @Service
 public class OrderService {
@@ -30,15 +33,17 @@ public class OrderService {
     private final CartRepository cartRepository;
     private final CartDetailRepository cartDetailRepository;
     private final OrderStatusHistoryRepository orderStatusHistoryRepository;
+    private final UserRepository userRepository;
 
     public OrderService(OrderRepository orderRepository, OrderDetailRepository orderDetailRepository,
             CartRepository cartRepository, CartDetailRepository cartDetailRepository,
-            OrderStatusHistoryRepository orderStatusHistoryRepository) {
+            OrderStatusHistoryRepository orderStatusHistoryRepository, UserRepository userRepository) {
         this.orderRepository = orderRepository;
         this.orderDetailRepository = orderDetailRepository;
         this.cartRepository = cartRepository;
         this.cartDetailRepository = cartDetailRepository;
         this.orderStatusHistoryRepository = orderStatusHistoryRepository;
+        this.userRepository = userRepository;
     }
 
     @Transactional
@@ -109,7 +114,8 @@ public class OrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
 
-        if (!order.getUser().getName().equals(username)) {
+        // check user vs username
+        if (!order.getUser().getEmail().equals(username)) {
             throw new AccessDeniedException("Không được phép hủy đơn này");
         }
 
@@ -126,6 +132,33 @@ public class OrderService {
 
         // Ghi lịch sử sau khi lưu
         saveOrderStatusHistory(order, oldStatus, OrderStatus.CANCELED);
+    }
+
+    // take order of user
+    public List<OrderSummaryDTO> getOrderSummariesForUser(String email) {
+        User user = userRepository.findByEmail(email);
+        if (user == null) {
+            throw new NotFoundException("Không tìm thấy người dùng");
+        }
+
+        List<Order> orders = orderRepository.findByUser(user);
+
+        return orders.stream()
+                .map(this::toSummaryDTO) // sử dụng hàm mapping
+                .collect(Collectors.toList());
+    }
+
+    // in order of user
+    public OrderSummaryDTO toSummaryDTO(Order order) {
+        OrderSummaryDTO dto = new OrderSummaryDTO();
+        dto.setId(order.getId());
+        dto.setTotalPrice(order.getTotalPrice());
+        dto.setReceiverName(order.getReceiverName());
+        dto.setReceiverAddress(order.getReceiverAddress());
+        dto.setReceiverPhone(order.getReceiverPhone());
+        dto.setStatus(order.getStatus());
+        dto.setUserId(order.getUser().getId());
+        return dto;
     }
 
     public List<OrderStatusHistoryDTO> getOrderStatusHistory(Long orderId, String username) {
