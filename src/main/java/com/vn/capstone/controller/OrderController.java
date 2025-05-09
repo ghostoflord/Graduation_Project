@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.vn.capstone.domain.Order;
 import com.vn.capstone.domain.response.RestResponse;
 import com.vn.capstone.domain.response.order.OrderHistoryDTO;
+import com.vn.capstone.domain.response.order.OrderItemDTO;
 import com.vn.capstone.domain.response.order.OrderResponse;
 import com.vn.capstone.domain.response.order.OrderStatusHistoryDTO;
 import com.vn.capstone.domain.response.order.OrderSummaryDTO;
@@ -108,6 +109,23 @@ public class OrderController {
         response.setError(null);
 
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/checkout")
+    public ResponseEntity<RestResponse<Void>> checkout(@RequestBody List<OrderItemDTO> orderItems) {
+        try {
+            orderService.processOrder(orderItems);
+            RestResponse<Void> response = new RestResponse<>();
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setMessage("Checkout successful");
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            RestResponse<Void> errorResponse = new RestResponse<>();
+            errorResponse.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            errorResponse.setError("Checkout failed");
+            errorResponse.setMessage(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        }
     }
 
 }

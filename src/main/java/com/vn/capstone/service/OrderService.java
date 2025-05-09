@@ -13,8 +13,10 @@ import com.vn.capstone.domain.CartDetail;
 import com.vn.capstone.domain.Order;
 import com.vn.capstone.domain.OrderDetail;
 import com.vn.capstone.domain.OrderStatusHistory;
+import com.vn.capstone.domain.Product;
 import com.vn.capstone.domain.User;
 import com.vn.capstone.domain.response.order.OrderHistoryDTO;
+import com.vn.capstone.domain.response.order.OrderItemDTO;
 import com.vn.capstone.domain.response.order.OrderStatusHistoryDTO;
 import com.vn.capstone.domain.response.order.OrderSummaryDTO;
 import com.vn.capstone.mapping.OrderMapper;
@@ -23,6 +25,7 @@ import com.vn.capstone.repository.CartRepository;
 import com.vn.capstone.repository.OrderDetailRepository;
 import com.vn.capstone.repository.OrderRepository;
 import com.vn.capstone.repository.OrderStatusHistoryRepository;
+import com.vn.capstone.repository.ProductRepository;
 import com.vn.capstone.repository.UserRepository;
 import com.vn.capstone.util.constant.OrderStatus;
 import com.vn.capstone.util.constant.PaymentMethod;
@@ -38,11 +41,12 @@ public class OrderService {
     private final OrderStatusHistoryRepository orderStatusHistoryRepository;
     private final UserRepository userRepository;
     private final OrderMapper orderMapper;
+    private final ProductRepository productRepository;
 
     public OrderService(OrderRepository orderRepository, OrderDetailRepository orderDetailRepository,
             CartRepository cartRepository, CartDetailRepository cartDetailRepository,
             OrderStatusHistoryRepository orderStatusHistoryRepository, UserRepository userRepository,
-            OrderMapper orderMapper) {
+            OrderMapper orderMapper, ProductRepository productRepository) {
         this.orderRepository = orderRepository;
         this.orderDetailRepository = orderDetailRepository;
         this.cartRepository = cartRepository;
@@ -50,6 +54,7 @@ public class OrderService {
         this.orderStatusHistoryRepository = orderStatusHistoryRepository;
         this.userRepository = userRepository;
         this.orderMapper = orderMapper;
+        this.productRepository = productRepository;
     }
 
     @Transactional
@@ -212,6 +217,26 @@ public class OrderService {
         }
 
         return orderMapper.toOrderHistoryDTO(order);
+    }
+
+    // refresh quantity in data
+    @Transactional
+    public void processOrder(List<OrderItemDTO> orderItems) {
+        for (OrderItemDTO item : orderItems) {
+            Product product = productRepository.findById(item.getProductId())
+                    .orElseThrow(() -> new RuntimeException("Product not found"));
+
+            long currentQuantity = Long.parseLong(product.getQuantity());
+
+            if (currentQuantity < item.getQuantity()) {
+                throw new RuntimeException("Not enough stock for product: " + product.getName());
+            }
+
+            long newQuantity = currentQuantity - item.getQuantity();
+            product.setQuantity(String.valueOf(newQuantity));
+
+            productRepository.save(product);
+        }
     }
 
 }
