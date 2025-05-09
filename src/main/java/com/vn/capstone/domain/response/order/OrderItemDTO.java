@@ -5,8 +5,14 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.Getter;
 
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class OrderItemDTO {
-    private Long productId;
+
+    // đại diện từng sp trong đơn hàng
+    private long productId;
     private String productName;
     private String productImage;
     private long quantity;

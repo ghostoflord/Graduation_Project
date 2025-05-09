@@ -10,7 +10,12 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.Getter;
 
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class OrderHistoryDTO {
+    // thông tin đơn hàng
     private Long orderId;
     private double totalPrice;
     private String receiverName;

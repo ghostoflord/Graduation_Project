@@ -14,8 +14,10 @@ import com.vn.capstone.domain.Order;
 import com.vn.capstone.domain.OrderDetail;
 import com.vn.capstone.domain.OrderStatusHistory;
 import com.vn.capstone.domain.User;
+import com.vn.capstone.domain.response.order.OrderHistoryDTO;
 import com.vn.capstone.domain.response.order.OrderStatusHistoryDTO;
 import com.vn.capstone.domain.response.order.OrderSummaryDTO;
+import com.vn.capstone.mapping.OrderMapper;
 import com.vn.capstone.repository.CartDetailRepository;
 import com.vn.capstone.repository.CartRepository;
 import com.vn.capstone.repository.OrderDetailRepository;
@@ -23,6 +25,7 @@ import com.vn.capstone.repository.OrderRepository;
 import com.vn.capstone.repository.OrderStatusHistoryRepository;
 import com.vn.capstone.repository.UserRepository;
 import com.vn.capstone.util.constant.OrderStatus;
+import com.vn.capstone.util.constant.PaymentMethod;
 import com.vn.capstone.util.error.AccessDeniedException;
 import com.vn.capstone.util.error.NotFoundException;
 
@@ -34,16 +37,19 @@ public class OrderService {
     private final CartDetailRepository cartDetailRepository;
     private final OrderStatusHistoryRepository orderStatusHistoryRepository;
     private final UserRepository userRepository;
+    private final OrderMapper orderMapper;
 
     public OrderService(OrderRepository orderRepository, OrderDetailRepository orderDetailRepository,
             CartRepository cartRepository, CartDetailRepository cartDetailRepository,
-            OrderStatusHistoryRepository orderStatusHistoryRepository, UserRepository userRepository) {
+            OrderStatusHistoryRepository orderStatusHistoryRepository, UserRepository userRepository,
+            OrderMapper orderMapper) {
         this.orderRepository = orderRepository;
         this.orderDetailRepository = orderDetailRepository;
         this.cartRepository = cartRepository;
         this.cartDetailRepository = cartDetailRepository;
         this.orderStatusHistoryRepository = orderStatusHistoryRepository;
         this.userRepository = userRepository;
+        this.orderMapper = orderMapper;
     }
 
     @Transactional
@@ -64,6 +70,7 @@ public class OrderService {
         order.setReceiverPhone(phone);
         order.setStatus(OrderStatus.PENDING);
         order.setTotalPrice(cart.getSum());
+        // order.setPaymentMethod(PaymentMethod.COD);
         order = orderRepository.save(order); // lưu để có ID
 
         // chuyển CartDetail thành OrderDetail
@@ -75,6 +82,8 @@ public class OrderService {
             od.setProduct(cd.getProduct());
             od.setQuantity(cd.getQuantity());
             od.setPrice(cd.getPrice());
+            od.setProductNameSnapshot(cd.getProduct().getName());
+            od.setProductImageSnapshot(cd.getProduct().getImage());
             orderDetails.add(od);
         }
         orderDetailRepository.saveAll(orderDetails); // bulk insert
@@ -191,6 +200,18 @@ public class OrderService {
         orderRepository.save(order);
 
         saveOrderStatusHistory(order, order.getStatus(), OrderStatus.RETURNED);
+    }
+
+    // người dùng khi click vào orderId có thể xem chi tiết sản phẩm
+    public OrderHistoryDTO getOrderDetails(Long orderId, String email) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
+
+        if (!order.getUser().getEmail().equals(email)) {
+            throw new RuntimeException("Bạn không có quyền truy cập đơn hàng này");
+        }
+
+        return orderMapper.toOrderHistoryDTO(order);
     }
 
 }

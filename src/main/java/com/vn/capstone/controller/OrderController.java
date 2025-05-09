@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.vn.capstone.domain.Order;
 import com.vn.capstone.domain.response.RestResponse;
+import com.vn.capstone.domain.response.order.OrderHistoryDTO;
 import com.vn.capstone.domain.response.order.OrderResponse;
 import com.vn.capstone.domain.response.order.OrderStatusHistoryDTO;
 import com.vn.capstone.domain.response.order.OrderSummaryDTO;
@@ -93,4 +94,20 @@ public class OrderController {
 
         return ResponseEntity.ok(response);
     }
+
+    // người dùng khi click vào orderId có thể xem chi tiết sản phẩm
+    @GetMapping("/{orderId}/details")
+    public ResponseEntity<RestResponse<OrderHistoryDTO>> getOrderDetails(@PathVariable Long orderId,
+            Principal principal) {
+        OrderHistoryDTO dto = orderService.getOrderDetails(orderId, principal.getName());
+
+        RestResponse<OrderHistoryDTO> response = new RestResponse<>();
+        response.setStatusCode(HttpStatus.OK.value());
+        response.setMessage("Chi tiết đơn hàng");
+        response.setData(dto);
+        response.setError(null);
+
+        return ResponseEntity.ok(response);
+    }
+
 }
