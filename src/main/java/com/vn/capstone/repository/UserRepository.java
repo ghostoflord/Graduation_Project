@@ -20,4 +20,6 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
     // Tìm user bằng reset token
     Optional<User> findByResetPasswordToken(String token);
 
+    // User findByProviderId(String providerId);
+
 }

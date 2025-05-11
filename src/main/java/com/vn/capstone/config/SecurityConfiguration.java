@@ -22,6 +22,8 @@ import org.springframework.security.web.SecurityFilterChain;
 
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import com.nimbusds.jose.util.Base64;
+import com.vn.capstone.service.CustomOAuth2UserService;
+import com.vn.capstone.service.OAuth2LoginSuccessHandler;
 import com.vn.capstone.util.SecurityUtil;
 
 @Configuration
@@ -36,9 +38,19 @@ public class SecurityConfiguration {
         return new BCryptPasswordEncoder();
     }
 
+    private final CustomOAuth2UserService customOAuth2UserService;
+    private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
+
+    public SecurityConfiguration(CustomOAuth2UserService customOAuth2UserService,
+            OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler) {
+        this.customOAuth2UserService = customOAuth2UserService;
+        this.oAuth2LoginSuccessHandler = oAuth2LoginSuccessHandler;
+    }
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http,
-            CustomAuthenticationEntryPoint customAuthenticationEntryPoint) throws Exception {
+            CustomAuthenticationEntryPoint customAuthenticationEntryPoint, OAuth2LoginSuccessHandler successHandler)
+            throws Exception {
 
         String[] whiteList = {
                 "/",
@@ -47,7 +59,7 @@ public class SecurityConfiguration {
                 "/api/v1/email/**", "/api/v1/verify/**", "/api/v1/dashboard/**", "/api/v1/auth/resend-verification",
                 "/api/v1/auth/forgot-password", "/api/v1/auth/verify-reset-token", "/api/v1/auth/reset-password",
                 "/api/v1/auth/register", "/api/v1/auth/login", "/api/v1/auth/account", "api/v1/auth/logout",
-                "/api/v1/files", "/upload/avatars/**", "/upload/products/**"
+                "/api/v1/files", "/upload/avatars/**", "/upload/products/**", "/oauth2/authorization/github"
         };
 
         http
@@ -56,8 +68,13 @@ public class SecurityConfiguration {
                         authz -> authz
                                 .requestMatchers(whiteList).permitAll()
                                 .anyRequest().authenticated())
+                .oauth2Login(oauth2 -> oauth2
+                        .userInfoEndpoint(userInfo -> userInfo
+                                .userService(customOAuth2UserService))
+                        .successHandler(successHandler))
                 .oauth2ResourceServer((oauth2) -> oauth2.jwt(Customizer.withDefaults())
                         .authenticationEntryPoint(customAuthenticationEntryPoint))
+
                 .formLogin(f -> f.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         return http.build();

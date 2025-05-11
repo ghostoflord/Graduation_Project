@@ -88,6 +88,23 @@ public class User {
     @OneToMany(mappedBy = "user")
     private List<Order> orders;
 
+    private String provider;
+
+    // @PrePersist
+    // public void prePersist() {
+    // if (this.provider == null) {
+    // this.provider = "LOCAL";
+    // }
+    // }
+
+    public String getProvider() {
+        return provider;
+    }
+
+    public void setProvider(String provider) {
+        this.provider = provider;
+    }
+
     public long getId() {
         return id;
     }
@@ -258,10 +275,12 @@ public class User {
 
     @PrePersist
     public void handleBeforeCreate() {
-        this.createdBy = SecurityUtil.getCurrentUserLogin().isPresent() == true
-                ? SecurityUtil.getCurrentUserLogin().get()
-                : "";
 
+        if (this.provider == null) {
+            this.provider = "LOCAL";
+        }
+
+        this.createdBy = SecurityUtil.getCurrentUserLogin().orElse("");
         this.createdAt = Instant.now();
     }
 
