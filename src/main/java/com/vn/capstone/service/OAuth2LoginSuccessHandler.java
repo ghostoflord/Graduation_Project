@@ -3,6 +3,7 @@ package com.vn.capstone.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vn.capstone.domain.User;
 import com.vn.capstone.domain.response.ResLoginDTO;
+import com.vn.capstone.repository.RoleRepository;
 import com.vn.capstone.repository.UserRepository;
 import com.vn.capstone.util.SecurityUtil;
 import jakarta.servlet.ServletException;
@@ -11,6 +12,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -26,10 +28,13 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
     private final UserRepository userRepository;
     private final SecurityUtil securityUtil;
+    private final RoleRepository roleRepository;
 
-    public OAuth2LoginSuccessHandler(UserRepository userRepository, @Lazy SecurityUtil securityUtil) {
+    public OAuth2LoginSuccessHandler(UserRepository userRepository, @Lazy SecurityUtil securityUtil,
+            RoleRepository roleRepository) {
         this.userRepository = userRepository;
         this.securityUtil = securityUtil;
+        this.roleRepository = roleRepository;
     }
 
     @Override
@@ -51,11 +56,37 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         }
 
         // Tìm user trong DB
+
+        String registrationId = ((OAuth2AuthenticationToken) authentication).getAuthorizedClientRegistrationId();
+
         User user = userRepository.findByEmail(email);
+        // if (user == null) {
+        // String errorMessage = URLEncoder.encode("Người dùng không tồn tại",
+        // StandardCharsets.UTF_8);
+        // response.sendRedirect("http://localhost:3000/login?error=" + errorMessage);
+        // return;
+        // }
         if (user == null) {
-            String errorMessage = URLEncoder.encode("Người dùng không tồn tại", StandardCharsets.UTF_8);
-            response.sendRedirect("http://localhost:3000/login?error=" + errorMessage);
-            return;
+            user = new User();
+            user.setEmail(email);
+            user.setActivate(true);
+            user.setRole(roleRepository.findByName("USER"));
+            user.setRefreshToken("");
+
+            if ("github".equalsIgnoreCase(registrationId)) {
+                user.setName((String) attributes.get("name"));
+                user.setAvatar((String) attributes.get("avatar_url"));
+            } else if ("google".equalsIgnoreCase(registrationId)) {
+                user.setName((String) attributes.get("name"));
+                user.setAvatar((String) attributes.get("picture"));
+            } else {
+                String errorMessage = URLEncoder.encode("Không hỗ trợ provider: " + registrationId,
+                        StandardCharsets.UTF_8);
+                response.sendRedirect("http://localhost:3000/login?error=" + errorMessage);
+                return;
+            }
+
+            userRepository.save(user);
         }
 
         // Chuẩn bị DTO
