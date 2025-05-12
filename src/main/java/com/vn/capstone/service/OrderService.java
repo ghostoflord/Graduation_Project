@@ -82,15 +82,32 @@ public class OrderService {
         // nếu có cart.getCartDetails() không cần query lại
         List<OrderDetail> orderDetails = new ArrayList<>();
         for (CartDetail cd : cart.getCartDetails()) {
+            // Lấy product với khóa ghi
+            Product product = productRepository.findByIdForUpdate(cd.getProduct().getId());
+            if (product == null) {
+                throw new RuntimeException("Sản phẩm không tồn tại: " + cd.getProduct().getId());
+            }
+
+            int currentQuantity = Integer.parseInt(product.getQuantity());
+            if (currentQuantity < cd.getQuantity()) {
+                throw new RuntimeException("Hết hàng: " + product.getName());
+            }
+
+            // Trừ số lượng tồn
+            product.setQuantity(String.valueOf(currentQuantity - cd.getQuantity()));
+            productRepository.save(product); // lưu lại số lượng mới
+
+            // Tạo OrderDetail
             OrderDetail od = new OrderDetail();
             od.setOrder(order);
-            od.setProduct(cd.getProduct());
+            od.setProduct(product);
             od.setQuantity(cd.getQuantity());
             od.setPrice(cd.getPrice());
-            od.setProductNameSnapshot(cd.getProduct().getName());
-            od.setProductImageSnapshot(cd.getProduct().getImage());
+            od.setProductNameSnapshot(product.getName());
+            od.setProductImageSnapshot(product.getImage());
             orderDetails.add(od);
         }
+
         orderDetailRepository.saveAll(orderDetails); // bulk insert
 
         // Clear Cart

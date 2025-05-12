@@ -36,23 +36,33 @@ public class OrderController {
 
     @PostMapping("/place")
     public ResponseEntity<RestResponse<OrderResponse>> placeOrder(@Valid @RequestBody PlaceOrderRequest req) {
-        Order order = orderService.placeOrder(
-                req.getUserId(),
-                req.getName(),
-                req.getAddress(),
-                req.getPhone());
-
-        OrderResponse orderResponse = OrderResponse.from(order);
-
         RestResponse<OrderResponse> restResponse = new RestResponse<>();
-        restResponse.setStatusCode(HttpStatus.CREATED.value());
-        restResponse.setMessage("Đặt hàng thành công");
-        restResponse.setData(orderResponse);
-        restResponse.setError(null);
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(restResponse);
+        try {
+            Order order = orderService.placeOrder(
+                    req.getUserId(),
+                    req.getName(),
+                    req.getAddress(),
+                    req.getPhone());
+
+            OrderResponse orderResponse = OrderResponse.from(order);
+
+            restResponse.setStatusCode(HttpStatus.CREATED.value());
+            restResponse.setMessage("Đặt hàng thành công");
+            restResponse.setData(orderResponse);
+            restResponse.setError(null);
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(restResponse);
+
+        } catch (RuntimeException ex) {
+            // Trường hợp hết hàng hoặc lỗi liên quan đến sản phẩm
+            restResponse.setStatusCode(HttpStatus.CONFLICT.value());
+            restResponse.setMessage("Đặt hàng thất bại");
+            restResponse.setData(null);
+            restResponse.setError(ex.getMessage());
+
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(restResponse);
+        }
     }
 
     @GetMapping("/all")
