@@ -10,14 +10,17 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import com.vn.capstone.domain.Order;
 import com.vn.capstone.domain.Product;
 import com.vn.capstone.domain.response.ResProductDTO;
 import com.vn.capstone.domain.response.ResultPaginationDTO;
 import com.vn.capstone.domain.response.product.ProductUpdateRequest;
 import com.vn.capstone.repository.CommentRepository;
 import com.vn.capstone.repository.OrderDetailRepository;
+import com.vn.capstone.repository.OrderRepository;
 import com.vn.capstone.repository.ProductRepository;
 import com.vn.capstone.util.SlugUtils;
+import com.vn.capstone.util.constant.PaymentStatus;
 
 import jakarta.transaction.Transactional;
 
@@ -36,12 +39,14 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final CommentRepository commentRepository;
     private final OrderDetailRepository orderDetailRepository;
+    private final OrderRepository orderRepository;
 
     public ProductService(ProductRepository productRepository, CommentRepository commentRepository,
-            OrderDetailRepository orderDetailRepository) {
+            OrderDetailRepository orderDetailRepository, OrderRepository orderRepository) {
         this.productRepository = productRepository;
         this.commentRepository = commentRepository;
         this.orderDetailRepository = orderDetailRepository;
+        this.orderRepository = orderRepository;
     }
 
     public ResultPaginationDTO fetchAllProduct(Specification<Product> spec, Pageable pageable) {
@@ -150,4 +155,21 @@ public class ProductService {
     public Optional<Product> findById(Long id) {
         return productRepository.findById(id);
     }
+
+    // vnpay
+    public void updatePaymentStatus(String paymentRef, String paymentStatus) {
+        Optional<Order> orderOptional = this.orderRepository.findByPaymentRef(paymentRef);
+        if (orderOptional.isPresent()) {
+            Order order = orderOptional.get();
+            try {
+                PaymentStatus statusEnum = PaymentStatus.valueOf(paymentStatus.toUpperCase());
+                order.setPaymentStatus(statusEnum);
+                this.orderRepository.save(order);
+            } catch (IllegalArgumentException ex) {
+                // Trường hợp String không hợp lệ, log hoặc xử lý lỗi
+                System.err.println("Invalid payment status value: " + paymentStatus);
+            }
+        }
+    }
+
 }

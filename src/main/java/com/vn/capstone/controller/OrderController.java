@@ -2,14 +2,17 @@ package com.vn.capstone.controller;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.vn.capstone.domain.Order;
@@ -21,6 +24,7 @@ import com.vn.capstone.domain.response.order.OrderStatusHistoryDTO;
 import com.vn.capstone.domain.response.order.OrderSummaryDTO;
 import com.vn.capstone.domain.response.order.PlaceOrderRequest;
 import com.vn.capstone.service.OrderService;
+import com.vn.capstone.service.ProductService;
 
 import jakarta.validation.Valid;
 
@@ -29,9 +33,11 @@ import jakarta.validation.Valid;
 public class OrderController {
 
     private final OrderService orderService;
+    private final ProductService productService;
 
-    public OrderController(OrderService orderService) {
+    public OrderController(OrderService orderService, ProductService productService) {
         this.orderService = orderService;
+        this.productService = productService;
     }
 
     @PostMapping("/place")
@@ -136,6 +142,24 @@ public class OrderController {
             errorResponse.setMessage(e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
         }
+    }
+
+    // vnpay
+    @GetMapping("/thanks")
+    public String getThankYouPage(
+            Model model,
+            @RequestParam("vnp_ResponseCode") Optional<String> vnpayResponseCode,
+            @RequestParam("vnp_TxnRef") Optional<String> paymentRef) {
+
+        if (vnpayResponseCode.isPresent() && paymentRef.isPresent()) {
+            // thanh toán qua VNPAY, cập nhật trạng thái order
+            String paymentStatus = vnpayResponseCode.get().equals("00")
+                    ? "PAYMENT_SUCCEED"
+                    : "PAYMENT_FAILED";
+            this.productService.updatePaymentStatus(paymentRef.get(), paymentStatus);
+        }
+
+        return "client/cart/thanks";
     }
 
 }

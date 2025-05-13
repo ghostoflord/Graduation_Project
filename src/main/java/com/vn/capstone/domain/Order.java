@@ -3,6 +3,7 @@ package com.vn.capstone.domain;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 
 import com.vn.capstone.util.constant.OrderStatus;
 import com.vn.capstone.util.constant.PaymentMethod;
@@ -17,6 +18,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
 @Entity
@@ -37,8 +39,11 @@ public class Order implements Serializable {
     private String receiverPhone;
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
+
     @Enumerated(EnumType.STRING)
     private PaymentStatus paymentStatus;
+
+    private String paymentRef;
 
     @Enumerated(EnumType.STRING)
     private PaymentMethod paymentMethod;
@@ -59,6 +64,14 @@ public class Order implements Serializable {
 
     public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getPaymentRef() {
+        return paymentRef;
+    }
+
+    public void setPaymentRef(String paymentRef) {
+        this.paymentRef = paymentRef;
     }
 
     // user id
@@ -202,6 +215,13 @@ public class Order implements Serializable {
 
     public void setOrderDetails(List<OrderDetail> orderDetails) {
         this.orderDetails = orderDetails;
+    }
+
+    @PrePersist
+    public void prePersist() {
+        if (this.paymentRef == null || this.paymentRef.isBlank()) {
+            this.paymentRef = "PAY_" + UUID.randomUUID().toString().replace("-", "").substring(0, 16).toUpperCase();
+        }
     }
 
     @Override
