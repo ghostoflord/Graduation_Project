@@ -256,4 +256,61 @@ public class OrderService {
         }
     }
 
+    // save value of vnpay
+    @Transactional
+    public void handleVNPAYSuccess(Long userId, String paymentRef, double totalAmount) {
+        // Lấy Cart của user, kiểm tra rỗng
+        Cart cart = cartRepository.findByUserId(userId);
+        if (cart == null || cart.getCartDetails().isEmpty()) {
+            throw new IllegalStateException("Cart is empty");
+        }
+
+        // Tạo Order
+        Order order = new Order();
+        order.setUser(cart.getUser());
+        order.setReceiverName(cart.getUser().getName()); // Giả sử tên người nhận là tên của user
+        order.setReceiverAddress(cart.getUser().getAddress()); // Giả sử địa chỉ người nhận là địa chỉ của user
+        order.setStatus(OrderStatus.PENDING); // Trạng thái ban đầu là "Pending"
+        order.setTotalPrice(totalAmount); // Sử dụng giá trị từ VNPAY hoặc tính toán lại
+        order.setPaymentRef(paymentRef); // Lưu tham chiếu thanh toán từ VNPAY
+        order = orderRepository.save(order); // lưu để có ID
+
+        // Chuyển CartDetail thành OrderDetail
+        List<OrderDetail> orderDetails = new ArrayList<>();
+        for (CartDetail cd : cart.getCartDetails()) {
+            Product product = productRepository.findByIdForUpdate(cd.getProduct().getId());
+            if (product == null) {
+                throw new RuntimeException("Sản phẩm không tồn tại: " + cd.getProduct().getId());
+            }
+
+            int currentQuantity = Integer.parseInt(product.getQuantity());
+            if (currentQuantity < cd.getQuantity()) {
+                throw new RuntimeException("Hết hàng: " + product.getName());
+            }
+
+            // Trừ số lượng tồn
+            product.setQuantity(String.valueOf(currentQuantity - cd.getQuantity()));
+            productRepository.save(product); // lưu lại số lượng mới
+
+            // Tạo OrderDetail
+            OrderDetail od = new OrderDetail();
+            od.setOrder(order);
+            od.setProduct(product);
+            od.setQuantity(cd.getQuantity());
+            od.setPrice(cd.getPrice());
+            od.setProductNameSnapshot(product.getName());
+            od.setProductImageSnapshot(product.getImage());
+            orderDetails.add(od);
+        }
+
+        orderDetailRepository.saveAll(orderDetails); // bulk insert
+
+        // Clear Cart
+        cartDetailRepository.deleteAllInBatch(cart.getCartDetails());
+        cart.setSum(0); // Reset tổng tiền giỏ hàng
+        cartRepository.save(cart);
+
+        // Sau khi lưu đơn hàng, có thể gửi thông báo thành công hoặc làm gì đó khác
+    }
+
 }

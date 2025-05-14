@@ -36,7 +36,7 @@ public class VNPayService {
     @Value("${ghost.vnpay.vnp-url}")
     private String vnp_PayUrl;
 
-    public String generateVNPayURL(double amountDouble, String paymentRef, String ip)
+    public String generateVNPayURL(double amountDouble, String paymentRef, String ip, Long userId)
             throws UnsupportedEncodingException {
 
         String vnp_Version = "2.1.0";
@@ -54,17 +54,15 @@ public class VNPayService {
         vnp_Params.put("vnp_TmnCode", vnp_TmnCode);
         vnp_Params.put("vnp_Amount", String.valueOf(amount));
         vnp_Params.put("vnp_CurrCode", "VND");
-
-        // if (bankCode != null && !bankCode.isEmpty()) {
-        // vnp_Params.put("vnp_BankCode", bankCode);
-        // }
         vnp_Params.put("vnp_TxnRef", vnp_TxnRef);
         vnp_Params.put("vnp_OrderInfo", "Thanh toan don hang:" + vnp_TxnRef);
         vnp_Params.put("vnp_OrderType", orderType);
-
         vnp_Params.put("vnp_Locale", "vn");
-        vnp_Params.put("vnp_ReturnUrl", vnp_ReturnUrl);
         vnp_Params.put("vnp_IpAddr", vnp_IpAddr);
+
+        // Gắn userId vào returnUrl
+        String returnUrlWithUser = vnp_ReturnUrl + "?userId=" + userId;
+        vnp_Params.put("vnp_ReturnUrl", returnUrlWithUser);
 
         Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));
         SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
@@ -75,36 +73,28 @@ public class VNPayService {
         String vnp_ExpireDate = formatter.format(cld.getTime());
         vnp_Params.put("vnp_ExpireDate", vnp_ExpireDate);
 
-        List<String> fieldNames = new ArrayList<String>(vnp_Params.keySet());
+        List<String> fieldNames = new ArrayList<>(vnp_Params.keySet());
         Collections.sort(fieldNames);
         StringBuilder hashData = new StringBuilder();
         StringBuilder query = new StringBuilder();
-        Iterator<String> itr = fieldNames.iterator();
 
-        while (itr.hasNext()) {
-            String fieldName = (String) itr.next();
-            String fieldValue = (String) vnp_Params.get(fieldName);
-            if ((fieldValue != null) && (fieldValue.length() > 0)) {
-                // Build hash data
-                hashData.append(fieldName);
-                hashData.append('=');
-                hashData.append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII.toString()));
-                // Build query
-                query.append(URLEncoder.encode(fieldName, StandardCharsets.US_ASCII.toString()));
-                query.append('=');
-                query.append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII.toString()));
-                if (itr.hasNext()) {
-                    query.append('&');
+        for (int i = 0; i < fieldNames.size(); i++) {
+            String fieldName = fieldNames.get(i);
+            String fieldValue = vnp_Params.get(fieldName);
+            if (fieldValue != null && !fieldValue.isEmpty()) {
+                hashData.append(fieldName).append('=').append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII));
+                query.append(URLEncoder.encode(fieldName, StandardCharsets.US_ASCII)).append('=')
+                        .append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII));
+                if (i != fieldNames.size() - 1) {
                     hashData.append('&');
+                    query.append('&');
                 }
             }
         }
-        String queryUrl = query.toString();
-        String vnp_SecureHash = hmacSHA512(secretKey, hashData.toString());
-        queryUrl += "&vnp_SecureHash=" + vnp_SecureHash;
-        String paymentUrl = vnp_PayUrl + "?" + queryUrl;
 
-        return paymentUrl;
+        String vnp_SecureHash = hmacSHA512(secretKey, hashData.toString());
+        query.append("&vnp_SecureHash=").append(vnp_SecureHash);
+        return vnp_PayUrl + "?" + query.toString();
     }
 
     public String hmacSHA512(final String key, final String data) {

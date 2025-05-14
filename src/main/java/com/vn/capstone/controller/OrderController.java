@@ -145,21 +145,21 @@ public class OrderController {
     }
 
     // vnpay
-    @GetMapping("/thanks")
-    public String getThankYouPage(
-            Model model,
-            @RequestParam("vnp_ResponseCode") Optional<String> vnpayResponseCode,
-            @RequestParam("vnp_TxnRef") Optional<String> paymentRef) {
+    // @GetMapping("/thanks")
+    // public String getThankYouPage(
+    // Model model,
+    // @RequestParam("vnp_ResponseCode") Optional<String> vnpayResponseCode,
+    // @RequestParam("vnp_TxnRef") Optional<String> paymentRef) {
 
-        if (vnpayResponseCode.isPresent() && paymentRef.isPresent()) {
-            // thanh toán qua VNPAY, cập nhật trạng thái order
-            String paymentStatus = vnpayResponseCode.get().equals("00")
-                    ? "PAYMENT_SUCCEED"
-                    : "PAYMENT_FAILED";
-            this.productService.updatePaymentStatus(paymentRef.get(), paymentStatus);
-        }
+    // if (vnpayResponseCode.isPresent() && paymentRef.isPresent()) {
+    // // thanh toán qua VNPAY, cập nhật trạng thái order
+    // String paymentStatus = vnpayResponseCode.get().equals("00")
+    // ? "PAYMENT_SUCCEED"
+    // : "PAYMENT_FAILED";
+    // this.productService.updatePaymentStatus(paymentRef.get(), paymentStatus);
+    // }
 
-        return "client/cart/thanks";
-    }
+    // return "client/cart/thanks";
+    // }
 
 }
