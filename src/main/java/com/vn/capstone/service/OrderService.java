@@ -258,7 +258,8 @@ public class OrderService {
 
     // save value of vnpay
     @Transactional
-    public void handleVNPAYSuccess(Long userId, String paymentRef, double totalAmount) {
+    public void handleVNPAYSuccess(Long userId, String paymentRef, double totalAmount, String receiverName,
+            String receiverAddress, String receiverPhone) {
         // Lấy Cart của user, kiểm tra rỗng
         Cart cart = cartRepository.findByUserId(userId);
         if (cart == null || cart.getCartDetails().isEmpty()) {
@@ -273,6 +274,9 @@ public class OrderService {
         order.setStatus(OrderStatus.PENDING); // Trạng thái ban đầu là "Pending"
         order.setTotalPrice(totalAmount); // Sử dụng giá trị từ VNPAY hoặc tính toán lại
         order.setPaymentRef(paymentRef); // Lưu tham chiếu thanh toán từ VNPAY
+        order.setReceiverName(receiverName);
+        order.setReceiverAddress(receiverAddress);
+        order.setReceiverPhone(receiverPhone);
         order = orderRepository.save(order); // lưu để có ID
 
         // Chuyển CartDetail thành OrderDetail
