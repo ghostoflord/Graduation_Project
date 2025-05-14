@@ -5,9 +5,9 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.vn.capstone.util.SecurityUtil;
+import com.vn.capstone.util.constant.BestsellEnum;
 import com.vn.capstone.util.constant.GuaranteeEnum;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -35,6 +35,9 @@ public class Product {
     private GuaranteeEnum guarantee;
     private String image;
 
+    @Enumerated(EnumType.STRING)
+    private BestsellEnum bestsell = BestsellEnum.NONE;
+
     private String factory;
     private String price;
     private String sold;
@@ -42,6 +45,8 @@ public class Product {
     private String shortDescription;
 
     private String slug;
+
+    private String sell;
 
     private Instant createdAt;
     private Instant updatedAt;
@@ -180,6 +185,30 @@ public class Product {
         this.slug = slug;
     }
 
+    public BestsellEnum getBestsell() {
+        return bestsell;
+    }
+
+    public void setBestsell(BestsellEnum bestsell) {
+        this.bestsell = bestsell;
+    }
+
+    public List<Comment> getComments() {
+        return comments;
+    }
+
+    public void setComments(List<Comment> comments) {
+        this.comments = comments;
+    }
+
+    public String getSell() {
+        return sell;
+    }
+
+    public void setSell(String sell) {
+        this.sell = sell;
+    }
+
     @PrePersist
     public void handleBeforeCreate() {
         this.createdBy = SecurityUtil.getCurrentUserLogin().isPresent() == true
@@ -204,14 +233,6 @@ public class Product {
                 + ", sold=" + sold + ", quantity=" + quantity + ", shortDescription=" + shortDescription
                 + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + ", createdBy=" + createdBy + ", updatedBy="
                 + updatedBy + "]";
-    }
-
-    public List<Comment> getComments() {
-        return comments;
-    }
-
-    public void setComments(List<Comment> comments) {
-        this.comments = comments;
     }
 
 }

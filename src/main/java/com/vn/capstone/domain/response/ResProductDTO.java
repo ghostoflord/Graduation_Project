@@ -2,9 +2,12 @@ package com.vn.capstone.domain.response;
 
 import java.time.Instant;
 
+import com.vn.capstone.util.constant.BestsellEnum;
 import com.vn.capstone.util.constant.GenderEnum;
 import com.vn.capstone.util.constant.GuaranteeEnum;
 
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -29,5 +32,7 @@ public class ResProductDTO {
     private String sold;
     private String quantity;
     private String shortDescription;
-
+    @Enumerated(EnumType.STRING)
+    private BestsellEnum bestsell;
+    private String sell;
 }

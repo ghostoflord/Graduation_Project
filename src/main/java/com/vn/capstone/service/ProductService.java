@@ -144,10 +144,11 @@ public class ProductService {
         res.setGuarantee(product.getGuarantee());
         res.setFactory(product.getFactory());
         res.setPrice(product.getPrice());
-
         res.setQuantity(product.getQuantity());
         res.setSold(product.getSold());
         res.setShortDescription(product.getShortDescription());
+        res.setBestsell(product.getBestsell());
+        res.setSell(product.getSell());
         return res;
     }
 
