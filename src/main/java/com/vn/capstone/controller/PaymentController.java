@@ -4,20 +4,16 @@ import com.vn.capstone.domain.response.RestResponse;
 import com.vn.capstone.service.OrderService;
 import com.vn.capstone.service.VNPayService;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.UnsupportedEncodingException;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/payment")
-// @RequiredArgsConstructor
 public class PaymentController {
 
     private final VNPayService vnPayService;
-
     private final OrderService orderService;
 
     public PaymentController(VNPayService vnPayService, OrderService orderService) {
@@ -31,12 +27,22 @@ public class PaymentController {
         RestResponse<String> restResponse = new RestResponse<>();
 
         try {
-            double amount = Double.parseDouble(request.get("amount").toString());
-            String paymentRef = request.get("paymentRef").toString();
-            Long userId = Long.parseLong(request.get("userId").toString());
-            String ip = vnPayService.getIpAddress(httpRequest);
+            // Lấy và kiểm tra tham số
+            Double amount = parseDouble(request.get("amount"));
+            String paymentRef = parseString(request.get("paymentRef"));
+            Long userId = parseLong(request.get("userId"));
 
-            // Truyền userId vào để VNPayService nhúng vào returnUrl
+            if (amount == null || paymentRef == null || userId == null) {
+                restResponse.setStatusCode(400);
+                restResponse.setError("Thiếu dữ liệu trong request");
+                restResponse.setMessage("Yêu cầu phải có 'amount', 'paymentRef' và 'userId'");
+                return ResponseEntity.badRequest().body(restResponse);
+            }
+
+            // Chia amount cho 100 để đưa về đúng giá trị
+            // amount = amount / 100.0;
+
+            String ip = vnPayService.getIpAddress(httpRequest);
             String paymentUrl = vnPayService.generateVNPayURL(amount, paymentRef, ip, userId);
 
             restResponse.setStatusCode(200);
@@ -45,10 +51,11 @@ public class PaymentController {
             return ResponseEntity.ok(restResponse);
 
         } catch (Exception e) {
-            restResponse.setStatusCode(400);
-            restResponse.setError("Lỗi tạo link thanh toán");
-            restResponse.setMessage(e.getMessage());
-            return ResponseEntity.badRequest().body(restResponse);
+            e.printStackTrace();
+            restResponse.setStatusCode(500);
+            restResponse.setError("Lỗi tạo link thanh toán: " + e.getMessage());
+            restResponse.setMessage("Không thể tạo liên kết thanh toán");
+            return ResponseEntity.status(500).body(restResponse);
         }
     }
 
@@ -57,36 +64,39 @@ public class PaymentController {
         RestResponse<String> restResponse = new RestResponse<>();
 
         try {
-            // Log toàn bộ request để debug
-            System.out.println("===> Dữ liệu VNPAY gửi về: " + request);
+            // Lấy và kiểm tra tham số
+            Double amount = parseDouble(request.get("amount"));
+            String paymentRef = parseString(request.get("paymentRef"));
+            Long userId = parseLong(request.get("userId"));
+            String paymentStatus = parseString(request.get("paymentStatus"));
 
-            // Lấy thông tin từ request
-            double amount = Double.parseDouble(request.get("amount").toString());
-            String paymentRef = request.get("paymentRef").toString();
-            Long userId = Long.parseLong(request.get("userId").toString());
-            String paymentStatus = request.get("paymentStatus").toString();
+            if (amount == null || paymentRef == null || userId == null || paymentStatus == null) {
+                restResponse.setStatusCode(400);
+                restResponse.setError("Thiếu dữ liệu trong phản hồi");
+                restResponse.setMessage("Phản hồi phải bao gồm 'amount', 'paymentRef', 'userId', 'paymentStatus'");
+                return ResponseEntity.badRequest().body(restResponse);
+            }
 
-            System.out.println("===> Đã parse: amount=" + amount + ", paymentRef=" + paymentRef + ", userId=" + userId
-                    + ", paymentStatus=" + paymentStatus);
+            // Chia amount cho 100 để đưa về đúng giá trị
+            amount = amount / 100.0;
 
-            if ("success".equals(paymentStatus)) {
+            System.out.println("===> VNPAY callback: amount=" + amount + ", ref=" + paymentRef
+                    + ", userId=" + userId + ", status=" + paymentStatus);
+
+            if ("success".equalsIgnoreCase(paymentStatus)) {
                 try {
-                    // Gọi xử lý lưu đơn hàng
                     orderService.handleVNPAYSuccess(userId, paymentRef, amount);
-
                     restResponse.setStatusCode(200);
                     restResponse.setMessage("Thanh toán thành công và đơn hàng đã được lưu");
                     return ResponseEntity.ok(restResponse);
-                } catch (Exception orderEx) {
-                    // Ghi log lỗi xử lý đơn hàng
-                    orderEx.printStackTrace();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
                     restResponse.setStatusCode(500);
-                    restResponse.setError("Lỗi khi lưu đơn hàng: " + orderEx.getMessage());
-                    restResponse.setMessage("Có lỗi xảy ra khi lưu đơn hàng. Vui lòng liên hệ hỗ trợ.");
+                    restResponse.setError("Lỗi khi lưu đơn hàng: " + ex.getMessage());
+                    restResponse.setMessage("Có lỗi xảy ra khi lưu đơn hàng.");
                     return ResponseEntity.status(500).body(restResponse);
                 }
             } else {
-                // Thanh toán thất bại
                 restResponse.setStatusCode(400);
                 restResponse.setError("Thanh toán thất bại");
                 restResponse.setMessage("Thanh toán không thành công, vui lòng thử lại");
@@ -94,12 +104,36 @@ public class PaymentController {
             }
 
         } catch (Exception e) {
-            // Ghi log lỗi parse hoặc lỗi khác
             e.printStackTrace();
             restResponse.setStatusCode(500);
-            restResponse.setError("Lỗi xử lý dữ liệu từ VNPAY: " + e.getMessage());
-            restResponse.setMessage("Không thể xử lý kết quả thanh toán. Dữ liệu không hợp lệ hoặc thiếu.");
+            restResponse.setError("Lỗi xử lý callback VNPAY: " + e.getMessage());
+            restResponse.setMessage("Không thể xử lý phản hồi thanh toán.");
             return ResponseEntity.status(500).body(restResponse);
+        }
+    }
+
+    ///
+    private Double parseDouble(Object value) {
+        if (value == null)
+            return null;
+        try {
+            return Double.parseDouble(value.toString());
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private String parseString(Object value) {
+        return value == null ? null : value.toString();
+    }
+
+    private Long parseLong(Object value) {
+        if (value == null)
+            return null;
+        try {
+            return Long.parseLong(value.toString());
+        } catch (NumberFormatException e) {
+            return null;
         }
     }
 
