@@ -113,6 +113,8 @@ public class ProductService {
             currentProduct.setShortDescription(reqProduct.getShortDescription());
             currentProduct.setGuarantee(reqProduct.getGuarantee());
             currentProduct.setProductCode(reqProduct.getProductCode());
+            currentProduct.setBestsell(reqProduct.getBestsell());
+            currentProduct.setSell(reqProduct.getSell());
             // update
             currentProduct = this.productRepository.save(currentProduct);
         }

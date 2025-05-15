@@ -240,6 +240,8 @@ public class ProductController {
         product.setSold(request.getSold());
         product.setQuantity(request.getQuantity());
         product.setShortDescription(request.getShortDescription());
+        product.setBestsell(request.getBestsell());
+        product.setSell(request.getSell());
 
         // Nếu có ảnh mới
         if (request.getImage() != null && !request.getImage().trim().isEmpty()) {
