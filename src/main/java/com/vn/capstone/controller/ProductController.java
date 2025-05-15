@@ -226,7 +226,6 @@ public class ProductController {
     public ResponseEntity<RestResponse<Product>> updateProduct(@RequestBody ProductUpdateRequest request)
             throws IOException {
 
-        // Tìm sản phẩm theo id
         Product product = productService.findById(request.getId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với ID: " + request.getId()));
 
@@ -243,7 +242,7 @@ public class ProductController {
         product.setBestsell(request.getBestsell());
         product.setSell(request.getSell());
 
-        // Nếu có ảnh mới
+        // Nếu có ảnh base64 mới
         if (request.getImage() != null && !request.getImage().trim().isEmpty()) {
             // Xóa ảnh cũ nếu có
             if (product.getImage() != null) {
@@ -253,15 +252,13 @@ public class ProductController {
                 }
             }
 
-            // Lưu ảnh mới (không cần base64 nữa, sử dụng tên file)
-            String newImageFileName = request.getImage(); // Trực tiếp lấy tên file từ frontend
-            product.setImage(newImageFileName);
+            // Lưu ảnh mới từ base64 (giống createProduct)
+            String savedImage = saveImage(request.getImage());
+            product.setImage(savedImage);
         }
 
-        // Cập nhật sản phẩm trong DB
         Product updatedProduct = productService.handleUpdateProduct(product);
 
-        // Trả về response
         RestResponse<Product> response = new RestResponse<>();
         response.setStatusCode(HttpStatus.OK.value());
         response.setMessage("Cập nhật sản phẩm thành công");
