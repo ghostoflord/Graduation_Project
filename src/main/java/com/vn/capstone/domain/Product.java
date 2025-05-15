@@ -36,7 +36,7 @@ public class Product {
     private String image;
 
     @Enumerated(EnumType.STRING)
-    private BestsellEnum bestsell = BestsellEnum.NONE;
+    private BestsellEnum bestsell;
 
     private String factory;
     private String price;

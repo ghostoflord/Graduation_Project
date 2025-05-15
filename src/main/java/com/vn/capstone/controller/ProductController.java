@@ -114,11 +114,20 @@ public class ProductController {
 
         Product product = new Product();
         product.setName(dto.getName());
+        product.setProductCode(dto.getProductCode());
         product.setDetailDescription(dto.getDetailDescription());
+        product.setShortDescription(dto.getShortDescription());
+        product.setGuarantee(dto.getGuarantee());
+        product.setFactory(dto.getFactory());
         product.setPrice(dto.getPrice());
+        product.setSold(dto.getSold());
+        product.setQuantity(dto.getQuantity());
+        product.setImage(savedImage);
+        product.setBestsell(dto.getBestsell());
+        product.setSell(dto.getSell());
         product.setImage(savedImage); // Đảm bảo gán đúng tên ảnh
 
-        // Kiểm tra lại giá trị trước khi lưu vào cơ sở dữ liệu
+        // Kiểm tra lại giá trị trước khi lưu vào cơ sở dữ liệux
         System.out.println("Saving product: " + product);
 
         Product savedProduct = productService.handleCreateProduct(product);
@@ -191,7 +200,7 @@ public class ProductController {
         response.setStatusCode(HttpStatus.OK.value());
         response.setMessage("Delete product successfully");
         response.setData(null);
-        
+
         return ResponseEntity.ok(response);
     }
 
