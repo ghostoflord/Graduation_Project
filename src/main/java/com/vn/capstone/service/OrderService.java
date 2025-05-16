@@ -67,20 +67,19 @@ public class OrderService {
             throw new IllegalStateException("Cart is empty");
         }
 
-        // Tạo Order
+        // Tạo Order (chưa set totalPrice ngay)
         Order order = new Order();
         order.setUser(cart.getUser());
         order.setReceiverName(receiverName);
         order.setReceiverAddress(address);
         order.setReceiverPhone(phone);
         order.setStatus(OrderStatus.PENDING);
-        order.setTotalPrice(cart.getSum());
-        // order.setPaymentMethod(PaymentMethod.COD);
-        order = orderRepository.save(order); // lưu để có ID
+        order = orderRepository.save(order); // lưu trước để có ID
 
-        // chuyển CartDetail thành OrderDetail
-        // nếu có cart.getCartDetails() không cần query lại
+        // Tính tổng tiền từ CartDetail
+        double totalPrice = 0;
         List<OrderDetail> orderDetails = new ArrayList<>();
+
         for (CartDetail cd : cart.getCartDetails()) {
             // Lấy product với khóa ghi
             Product product = productRepository.findByIdForUpdate(cd.getProduct().getId());
@@ -95,7 +94,10 @@ public class OrderService {
 
             // Trừ số lượng tồn
             product.setQuantity(String.valueOf(currentQuantity - cd.getQuantity()));
-            productRepository.save(product); // lưu lại số lượng mới
+            productRepository.save(product);
+
+            // Tính tổng tiền
+            totalPrice += cd.getPrice() * cd.getQuantity();
 
             // Tạo OrderDetail
             OrderDetail od = new OrderDetail();
@@ -108,7 +110,12 @@ public class OrderService {
             orderDetails.add(od);
         }
 
-        orderDetailRepository.saveAll(orderDetails); // bulk insert
+        // Set tổng tiền sau khi tính xong
+        order.setTotalPrice(totalPrice);
+        orderRepository.save(order); // update lại order đã có totalPrice
+
+        // Lưu danh sách OrderDetail
+        orderDetailRepository.saveAll(orderDetails);
 
         // Clear Cart
         cartDetailRepository.deleteAllInBatch(cart.getCartDetails());
