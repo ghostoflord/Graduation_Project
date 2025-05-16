@@ -33,6 +33,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.vn.capstone.config.CustomUserDetails;
 import com.vn.capstone.domain.response.dtoAuth.ResponseUtils;
+import com.vn.capstone.domain.Role;
 import com.vn.capstone.domain.User;
 import com.vn.capstone.domain.VerificationToken;
 import com.vn.capstone.domain.request.ReqLoginDTO;
@@ -43,6 +44,7 @@ import com.vn.capstone.domain.response.dtoAuth.EmailRequest;
 import com.vn.capstone.domain.response.dtoAuth.ForgotPasswordRequest;
 import com.vn.capstone.domain.response.dtoAuth.ResetPasswordRequest;
 import com.vn.capstone.domain.response.dtoAuth.VerifyTokenRequest;
+import com.vn.capstone.repository.RoleRepository;
 import com.vn.capstone.repository.VerificationTokenRepository;
 import com.vn.capstone.service.EmailService;
 import com.vn.capstone.service.UserService;
@@ -62,19 +64,22 @@ public class AuthController {
         private final PasswordEncoder passwordEncoder;
         private final EmailService emailService;
         private final VerificationTokenRepository verificationTokenRepository;
+        private final RoleRepository roleRepository;
 
         @Value("${ghost.jwt.refresh-token-validity-in-seconds}")
         private long refreshTokenExpiration;
 
         public AuthController(AuthenticationManagerBuilder authenticationManagerBuilder,
                         SecurityUtil securityUtil, UserService userService, PasswordEncoder passwordEncoder,
-                        EmailService emailService, VerificationTokenRepository verificationTokenRepository) {
+                        EmailService emailService, VerificationTokenRepository verificationTokenRepository,
+                        RoleRepository roleRepository) {
                 this.authenticationManagerBuilder = authenticationManagerBuilder;
                 this.securityUtil = securityUtil;
                 this.userService = userService;
                 this.passwordEncoder = passwordEncoder;
                 this.emailService = emailService;
                 this.verificationTokenRepository = verificationTokenRepository;
+                this.roleRepository = roleRepository;
         }
 
         @PostMapping("/auth/login")
@@ -282,26 +287,34 @@ public class AuthController {
                 boolean isEmailExist = this.userService.isEmailExists(postManUser.getEmail());
                 if (isEmailExist) {
                         throw new IdInvalidException(
-                                        "Email " + postManUser.getEmail() + "đã tồn tại, vui lòng sử dụng email khác.");
+                                        "Email " + postManUser.getEmail()
+                                                        + " đã tồn tại, vui lòng sử dụng email khác.");
                 }
 
                 String hashPassword = this.passwordEncoder.encode(postManUser.getPassword());
                 postManUser.setPassword(hashPassword);
 
+                // Gán role mặc định là USER
+                Role userRole = roleRepository.findByName("USER");
+                if (userRole == null) {
+                        throw new RuntimeException("Role USER không tồn tại trong hệ thống");
+                }
+                postManUser.setRole(userRole);
+
                 User ericUser = this.userService.handleCreateUser(postManUser);
 
-                // Gán và gửi thông tin kích hoạt
+                // Tạo và lưu verification token
                 String token = UUID.randomUUID().toString();
                 VerificationToken verificationToken = new VerificationToken();
                 verificationToken.setToken(token);
                 verificationToken.setUser(postManUser);
                 verificationToken.setExpiryDate(LocalDateTime.now().plusHours(24));
-
                 verificationTokenRepository.save(verificationToken);
 
-                // Gửi email cho người dùng để họ kích hoạt
+                // Gửi email xác minh
                 emailService.sendVerificationEmail(postManUser.getEmail(), token);
-                // Response wrap
+
+                // Tạo response
                 ResCreateUserDTO data = this.userService.convertToResCreateUserDTO(ericUser);
                 RestResponse<ResCreateUserDTO> response = new RestResponse<>();
                 response.setStatusCode(HttpStatus.CREATED.value());
