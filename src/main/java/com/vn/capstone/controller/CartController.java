@@ -71,6 +71,13 @@ public class CartController {
         return ResponseEntity.noContent().build(); // 204 No Content
     }
 
+    // delete all cart
+    @DeleteMapping("/{userId}/clears")
+    public ResponseEntity<Void> clearAllCart(@PathVariable Long userId) {
+        cartService.clearCartUserId(userId);
+        return ResponseEntity.noContent().build();
+    }
+
     private SimplifiedCartDetailDTO convertCartDetailToDTO(CartDetail cartDetail) {
         SimplifiedCartDetailDTO dto = new SimplifiedCartDetailDTO();
         dto.setId(cartDetail.getId());

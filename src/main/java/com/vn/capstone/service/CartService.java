@@ -76,6 +76,7 @@ public class CartService {
         return cartDetailRepository.findByCartId(cartId);
     }
 
+    // xóa cartId
     public void clearCart(Long cartId) {
         Cart cart = cartRepository.findById(cartId)
                 .orElseThrow(() -> new EntityNotFoundException("Cart not found"));
@@ -84,6 +85,13 @@ public class CartService {
         cartDetailRepository.deleteAll(details);
         cart.setSum(0);
         cartRepository.save(cart);
+    }
+
+    // xóa tát cả cart bởi userId
+    @Transactional
+    public void clearCartUserId(Long userId) {
+        cartDetailRepository.deleteByUserId(userId);
+        cartRepository.deleteByUserId(userId);
     }
 
     // cart take sum
