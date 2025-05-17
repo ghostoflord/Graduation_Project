@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.vn.capstone.util.SecurityUtil;
 import com.vn.capstone.util.constant.BestsellEnum;
 import com.vn.capstone.util.constant.GuaranteeEnum;
+import com.vn.capstone.util.constant.ProductCategoryEnum;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -16,6 +17,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -48,6 +50,9 @@ public class Product {
 
     private String sell;
 
+    @Enumerated(EnumType.STRING)
+    private ProductCategoryEnum category;
+
     private Instant createdAt;
     private Instant updatedAt;
     private String createdBy;
@@ -56,6 +61,25 @@ public class Product {
     @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
     @JsonIgnore
     List<Comment> comments;
+
+    @OneToOne(mappedBy = "product")
+    private ProductDetail productDetail;
+
+    public ProductCategoryEnum getCategory() {
+        return category;
+    }
+
+    public void setCategory(ProductCategoryEnum category) {
+        this.category = category;
+    }
+
+    public ProductDetail getProductDetail() {
+        return productDetail;
+    }
+
+    public void setProductDetail(ProductDetail productDetail) {
+        this.productDetail = productDetail;
+    }
 
     public long getId() {
         return id;

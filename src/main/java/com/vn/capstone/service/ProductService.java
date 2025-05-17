@@ -12,8 +12,11 @@ import org.springframework.stereotype.Service;
 
 import com.vn.capstone.domain.Order;
 import com.vn.capstone.domain.Product;
+import com.vn.capstone.domain.ProductDetail;
 import com.vn.capstone.domain.response.ResProductDTO;
 import com.vn.capstone.domain.response.ResultPaginationDTO;
+import com.vn.capstone.domain.response.product.ProductDTO;
+import com.vn.capstone.domain.response.product.ProductDetailDTO;
 import com.vn.capstone.domain.response.product.ProductUpdateRequest;
 import com.vn.capstone.repository.CommentRepository;
 import com.vn.capstone.repository.OrderDetailRepository;
@@ -173,6 +176,54 @@ public class ProductService {
                 System.err.println("Invalid payment status value: " + paymentStatus);
             }
         }
+    }
+
+    // lấy thông tin rõ hơn của sản phẩm
+    public ProductDTO fetchProductDTOById(long id) {
+        Optional<Product> productOptional = productRepository.findById(id);
+        if (productOptional.isEmpty()) {
+            return null;
+        }
+
+        Product product = productOptional.get();
+        ProductDTO dto = new ProductDTO();
+
+        dto.setId(product.getId());
+        dto.setName(product.getName());
+        dto.setProductCode(product.getProductCode());
+        dto.setDetailDescription(product.getDetailDescription());
+        dto.setGuarantee(product.getGuarantee());
+        dto.setImage(product.getImage());
+        dto.setFactory(product.getFactory());
+        dto.setPrice(product.getPrice());
+        dto.setSold(product.getSold());
+        dto.setQuantity(product.getQuantity());
+        dto.setShortDescription(product.getShortDescription());
+        dto.setSlug(product.getSlug());
+        dto.setSell(product.getSell());
+        dto.setBestsell(product.getBestsell());
+        dto.setCategory(product.getCategory());
+
+        // Map ProductDetail nếu có
+        if (product.getProductDetail() != null) {
+            ProductDetail detail = product.getProductDetail();
+            ProductDetailDTO detailDTO = new ProductDetailDTO();
+            detailDTO.setCpu(detail.getCpu());
+            detailDTO.setRam(detail.getRam());
+            detailDTO.setStorage(detail.getStorage());
+            detailDTO.setGpu(detail.getGpu());
+            detailDTO.setScreen(detail.getScreen());
+            detailDTO.setBattery(detail.getBattery());
+            detailDTO.setWeight(detail.getWeight());
+            detailDTO.setMaterial(detail.getMaterial());
+            detailDTO.setOs(detail.getOs());
+            detailDTO.setSpecialFeatures(detail.getSpecialFeatures());
+            detailDTO.setPorts(detail.getPorts());
+
+            dto.setDetail(detailDTO);
+        }
+
+        return dto;
     }
 
 }

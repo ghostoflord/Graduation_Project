@@ -29,6 +29,7 @@ import com.vn.capstone.domain.Product;
 import com.vn.capstone.domain.response.CreateProductDTO;
 import com.vn.capstone.domain.response.RestResponse;
 import com.vn.capstone.domain.response.ResultPaginationDTO;
+import com.vn.capstone.domain.response.product.ProductDTO;
 import com.vn.capstone.domain.response.product.ProductUpdateRequest;
 import com.vn.capstone.service.ProductService;
 import com.vn.capstone.util.annotation.ApiMessage;
@@ -65,17 +66,30 @@ public class ProductController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    // @GetMapping("/products/{id}")
+    // @ApiMessage("Fetch Product by id")
+    // public ResponseEntity<RestResponse<Product>>
+    // getProductById(@PathVariable("id") long id) {
+    // Product fetchProduct = this.productService.fetchProductById(id);
+
+    // RestResponse<Product> response = new RestResponse<>();
+    // response.setStatusCode(HttpStatus.OK.value());
+    // response.setMessage("Lấy sản phẩm thành công");
+    // response.setData(fetchProduct);
+
+    // return ResponseEntity.status(HttpStatus.OK).body(response);
+    // }
+
     @GetMapping("/products/{id}")
     @ApiMessage("Fetch Product by id")
-    public ResponseEntity<RestResponse<Product>> getProductById(@PathVariable("id") long id) {
-        Product fetchProduct = this.productService.fetchProductById(id);
-
-        RestResponse<Product> response = new RestResponse<>();
+    public ResponseEntity<RestResponse<ProductDTO>> getProductById(@PathVariable("id") long id) {
+        ProductDTO dto = productService.fetchProductDTOById(id);
+        RestResponse<ProductDTO> response = new RestResponse<>();
         response.setStatusCode(HttpStatus.OK.value());
         response.setMessage("Lấy sản phẩm thành công");
-        response.setData(fetchProduct);
+        response.setData(dto);
 
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/products/slug/{slug}")
