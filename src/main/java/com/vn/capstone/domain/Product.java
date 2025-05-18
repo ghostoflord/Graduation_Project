@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.vn.capstone.util.SecurityUtil;
 import com.vn.capstone.util.constant.BestsellEnum;
 import com.vn.capstone.util.constant.GuaranteeEnum;
@@ -63,6 +64,7 @@ public class Product {
     List<Comment> comments;
 
     @OneToOne(mappedBy = "product")
+    @JsonManagedReference
     private ProductDetail productDetail;
 
     public ProductCategoryEnum getCategory() {
