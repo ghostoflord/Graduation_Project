@@ -34,10 +34,18 @@ public class DashboardController {
         long countProduct = productRepository.count();
         long countOrder = orderRepository.count();
 
+        // Tổng tiền từ tất cả các đơn hàng (có thể lọc theo trạng thái nếu muốn)
+        Double totalRevenue = orderRepository.sumTotalPrice();
+
+        // Tổng số lượng sản phẩm bị huỷ (status = CANCELED)
+        Long totalCanceledQuantity = orderRepository.sumCanceledOrderQuantity();
+
         Map<String, Object> data = new HashMap<>();
         data.put("countUser", countUser);
-        data.put("countProduct", countProduct); // Có thể đổi thành "countProduct" nếu muốn rõ ràng hơn
+        data.put("countProduct", countProduct);
         data.put("countOrder", countOrder);
+        data.put("totalRevenue", totalRevenue);
+        data.put("totalCanceledQuantity", totalCanceledQuantity);
 
         RestResponse<Map<String, Object>> response = new RestResponse<>();
         response.setStatusCode(200);
