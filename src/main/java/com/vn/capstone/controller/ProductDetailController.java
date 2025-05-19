@@ -62,8 +62,17 @@ public class ProductDetailController {
     }
 
     @PutMapping("/{id}")
-    public ProductDetail update(@PathVariable Long id, @RequestBody ProductDetail detail) {
-        return productDetailService.update(id, detail);
+    public ResponseEntity<RestResponse<ProductDetail>> update(@PathVariable Long id,
+            @RequestBody ProductDetail detail) {
+        ProductDetail updated = productDetailService.update(id, detail);
+
+        RestResponse<ProductDetail> response = new RestResponse<>();
+        response.setStatusCode(200);
+        response.setMessage("Cập nhật chi tiết sản phẩm thành công");
+        response.setData(updated);
+        response.setError(null);
+
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{id}")
