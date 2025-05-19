@@ -2,12 +2,14 @@ package com.vn.capstone.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
 import com.vn.capstone.domain.Comment;
 import com.vn.capstone.domain.Product;
 import com.vn.capstone.domain.User;
+import com.vn.capstone.domain.response.comment.CommentResponse;
 import com.vn.capstone.repository.CommentRepository;
 import com.vn.capstone.repository.ProductRepository;
 import com.vn.capstone.repository.UserRepository;
@@ -41,7 +43,14 @@ public class CommentService {
         return commentRepository.save(comment);
     }
 
-    public List<Comment> getCommentsByProduct(Long productId) {
-        return commentRepository.findByProductId(productId);
+    public List<CommentResponse> getCommentsByProduct(Long productId) {
+        List<Comment> comments = commentRepository.findByProductId(productId);
+        return comments.stream().map(comment -> new CommentResponse(
+                comment.getId(),
+                comment.getContent(),
+                comment.getCreatedAt(),
+                new CommentResponse.SimpleUser(comment.getUser().getId(), comment.getUser().getName())))
+                .collect(Collectors.toList());
     }
+
 }
