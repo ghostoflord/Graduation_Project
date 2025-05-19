@@ -9,6 +9,7 @@ import com.vn.capstone.repository.ProductDetailRepository;
 import com.vn.capstone.repository.ProductRepository;
 import com.vn.capstone.service.ProductDetailService;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -66,8 +67,22 @@ public class ProductDetailController {
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
-        productDetailService.delete(id);
+    public ResponseEntity<RestResponse<Void>> delete(@PathVariable Long id) {
+        RestResponse<Void> response = new RestResponse<>();
+        try {
+            productDetailService.delete(id);
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setMessage("Xóa chi tiết sản phẩm thành công");
+            response.setData(null);
+            response.setError(null);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            response.setMessage("Xóa chi tiết sản phẩm thất bại");
+            response.setError(e.getMessage());
+            response.setData(null);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
     }
 
     @GetMapping("/{id}")

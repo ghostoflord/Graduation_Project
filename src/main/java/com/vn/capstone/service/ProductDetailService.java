@@ -4,6 +4,9 @@ import com.vn.capstone.domain.Product;
 import com.vn.capstone.domain.ProductDetail;
 import com.vn.capstone.repository.ProductDetailRepository;
 import com.vn.capstone.repository.ProductRepository;
+
+import jakarta.transaction.Transactional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -44,8 +47,18 @@ public class ProductDetailService {
         return detailRepo.save(existing);
     }
 
+    @Transactional
     public void delete(Long id) {
-        detailRepo.deleteById(id);
+        ProductDetail detail = detailRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy chi tiết sản phẩm với id = " + id));
+
+        Product product = detail.getProduct(); // lấy product đã có
+
+        // Gỡ productDetail khỏi product -> JPA sẽ tự động xoá do orphanRemoval = true
+        product.setProductDetail(null);
+
+        // Lưu lại product để cập nhật thay đổi
+        productRepo.save(product);
     }
 
     public ProductDetail getById(Long id) {
