@@ -10,4 +10,5 @@ import com.vn.capstone.domain.ProductDetail;
 public interface ProductDetailRepository
         extends JpaRepository<ProductDetail, Long>, JpaSpecificationExecutor<ProductDetail> {
     ProductDetail findByProductId(Long productId);
+    
 }

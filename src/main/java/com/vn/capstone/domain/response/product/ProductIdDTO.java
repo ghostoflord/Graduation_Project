@@ -20,6 +20,9 @@ public class ProductIdDTO {
     private String ports;
     private Long productId;
 
+    public ProductIdDTO() {
+    }
+
     // Constructor mapping từ entity
     public ProductIdDTO(ProductDetail detail) {
         this.id = detail.getId();
