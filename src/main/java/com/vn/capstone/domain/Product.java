@@ -3,6 +3,7 @@ package com.vn.capstone.domain;
 import java.time.Instant;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.vn.capstone.util.SecurityUtil;
@@ -67,6 +68,30 @@ public class Product {
     @OneToOne(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private ProductDetail productDetail;
+
+    @OneToMany(mappedBy = "product")
+    @JsonBackReference
+    private List<Review> reviews;
+
+    @OneToMany(mappedBy = "product")
+    @JsonBackReference
+    private List<Like> likes;
+
+    public List<Review> getReviews() {
+        return reviews;
+    }
+
+    public void setReviews(List<Review> reviews) {
+        this.reviews = reviews;
+    }
+
+    public List<Like> getLikes() {
+        return likes;
+    }
+
+    public void setLikes(List<Like> likes) {
+        this.likes = likes;
+    }
 
     public ProductCategoryEnum getCategory() {
         return category;

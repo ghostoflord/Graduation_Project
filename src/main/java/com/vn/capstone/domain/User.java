@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.vn.capstone.util.SecurityUtil;
 import com.vn.capstone.util.constant.GenderEnum;
@@ -90,6 +91,14 @@ public class User {
 
     private String provider;
 
+    @OneToMany(mappedBy = "user")
+    @JsonBackReference
+    private List<Review> reviews;
+
+    @OneToMany(mappedBy = "user")
+    @JsonBackReference
+    private List<Like> likes;
+
     // @PrePersist
     // public void prePersist() {
     // if (this.provider == null) {
@@ -99,6 +108,22 @@ public class User {
 
     public String getProvider() {
         return provider;
+    }
+
+    public List<Review> getReviews() {
+        return reviews;
+    }
+
+    public void setReviews(List<Review> reviews) {
+        this.reviews = reviews;
+    }
+
+    public List<Like> getLikes() {
+        return likes;
+    }
+
+    public void setLikes(List<Like> likes) {
+        this.likes = likes;
     }
 
     public void setProvider(String provider) {

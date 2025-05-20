@@ -154,6 +154,7 @@ public class ProductService {
         res.setShortDescription(product.getShortDescription());
         res.setBestsell(product.getBestsell());
         res.setSell(product.getSell());
+        
         return res;
     }
 
