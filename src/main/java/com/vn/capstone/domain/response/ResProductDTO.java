@@ -35,4 +35,7 @@ public class ResProductDTO {
     @Enumerated(EnumType.STRING)
     private BestsellEnum bestsell;
     private String sell;
+    //
+    private Double averageRating;
+    private Long totalReviews;
 }

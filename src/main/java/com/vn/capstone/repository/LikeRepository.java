@@ -12,7 +12,7 @@ public interface LikeRepository extends JpaRepository<Like, Long> {
 
     Optional<Like> findByProductIdAndUserId(Long productId, Long userId);
 
-    int countByProductId(Long productId);
+    Long countByProductId(Long productId);
 
     void deleteByProductIdAndUserId(Long productId, Long userId);
 }

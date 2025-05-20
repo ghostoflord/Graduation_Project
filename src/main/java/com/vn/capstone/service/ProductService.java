@@ -19,9 +19,11 @@ import com.vn.capstone.domain.response.product.ProductDTO;
 import com.vn.capstone.domain.response.product.ProductDetailDTO;
 import com.vn.capstone.domain.response.product.ProductUpdateRequest;
 import com.vn.capstone.repository.CommentRepository;
+import com.vn.capstone.repository.LikeRepository;
 import com.vn.capstone.repository.OrderDetailRepository;
 import com.vn.capstone.repository.OrderRepository;
 import com.vn.capstone.repository.ProductRepository;
+import com.vn.capstone.repository.ReviewRepository;
 import com.vn.capstone.util.SlugUtils;
 import com.vn.capstone.util.constant.PaymentStatus;
 
@@ -43,13 +45,18 @@ public class ProductService {
     private final CommentRepository commentRepository;
     private final OrderDetailRepository orderDetailRepository;
     private final OrderRepository orderRepository;
+    private final ReviewRepository reviewRepository;
+    private final LikeRepository likeRepository;
 
     public ProductService(ProductRepository productRepository, CommentRepository commentRepository,
-            OrderDetailRepository orderDetailRepository, OrderRepository orderRepository) {
+            OrderDetailRepository orderDetailRepository, OrderRepository orderRepository,
+            ReviewRepository reviewRepository, LikeRepository likeRepository) {
         this.productRepository = productRepository;
         this.commentRepository = commentRepository;
         this.orderDetailRepository = orderDetailRepository;
         this.orderRepository = orderRepository;
+        this.reviewRepository = reviewRepository;
+        this.likeRepository = likeRepository;
     }
 
     public ResultPaginationDTO fetchAllProduct(Specification<Product> spec, Pageable pageable) {
@@ -154,7 +161,13 @@ public class ProductService {
         res.setShortDescription(product.getShortDescription());
         res.setBestsell(product.getBestsell());
         res.setSell(product.getSell());
-        
+
+        Double avgRating = reviewRepository.getAverageRatingByProductId(product.getId());
+        Long totalReview = likeRepository.countByProductId(product.getId());
+
+        res.setAverageRating(avgRating != null ? avgRating : 0.0);
+        res.setTotalReviews(totalReview != null ? totalReview : 0L);
+
         return res;
     }
 
