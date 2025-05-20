@@ -94,11 +94,6 @@ public class ProductDetailController {
         }
     }
 
-    @GetMapping("/{id}")
-    public ProductDetail getById(@PathVariable Long id) {
-        return productDetailService.getById(id);
-    }
-
     @GetMapping()
     public ResponseEntity<RestResponse<List<ProductIdDTO>>> getAll() {
         List<ProductDetail> list = productDetailService.getAll();
@@ -126,7 +121,35 @@ public class ProductDetailController {
     }
 
     @GetMapping("/by-product/{productId}")
-    public ProductDetail getByProductId(@PathVariable Long productId) {
-        return productDetailService.getByProductId(productId);
+    public RestResponse<ProductDetail> getByProductId(@PathVariable Long productId) {
+        RestResponse<ProductDetail> response = new RestResponse<>();
+        try {
+            ProductDetail detail = productDetailService.getByProductId(productId);
+            response.setStatusCode(200);
+            response.setData(detail);
+            response.setMessage("Success");
+        } catch (Exception e) {
+            response.setStatusCode(500);
+            response.setError("Error");
+            response.setMessage(e.getMessage());
+        }
+        return response;
     }
+
+    @GetMapping("/{id}")
+    public RestResponse<ProductDetail> getById(@PathVariable Long id) {
+        RestResponse<ProductDetail> response = new RestResponse<>();
+        try {
+            ProductDetail detail = productDetailService.getById(id);
+            response.setStatusCode(200);
+            response.setData(detail);
+            response.setMessage("Success");
+        } catch (Exception e) {
+            response.setStatusCode(500);
+            response.setError("Error");
+            response.setMessage(e.getMessage());
+        }
+        return response;
+    }
+
 }
