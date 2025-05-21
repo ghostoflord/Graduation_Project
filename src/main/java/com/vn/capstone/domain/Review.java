@@ -30,7 +30,7 @@ public class Review {
     @JsonBackReference
     private Product product;
 
-    private int rating; // ví dụ 1-5 sao
+    private float rating; // ví dụ 1-5 sao
 
     private Instant createdAt;
     private Instant updatedAt;
@@ -59,11 +59,11 @@ public class Review {
         this.product = product;
     }
 
-    public int getRating() {
+    public float getRating() {
         return rating;
     }
 
-    public void setRating(int rating) {
+    public void setRating(float rating) {
         this.rating = rating;
     }
 

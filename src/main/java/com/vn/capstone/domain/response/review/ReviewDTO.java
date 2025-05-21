@@ -7,13 +7,13 @@ public class ReviewDTO {
     private Long productId;
     private Long userId;
     private String username;
-    private int rating;
+    private float rating;
     private Instant createdAt;
 
     public ReviewDTO() {
     }
 
-    public ReviewDTO(Long id, Long productId, Long userId, String username, int rating, String comment,
+    public ReviewDTO(Long id, Long productId, Long userId, String username, float rating, String comment,
             Instant createdAt) {
         this.id = id;
         this.productId = productId;
@@ -57,11 +57,11 @@ public class ReviewDTO {
         this.username = username;
     }
 
-    public int getRating() {
+    public float getRating() {
         return rating;
     }
 
-    public void setRating(int rating) {
+    public void setRating(float rating) {
         this.rating = rating;
     }
 
