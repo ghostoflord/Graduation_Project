@@ -1,6 +1,7 @@
 package com.vn.capstone.service;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
@@ -26,6 +27,11 @@ public class LikeService {
         this.likeRepository = likeRepository;
         this.productRepository = productRepository;
         this.userRepository = userRepository;
+    }
+
+    // Lấy danh sách like của người dùng
+    public List<Like> getLikesByUserId(Long userId) {
+        return likeRepository.findByUserId(userId);
     }
 
     // Thêm like hoặc bỏ like nếu đã like rồi
@@ -55,7 +61,7 @@ public class LikeService {
     }
 
     // Lấy số lượng like của sản phẩm
-    public int countLikes(Long productId) {
+    public Long countLikes(Long productId) {
         return likeRepository.countByProductId(productId);
     }
 }

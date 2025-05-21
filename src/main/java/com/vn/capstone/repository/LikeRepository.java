@@ -1,5 +1,6 @@
 package com.vn.capstone.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,4 +16,6 @@ public interface LikeRepository extends JpaRepository<Like, Long> {
     Long countByProductId(Long productId);
 
     void deleteByProductIdAndUserId(Long productId, Long userId);
+
+    List<Like> findByUserId(Long userId);
 }
