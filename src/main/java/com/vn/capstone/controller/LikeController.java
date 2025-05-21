@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.vn.capstone.domain.Like;
 import com.vn.capstone.domain.response.RestResponse;
+import com.vn.capstone.domain.response.like.LikeDTO;
 import com.vn.capstone.service.LikeService;
 
 @RestController
@@ -58,13 +59,23 @@ public class LikeController {
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<RestResponse<List<Like>>> getLikesByUserId(@PathVariable Long userId) {
+    public ResponseEntity<RestResponse<List<LikeDTO>>> getLikesByUserId(@PathVariable Long userId) {
         List<Like> likes = likeService.getLikesByUserId(userId);
 
-        RestResponse<List<Like>> response = new RestResponse<>();
+        List<LikeDTO> likeDTOs = likes.stream()
+                .map(like -> new LikeDTO(
+                        like.getId(), // likeId
+                        like.getUser().getId(), // userId
+                        like.getUser().getName(), // userName
+                        like.getProduct().getId(), // productId
+                        like.getProduct().getName() // productName
+                ))
+                .toList();
+
+        RestResponse<List<LikeDTO>> response = new RestResponse<>();
         response.setStatusCode(HttpStatus.OK.value());
         response.setMessage("Lấy danh sách sản phẩm yêu thích thành công.");
-        response.setData(likes);
+        response.setData(likeDTOs);
 
         return ResponseEntity.ok(response);
     }
