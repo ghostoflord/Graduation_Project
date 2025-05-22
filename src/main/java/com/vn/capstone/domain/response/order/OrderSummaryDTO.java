@@ -5,13 +5,22 @@ import com.vn.capstone.util.constant.OrderStatus;
 public class OrderSummaryDTO {
     private long id;
 
-    
     private double totalPrice;
     private String receiverName;
     private String receiverAddress;
     private String receiverPhone;
     private OrderStatus status;
     private long userId;
+
+    private long totalQuantity;
+
+    public long getTotalQuantity() {
+        return totalQuantity;
+    }
+
+    public void setTotalQuantity(long totalQuantity) {
+        this.totalQuantity = totalQuantity;
+    }
 
     public long getId() {
         return id;
@@ -52,8 +61,6 @@ public class OrderSummaryDTO {
     public void setReceiverPhone(String receiverPhone) {
         this.receiverPhone = receiverPhone;
     }
-
-
 
     public long getUserId() {
         return userId;

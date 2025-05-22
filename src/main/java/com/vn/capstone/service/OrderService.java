@@ -145,6 +145,13 @@ public class OrderService {
         dto.setReceiverPhone(order.getReceiverPhone());
         dto.setStatus(order.getStatus());
         dto.setUserId(order.getUser().getId());
+
+        // Tính tổng số lượng
+        long totalQuantity = orderDetailRepository.findByOrder(order).stream()
+                .mapToLong(OrderDetail::getQuantity)
+                .sum();
+        dto.setTotalQuantity(totalQuantity);
+
         return dto;
     }
 
@@ -197,6 +204,13 @@ public class OrderService {
         dto.setReceiverPhone(order.getReceiverPhone());
         dto.setStatus(order.getStatus());
         dto.setUserId(order.getUser().getId());
+
+        // Tổng số lượng sản phẩm
+        long totalQuantity = orderDetailRepository.findByOrder(order).stream()
+                .mapToLong(OrderDetail::getQuantity)
+                .sum();
+        dto.setTotalQuantity(totalQuantity);
+
         return dto;
     }
 
