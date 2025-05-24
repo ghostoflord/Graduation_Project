@@ -15,7 +15,6 @@ import com.vn.capstone.domain.response.ResultPaginationDTO;
 import com.vn.capstone.repository.PermissionRepository;
 import com.vn.capstone.repository.RoleRepository;
 
-
 @Service
 public class RoleService {
 
@@ -75,10 +74,15 @@ public class RoleService {
     // put role
     public Role handleUpdateRole(Role reqRole) {
         Role roleDB = this.fetchRoleById(reqRole.getId());
-        // check permissions
+
+        if (roleDB == null) {
+            return null; // Controller sẽ ném IdInvalidException
+        }
+
+        // Handle permissions
         if (reqRole.getPermissions() != null) {
             List<Long> reqPermissions = reqRole.getPermissions()
-                    .stream().map(x -> x.getId())
+                    .stream().map(Permission::getId)
                     .collect(Collectors.toList());
 
             List<Permission> dbPermissions = this.permissionRepository.findByIdIn(reqPermissions);
@@ -88,8 +92,8 @@ public class RoleService {
         roleDB.setName(reqRole.getName());
         roleDB.setDescription(reqRole.getDescription());
         roleDB.setPermissions(reqRole.getPermissions());
-        roleDB = this.roleRepository.save(roleDB);
-        return roleDB;
+
+        return this.roleRepository.save(roleDB);
     }
 
     public boolean existByName(String name) {

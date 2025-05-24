@@ -34,54 +34,42 @@ public class PermissionController {
 
     @PostMapping("/permissions")
     @ApiMessage("Create a permission")
-    public ResponseEntity<RestResponse<Permission>> create(@Valid @RequestBody Permission p) throws IdInvalidException {
+    public ResponseEntity<Permission> create(@Valid @RequestBody Permission p) throws IdInvalidException {
+        // check exist
         if (this.permissionService.isPermissionExist(p)) {
             throw new IdInvalidException("Permission đã tồn tại.");
         }
 
-        Permission created = this.permissionService.create(p);
-        RestResponse<Permission> response = new RestResponse<>();
-        response.setStatusCode(HttpStatus.CREATED.value());
-        response.setMessage("Tạo quyền thành công.");
-        response.setData(created);
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        // create new permission
+        return ResponseEntity.status(HttpStatus.CREATED).body(this.permissionService.create(p));
     }
 
     @PutMapping("/permissions")
     @ApiMessage("Update a permission")
-    public ResponseEntity<RestResponse<Permission>> update(@Valid @RequestBody Permission p) throws IdInvalidException {
+    public ResponseEntity<Permission> update(@Valid @RequestBody Permission p) throws IdInvalidException {
+        // check exist by id
         if (this.permissionService.fetchById(p.getId()) == null) {
             throw new IdInvalidException("Permission với id = " + p.getId() + " không tồn tại.");
         }
 
+        // check exist by module, apiPath and method
         if (this.permissionService.isPermissionExist(p)) {
             throw new IdInvalidException("Permission đã tồn tại.");
         }
 
-        Permission updated = this.permissionService.update(p);
-        RestResponse<Permission> response = new RestResponse<>();
-        response.setStatusCode(HttpStatus.OK.value());
-        response.setMessage("Cập nhật quyền thành công.");
-        response.setData(updated);
-
-        return ResponseEntity.ok(response);
+        // update permission
+        return ResponseEntity.ok().body(this.permissionService.update(p));
     }
 
     @DeleteMapping("/permissions/{id}")
-    @ApiMessage("Delete a permission")
-    public ResponseEntity<RestResponse<Void>> delete(@PathVariable("id") long id) throws IdInvalidException {
+    @ApiMessage("delete a permission")
+    public ResponseEntity<Void> delete(@PathVariable("id") long id) throws IdInvalidException {
+        // check exist by id
         if (this.permissionService.fetchById(id) == null) {
             throw new IdInvalidException("Permission với id = " + id + " không tồn tại.");
         }
-
         this.permissionService.delete(id);
-        RestResponse<Void> response = new RestResponse<>();
-        response.setStatusCode(HttpStatus.OK.value());
-        response.setMessage("Xóa quyền thành công.");
-        response.setData(null);
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok().body(null);
     }
 
     @GetMapping("/permissions")
