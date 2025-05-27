@@ -153,6 +153,7 @@ public class UserService {
         res.setActivate(user.isActivate());
         res.setAddress(user.getAddress());
         res.setAvatar(user.getAvatar());
+        res.setRole(user.getRole().getName());
         return res;
     }
 
@@ -225,8 +226,8 @@ public class UserService {
         userRepository.save(user);
     }
 
-        // upload avt user
-        public Optional<User> findById(Long id) {
-            return userRepository.findById(id);
-        }
+    // upload avt user
+    public Optional<User> findById(Long id) {
+        return userRepository.findById(id);
+    }
 }

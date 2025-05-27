@@ -11,11 +11,13 @@ public class CommentResponse {
     public static class SimpleUser {
         private Long id;
         private String name;
+        private String avatar;
 
         // Constructors
-        public SimpleUser(Long id, String name) {
+        public SimpleUser(Long id, String name, String avatar) {
             this.id = id;
             this.name = name;
+            this.avatar = avatar;
         }
 
         // Getters and setters
@@ -25,6 +27,10 @@ public class CommentResponse {
 
         public String getName() {
             return name;
+        }
+
+        public String getAvatar() {
+            return avatar;
         }
     }
 

@@ -49,7 +49,8 @@ public class CommentService {
                 comment.getId(),
                 comment.getContent(),
                 comment.getCreatedAt(),
-                new CommentResponse.SimpleUser(comment.getUser().getId(), comment.getUser().getName())))
+                new CommentResponse.SimpleUser(comment.getUser().getId(), comment.getUser().getName(),
+                        comment.getUser().getAvatar())))
                 .collect(Collectors.toList());
     }
 

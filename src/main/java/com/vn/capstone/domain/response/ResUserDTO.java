@@ -2,6 +2,7 @@ package com.vn.capstone.domain.response;
 
 import java.time.Instant;
 
+import com.vn.capstone.domain.Role;
 import com.vn.capstone.util.constant.GenderEnum;
 
 import lombok.AllArgsConstructor;
@@ -25,4 +26,5 @@ public class ResUserDTO {
     private Instant createdAt;
     private boolean activate;
     private String avatar;
+    private String role;
 }
