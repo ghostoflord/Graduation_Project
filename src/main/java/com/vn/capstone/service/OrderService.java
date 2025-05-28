@@ -357,4 +357,16 @@ public class OrderService {
         orderRepository.save(order);
     }
 
+    @Transactional
+    public void deleteOrderById(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+
+        if (order.getOrderDetails() != null && !order.getOrderDetails().isEmpty()) {
+            throw new IllegalStateException("Cannot delete order with existing order details.");
+        }
+        orderStatusHistoryRepository.deleteAllByOrder(order);
+        orderRepository.delete(order);
+    }
+
 }

@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -151,6 +152,16 @@ public class OrderController {
         RestResponse<Void> response = new RestResponse<>();
         response.setStatusCode(HttpStatus.OK.value());
         response.setMessage("Cập nhật đơn hàng thành công");
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<RestResponse<Void>> deleteOrder(@PathVariable("id") Long orderId) {
+        RestResponse<Void> response = new RestResponse<>();
+        orderService.deleteOrderById(orderId);
+        response.setStatusCode(HttpStatus.NO_CONTENT.value());
+        response.setMessage("Order deleted successfully");
+        response.setData(null);
         return ResponseEntity.ok(response);
     }
 
