@@ -19,6 +19,7 @@ import com.vn.capstone.domain.response.order.OrderHistoryDTO;
 import com.vn.capstone.domain.response.order.OrderItemDTO;
 import com.vn.capstone.domain.response.order.OrderStatusHistoryDTO;
 import com.vn.capstone.domain.response.order.OrderSummaryDTO;
+import com.vn.capstone.domain.response.order.UpdateOrderRequest;
 import com.vn.capstone.mapping.OrderMapper;
 import com.vn.capstone.repository.CartDetailRepository;
 import com.vn.capstone.repository.CartRepository;
@@ -336,6 +337,24 @@ public class OrderService {
         cartRepository.save(cart);
 
         // Sau khi lưu đơn hàng, có thể gửi thông báo thành công hoặc làm gì đó khác
+    }
+
+    // cập nhập order bởi admin
+    public void updateOrder(Long id, UpdateOrderRequest request, String email) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
+        order.setReceiverName(request.getReceiverName());
+        order.setReceiverAddress(request.getReceiverAddress());
+        order.setReceiverPhone(request.getReceiverPhone());
+        order.setStatus(request.getStatus());
+        order.setPaymentStatus(request.getPaymentStatus());
+        order.setPaymentMethod(request.getPaymentMethod());
+        order.setShippingMethod(request.getShippingMethod());
+        order.setTrackingCode(request.getTrackingCode());
+        order.setEstimatedDeliveryTime(request.getEstimatedDeliveryTime());
+        order.setUpdatedAt(Instant.now());
+
+        orderRepository.save(order);
     }
 
 }
