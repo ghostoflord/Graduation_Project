@@ -79,11 +79,23 @@ public class Order implements Serializable {
     @JoinColumn(name = "user_id")
     private User user;
 
+    @ManyToOne
+    @JoinColumn(name = "shipper_id")
+    private User shipper;
+
     @OneToMany(mappedBy = "order")
     private List<OrderDetail> orderDetails;
 
     @OneToMany(mappedBy = "order")
     private List<OrderStatusHistory> statusHistories;
+
+    public User getShipper() {
+        return shipper;
+    }
+
+    public void setShipper(User shipper) {
+        this.shipper = shipper;
+    }
 
     public long getId() {
         return id;

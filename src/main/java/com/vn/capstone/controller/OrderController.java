@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,6 +19,7 @@ import com.vn.capstone.domain.response.RestResponse;
 import com.vn.capstone.domain.response.order.OrderHistoryDTO;
 import com.vn.capstone.domain.response.order.OrderItemDTO;
 import com.vn.capstone.domain.response.order.OrderResponse;
+import com.vn.capstone.domain.response.order.OrderShipperDTO;
 import com.vn.capstone.domain.response.order.OrderSummaryDTO;
 import com.vn.capstone.domain.response.order.PlaceOrderRequest;
 import com.vn.capstone.domain.response.order.UpdateOrderRequest;
@@ -25,6 +27,7 @@ import com.vn.capstone.service.OrderService;
 import com.vn.capstone.service.ProductService;
 
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/v1/orders")
@@ -161,6 +164,37 @@ public class OrderController {
         orderService.deleteOrderById(orderId);
         response.setStatusCode(HttpStatus.NO_CONTENT.value());
         response.setMessage("Order deleted successfully");
+        response.setData(null);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/shipper")
+    public ResponseEntity<RestResponse<List<OrderShipperDTO>>> getOrdersForShipper(Authentication authentication) {
+        String username = authentication.getName();
+        List<OrderShipperDTO> orders = orderService.getOrdersForShipper(username);
+        RestResponse<List<OrderShipperDTO>> response = new RestResponse<>();
+        response.setStatusCode(200);
+        response.setMessage("Lấy danh sách đơn hàng thành công");
+        response.setData(orders);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/{orderId}/accept")
+    public ResponseEntity<RestResponse<Void>> acceptOrder(@PathVariable Long orderId, Authentication auth) {
+        orderService.acceptOrder(orderId, auth.getName());
+        RestResponse<Void> response = new RestResponse<>();
+        response.setStatusCode(200);
+        response.setMessage("Đã nhận đơn hàng thành công");
+        response.setData(null);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/{orderId}/complete")
+    public ResponseEntity<RestResponse<Void>> completeOrder(@PathVariable Long orderId, Authentication auth) {
+        orderService.completeOrder(orderId, auth.getName());
+        RestResponse<Void> response = new RestResponse<>();
+        response.setStatusCode(200);
+        response.setMessage("Đã hoàn tất đơn hàng thành công");
         response.setData(null);
         return ResponseEntity.ok(response);
     }

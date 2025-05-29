@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +18,7 @@ import com.vn.capstone.domain.Product;
 import com.vn.capstone.domain.User;
 import com.vn.capstone.domain.response.order.OrderHistoryDTO;
 import com.vn.capstone.domain.response.order.OrderItemDTO;
+import com.vn.capstone.domain.response.order.OrderShipperDTO;
 import com.vn.capstone.domain.response.order.OrderStatusHistoryDTO;
 import com.vn.capstone.domain.response.order.OrderSummaryDTO;
 import com.vn.capstone.domain.response.order.UpdateOrderRequest;
@@ -367,6 +369,65 @@ public class OrderService {
         }
         orderStatusHistoryRepository.deleteAllByOrder(order);
         orderRepository.delete(order);
+    }
+
+    // shipper
+    public List<OrderShipperDTO> getOrdersForShipper(String username) {
+        User shipper = userRepository.findByEmail(username);
+
+        List<Order> allOrders = orderRepository.findAll();
+
+        return allOrders.stream()
+                .filter(order -> order.getStatus() == OrderStatus.PENDING
+                        || (order.getShipper() != null && order.getShipper().equals(shipper.getId())))
+                .map(order -> new OrderShipperDTO(
+                        order.getId(),
+                        order.getTotalPrice(),
+                        order.getReceiverName(),
+                        order.getReceiverAddress(),
+                        order.getReceiverPhone(),
+                        order.getStatus(),
+                        order.getPaymentStatus(),
+                        order.getPaymentMethod(),
+                        order.getPaymentRef(),
+                        order.getShippingMethod(),
+                        order.getTrackingCode(),
+                        order.getEstimatedDeliveryTime(),
+                        order.getCreatedAt(),
+                        order.getUpdatedAt(),
+                        order.getDeliveredAt(),
+                        order.getCancelReason(),
+                        order.getUser() != null ? order.getUser().getName() : null,
+                        order.getUser() != null ? order.getUser().getEmail() : null))
+                .collect(Collectors.toList());
+    }
+
+    public void acceptOrder(Long orderId, String username) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+
+        if (order.getStatus() != OrderStatus.PENDING) {
+            throw new IllegalStateException("Order already accepted or processed");
+        }
+
+        User shipper = userRepository.findByEmail(username);
+
+        // Gán shipper và chuyển trạng thái đơn hàng
+        order.setStatus(OrderStatus.DELIVERED); // trạng thái: đang giao
+        orderRepository.save(order);
+    }
+
+    public void completeOrder(Long orderId, String username) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+
+        if (order.getStatus() != OrderStatus.DELIVERED) {
+            throw new IllegalStateException("Order is not in delivering status");
+        }
+
+        order.setStatus(OrderStatus.CONFIRMED);
+        order.setDeliveredAt(Instant.now());
+        orderRepository.save(order);
     }
 
 }
