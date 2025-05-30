@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -196,6 +197,18 @@ public class OrderController {
         response.setStatusCode(200);
         response.setMessage("Đã hoàn tất đơn hàng thành công");
         response.setData(null);
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{orderId}/delivered")
+    public ResponseEntity<RestResponse<Void>> markAsDelivered(@PathVariable Long orderId) {
+        orderService.markAsDelivered(orderId);
+
+        RestResponse<Void> response = new RestResponse<>();
+        response.setStatusCode(200);
+        response.setMessage("Cập nhật trạng thái thành công");
+        response.setData(null); // Không có data trả về cụ thể
+
         return ResponseEntity.ok(response);
     }
 

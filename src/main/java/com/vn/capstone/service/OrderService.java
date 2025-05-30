@@ -1,6 +1,7 @@
 package com.vn.capstone.service;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -378,8 +379,17 @@ public class OrderService {
         List<Order> allOrders = orderRepository.findAll();
 
         return allOrders.stream()
-                .filter(order -> order.getStatus() == OrderStatus.PENDING
-                        || (order.getShipper() != null && order.getShipper().equals(shipper.getId())))
+                .filter(order -> {
+                    // Nếu đơn đang ở trạng thái PENDING (chưa ai nhận) => hiển thị để SHIPPER nhận
+                    if (order.getStatus() == OrderStatus.PENDING)
+                        return true;
+
+                    // Nếu đơn đã được gán cho shipper này và đang ở trạng thái SHIPPING => hiển thị
+                    // để SHIPPER xem
+                    return order.getShipper() != null &&
+                            order.getShipper().getId() == shipper.getId() &&
+                            order.getStatus() == OrderStatus.SHIPPING;
+                })
                 .map(order -> new OrderShipperDTO(
                         order.getId(),
                         order.getTotalPrice(),
@@ -412,21 +422,37 @@ public class OrderService {
 
         User shipper = userRepository.findByEmail(username);
 
-        // Gán shipper và chuyển trạng thái đơn hàng
-        order.setStatus(OrderStatus.DELIVERED); // trạng thái: đang giao
+        order.setShipper(shipper);
+        order.setStatus(OrderStatus.SHIPPING); // chuyển sang đang giao
+
         orderRepository.save(order);
     }
 
     public void completeOrder(Long orderId, String username) {
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
 
         if (order.getStatus() != OrderStatus.DELIVERED) {
-            throw new IllegalStateException("Order is not in delivering status");
+            throw new IllegalStateException("Chỉ đơn hàng đã giao mới có thể xác nhận nhận hàng");
         }
 
-        order.setStatus(OrderStatus.CONFIRMED);
+        order.setStatus(OrderStatus.COMPLETED); // Trạng thái cuối cùng
+        order.setEstimatedDeliveryTime(Instant.now());
+
+        orderRepository.save(order);
+    }
+
+    public void markAsDelivered(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
+
+        if (order.getStatus() != OrderStatus.SHIPPING) {
+            throw new IllegalStateException("Chỉ đơn hàng đang giao mới được đánh dấu là đã giao");
+        }
+
+        order.setStatus(OrderStatus.DELIVERED);
         order.setDeliveredAt(Instant.now());
+
         orderRepository.save(order);
     }
 
