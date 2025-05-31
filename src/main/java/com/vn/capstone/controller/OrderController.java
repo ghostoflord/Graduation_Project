@@ -212,4 +212,18 @@ public class OrderController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/shipper/delivered")
+    public ResponseEntity<RestResponse<List<OrderShipperDTO>>> getDeliveredOrdersForShipper(
+            Authentication authentication) {
+        String username = authentication.getName();
+        List<OrderShipperDTO> orders = orderService.getDeliveredOrdersForShipper(username);
+
+        RestResponse<List<OrderShipperDTO>> response = new RestResponse<>();
+        response.setStatusCode(200);
+        response.setMessage("Lấy danh sách đơn hàng đã giao thành công");
+        response.setData(orders);
+
+        return ResponseEntity.ok(response);
+    }
+
 }

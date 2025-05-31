@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import com.vn.capstone.domain.Order;
 import com.vn.capstone.domain.User;
+import com.vn.capstone.util.constant.OrderStatus;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
@@ -21,6 +22,8 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     @Query("SELECT SUM(od.quantity) FROM OrderDetail od JOIN od.order o WHERE o.status = 'CANCELED'")
     Long sumCanceledOrderQuantity();
+
+    List<Order> findByShipperAndStatus(User shipper, OrderStatus status);
 
     // void deleteByProductId(Long productId);
 }

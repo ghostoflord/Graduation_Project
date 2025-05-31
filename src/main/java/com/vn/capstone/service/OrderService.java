@@ -456,4 +456,40 @@ public class OrderService {
         orderRepository.save(order);
     }
 
+    //
+        public List<OrderShipperDTO> getDeliveredOrdersForShipper(String username) {
+            User shipper = userRepository.findByEmail(username);
+
+            List<Order> deliveredOrders = (List<Order>) orderRepository.findByShipperAndStatus(shipper,
+                    OrderStatus.DELIVERED);
+            List<OrderShipperDTO> dtoList = new ArrayList<>();
+
+            for (Order order : deliveredOrders) {
+                OrderShipperDTO dto = OrderShipperDTO.builder()
+                        .id(order.getId())
+                        .totalPrice(order.getTotalPrice())
+                        .receiverName(order.getReceiverName())
+                        .receiverAddress(order.getReceiverAddress())
+                        .receiverPhone(order.getReceiverPhone())
+                        .status(order.getStatus())
+                        .paymentStatus(order.getPaymentStatus())
+                        .paymentMethod(order.getPaymentMethod())
+                        .paymentRef(order.getPaymentRef())
+                        .shippingMethod(order.getShippingMethod())
+                        .trackingCode(order.getTrackingCode())
+                        .estimatedDeliveryTime(order.getEstimatedDeliveryTime())
+                        .createdAt(order.getCreatedAt())
+                        .updatedAt(order.getUpdatedAt())
+                        .deliveredAt(order.getDeliveredAt())
+                        .cancelReason(order.getCancelReason())
+                        .customerName(order.getUser() != null ? order.getUser().getName() : null)
+                        .customerEmail(order.getUser() != null ? order.getUser().getEmail() : null)
+                        .build();
+
+                dtoList.add(dto);
+            }
+
+            return dtoList;
+        }
+
 }
