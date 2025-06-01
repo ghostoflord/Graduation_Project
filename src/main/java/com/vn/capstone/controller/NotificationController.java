@@ -1,5 +1,8 @@
 package com.vn.capstone.controller;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,8 +12,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.turkraft.springfilter.boot.Filter;
+import com.vn.capstone.domain.Notification;
 import com.vn.capstone.domain.response.RestResponse;
+import com.vn.capstone.domain.response.ResultPaginationDTO;
 import com.vn.capstone.service.NotificationService;
+import com.vn.capstone.util.annotation.ApiMessage;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -22,13 +29,29 @@ public class NotificationController {
         this.notificationService = notificationService;
     }
 
+    // @GetMapping("/notifications")
+    // public ResponseEntity<RestResponse<?>> getUserNotifications(@RequestParam
+    // Long userId) {
+    // RestResponse<Object> response = new RestResponse<>();
+    // response.setStatusCode(200);
+    // response.setMessage("Lấy danh sách thông báo thành công");
+    // response.setError(null);
+    // response.setData(notificationService.getNotificationsForUser(userId));
+    // return ResponseEntity.ok(response);
+    // }
+
     @GetMapping("/notifications")
-    public ResponseEntity<RestResponse<?>> getUserNotifications(@RequestParam Long userId) {
-        RestResponse<Object> response = new RestResponse<>();
-        response.setStatusCode(200);
-        response.setMessage("Lấy danh sách thông báo thành công");
-        response.setError(null);
-        response.setData(notificationService.getNotificationsForUser(userId));
+    @ApiMessage("fetch all notifications")
+    public ResponseEntity<RestResponse<ResultPaginationDTO>> getAllNotifications(
+            @Filter Specification<Notification> spec,
+            Pageable pageable) {
+        ResultPaginationDTO result = this.notificationService.getAllNotifications(spec, pageable);
+
+        RestResponse<ResultPaginationDTO> response = new RestResponse<>();
+        response.setStatusCode(HttpStatus.OK.value());
+        response.setMessage("fetch all notifications");
+        response.setData(result);
+
         return ResponseEntity.ok(response);
     }
 
