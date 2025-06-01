@@ -8,6 +8,7 @@ import com.vn.capstone.domain.response.notification.NotificationDTO;
 import com.vn.capstone.repository.NotificationRepository;
 import com.vn.capstone.repository.UserRepository;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,14 +24,31 @@ public class NotificationService {
     }
 
     public void createNotification(Long userId, String title, String content) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        if (userId == null) {
+            // Gửi cho tất cả user
+            List<User> users = userRepository.findAll();
+            List<Notification> notifications = new ArrayList<>();
 
-        Notification noti = new Notification();
-        noti.setUser(user);
-        noti.setTitle(title);
-        noti.setContent(content);
-        notificationRepository.save(noti);
+            for (User user : users) {
+                Notification noti = new Notification();
+                noti.setUser(user);
+                noti.setTitle(title);
+                noti.setContent(content);
+                notifications.add(noti);
+            }
+
+            notificationRepository.saveAll(notifications);
+        } else {
+            // Gửi cho 1 user cụ thể
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            Notification noti = new Notification();
+            noti.setUser(user);
+            noti.setTitle(title);
+            noti.setContent(content);
+            notificationRepository.save(noti);
+        }
     }
 
     public List<NotificationDTO> getNotificationsForUser(Long userId) {

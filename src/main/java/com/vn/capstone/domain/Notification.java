@@ -28,6 +28,8 @@ public class Notification {
 
     private Instant createdAt = Instant.now();
 
+    private boolean forAll = true;
+
     public Long getId() {
         return id;
     }
@@ -76,4 +78,11 @@ public class Notification {
         this.createdAt = createdAt;
     }
 
+    public boolean isForAll() {
+        return forAll;
+    }
+
+    public void setForAll(boolean forAll) {
+        this.forAll = forAll;
+    }
 }

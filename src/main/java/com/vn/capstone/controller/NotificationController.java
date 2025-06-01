@@ -1,6 +1,7 @@
 package com.vn.capstone.controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -43,17 +44,21 @@ public class NotificationController {
     }
 
     @PostMapping("/notifications/create")
+    // @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<RestResponse<?>> createNotification(
-            @RequestParam Long userId,
+            @RequestParam(required = false) Long userId,
             @RequestParam String title,
             @RequestParam String content) {
 
         notificationService.createNotification(userId, title, content);
+
         RestResponse<Object> response = new RestResponse<>();
         response.setStatusCode(200);
-        response.setMessage("Tạo thông báo thành công");
+        response.setMessage(
+                userId == null ? "Đã gửi thông báo đến tất cả người dùng" : "Đã gửi thông báo đến người dùng");
         response.setError(null);
-        response.setData(null); // Không trả dữ liệu cụ thể
+        response.setData(null);
         return ResponseEntity.ok(response);
     }
+
 }

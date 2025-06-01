@@ -27,7 +27,7 @@ import com.vn.capstone.service.OAuth2LoginSuccessHandler;
 import com.vn.capstone.util.SecurityUtil;
 
 @Configuration
-@EnableMethodSecurity(securedEnabled = true)
+@EnableMethodSecurity(securedEnabled = true, prePostEnabled = true)
 public class SecurityConfiguration {
 
     @Value("${ghost.jwt.base64-secret}")
