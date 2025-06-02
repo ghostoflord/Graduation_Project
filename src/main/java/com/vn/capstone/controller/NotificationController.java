@@ -29,16 +29,20 @@ public class NotificationController {
         this.notificationService = notificationService;
     }
 
-    // @GetMapping("/notifications")
-    // public ResponseEntity<RestResponse<?>> getUserNotifications(@RequestParam
-    // Long userId) {
-    // RestResponse<Object> response = new RestResponse<>();
-    // response.setStatusCode(200);
-    // response.setMessage("Lấy danh sách thông báo thành công");
-    // response.setError(null);
-    // response.setData(notificationService.getNotificationsForUser(userId));
-    // return ResponseEntity.ok(response);
-    // }
+        @GetMapping("/notifications/user")
+        @ApiMessage("fetch notifications for specific user")
+        public ResponseEntity<RestResponse<ResultPaginationDTO>> getUserNotifications(
+                @RequestParam Long userId,
+                Pageable pageable) {
+            ResultPaginationDTO result = notificationService.fetchNotificationsForUser(userId, pageable);
+
+            RestResponse<ResultPaginationDTO> response = new RestResponse<>();
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setMessage("Lấy danh sách thông báo thành công");
+            response.setData(result);
+
+            return ResponseEntity.ok(response);
+        }
 
     @GetMapping("/notifications")
     @ApiMessage("fetch all notifications")

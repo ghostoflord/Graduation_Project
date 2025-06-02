@@ -57,16 +57,33 @@ public class NotificationService {
         }
     }
 
-    public List<NotificationDTO> getNotificationsForUser(Long userId) {
-        List<Notification> notifications = notificationRepository.findByUser_IdOrderByCreatedAtDesc(userId);
-        return notifications.stream().map(this::convertToDTO).collect(Collectors.toList());
-    }
-
     public void markAsRead(Long notificationId) {
         notificationRepository.findById(notificationId).ifPresent(noti -> {
             noti.setIsRead(true);
             notificationRepository.save(noti);
         });
+    }
+
+    public ResultPaginationDTO fetchNotificationsForUser(Long userId, Pageable pageable) {
+        Page<Notification> pageNotification = notificationRepository.findByUser_IdOrderByCreatedAtDesc(userId,
+                pageable);
+        ResultPaginationDTO rs = new ResultPaginationDTO();
+        ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
+
+        mt.setPage(pageable.getPageNumber() + 1);
+        mt.setPageSize(pageable.getPageSize());
+        mt.setPages(pageNotification.getTotalPages());
+        mt.setTotal(pageNotification.getTotalElements());
+
+        rs.setMeta(mt);
+
+        List<NotificationDTO> listDTO = pageNotification.getContent()
+                .stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+
+        rs.setResult(listDTO);
+        return rs;
     }
 
     private NotificationDTO convertToDTO(Notification notification) {
