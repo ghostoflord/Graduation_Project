@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -59,6 +60,31 @@ public class OrderService {
         this.userRepository = userRepository;
         this.orderMapper = orderMapper;
         this.productRepository = productRepository;
+    }
+
+    public Optional<OrderSummaryDTO> getOrderSummaryById(Long id) {
+        Optional<Order> orderOpt = orderRepository.findById(id);
+        if (orderOpt.isEmpty())
+            return Optional.empty();
+
+        Order order = orderOpt.get();
+        OrderSummaryDTO dto = new OrderSummaryDTO();
+        dto.setId(order.getId());
+        dto.setReceiverName(order.getReceiverName());
+        dto.setReceiverAddress(order.getReceiverAddress());
+        dto.setReceiverPhone(order.getReceiverPhone());
+        dto.setTotalPrice(order.getTotalPrice());
+
+        // Tính tổng quantity từ orderDetails
+        long totalQuantity = 0;
+        if (order.getOrderDetails() != null) {
+            for (OrderDetail detail : order.getOrderDetails()) {
+                totalQuantity += detail.getQuantity();
+            }
+        }
+        dto.setTotalQuantity(totalQuantity);
+
+        return Optional.of(dto);
     }
 
     @Transactional
@@ -457,39 +483,39 @@ public class OrderService {
     }
 
     //
-        public List<OrderShipperDTO> getDeliveredOrdersForShipper(String username) {
-            User shipper = userRepository.findByEmail(username);
+    public List<OrderShipperDTO> getDeliveredOrdersForShipper(String username) {
+        User shipper = userRepository.findByEmail(username);
 
-            List<Order> deliveredOrders = (List<Order>) orderRepository.findByShipperAndStatus(shipper,
-                    OrderStatus.DELIVERED);
-            List<OrderShipperDTO> dtoList = new ArrayList<>();
+        List<Order> deliveredOrders = (List<Order>) orderRepository.findByShipperAndStatus(shipper,
+                OrderStatus.DELIVERED);
+        List<OrderShipperDTO> dtoList = new ArrayList<>();
 
-            for (Order order : deliveredOrders) {
-                OrderShipperDTO dto = OrderShipperDTO.builder()
-                        .id(order.getId())
-                        .totalPrice(order.getTotalPrice())
-                        .receiverName(order.getReceiverName())
-                        .receiverAddress(order.getReceiverAddress())
-                        .receiverPhone(order.getReceiverPhone())
-                        .status(order.getStatus())
-                        .paymentStatus(order.getPaymentStatus())
-                        .paymentMethod(order.getPaymentMethod())
-                        .paymentRef(order.getPaymentRef())
-                        .shippingMethod(order.getShippingMethod())
-                        .trackingCode(order.getTrackingCode())
-                        .estimatedDeliveryTime(order.getEstimatedDeliveryTime())
-                        .createdAt(order.getCreatedAt())
-                        .updatedAt(order.getUpdatedAt())
-                        .deliveredAt(order.getDeliveredAt())
-                        .cancelReason(order.getCancelReason())
-                        .customerName(order.getUser() != null ? order.getUser().getName() : null)
-                        .customerEmail(order.getUser() != null ? order.getUser().getEmail() : null)
-                        .build();
+        for (Order order : deliveredOrders) {
+            OrderShipperDTO dto = OrderShipperDTO.builder()
+                    .id(order.getId())
+                    .totalPrice(order.getTotalPrice())
+                    .receiverName(order.getReceiverName())
+                    .receiverAddress(order.getReceiverAddress())
+                    .receiverPhone(order.getReceiverPhone())
+                    .status(order.getStatus())
+                    .paymentStatus(order.getPaymentStatus())
+                    .paymentMethod(order.getPaymentMethod())
+                    .paymentRef(order.getPaymentRef())
+                    .shippingMethod(order.getShippingMethod())
+                    .trackingCode(order.getTrackingCode())
+                    .estimatedDeliveryTime(order.getEstimatedDeliveryTime())
+                    .createdAt(order.getCreatedAt())
+                    .updatedAt(order.getUpdatedAt())
+                    .deliveredAt(order.getDeliveredAt())
+                    .cancelReason(order.getCancelReason())
+                    .customerName(order.getUser() != null ? order.getUser().getName() : null)
+                    .customerEmail(order.getUser() != null ? order.getUser().getEmail() : null)
+                    .build();
 
-                dtoList.add(dto);
-            }
-
-            return dtoList;
+            dtoList.add(dto);
         }
+
+        return dtoList;
+    }
 
 }

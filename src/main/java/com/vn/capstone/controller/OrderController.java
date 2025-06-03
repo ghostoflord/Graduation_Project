@@ -42,6 +42,26 @@ public class OrderController {
         this.productService = productService;
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<RestResponse<OrderSummaryDTO>> getOrderSummaryById(@PathVariable Long id) {
+        var restResponse = new RestResponse<OrderSummaryDTO>();
+        return orderService.getOrderSummaryById(id)
+                .map(dto -> {
+                    restResponse.setStatusCode(200);
+                    restResponse.setError(null);
+                    restResponse.setMessage("Success");
+                    restResponse.setData(dto);
+                    return ResponseEntity.ok(restResponse);
+                })
+                .orElseGet(() -> {
+                    restResponse.setStatusCode(404);
+                    restResponse.setError("Not Found");
+                    restResponse.setMessage("Order with id " + id + " not found");
+                    restResponse.setData(null);
+                    return ResponseEntity.status(404).body(restResponse);
+                });
+    }
+
     @PostMapping("/place")
     public ResponseEntity<RestResponse<OrderResponse>> placeOrder(@Valid @RequestBody PlaceOrderRequest req) {
         RestResponse<OrderResponse> restResponse = new RestResponse<>();

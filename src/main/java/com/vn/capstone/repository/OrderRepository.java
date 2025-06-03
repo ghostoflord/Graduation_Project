@@ -15,6 +15,11 @@ import com.vn.capstone.util.constant.OrderStatus;
 public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findByUser(User user);
 
+    Optional<Order> findById(long id);
+    // @Query("SELECT o FROM Order o LEFT JOIN FETCH o.orderDetails WHERE o.id =
+    // :id")
+    // Optional<Order> findWithDetailsById(@Param("id") Long id);
+
     Optional<Order> findByPaymentRef(String paymentRef);
 
     @Query("SELECT SUM(o.totalPrice) FROM Order o")
