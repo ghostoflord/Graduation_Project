@@ -58,7 +58,7 @@ public class SecurityConfiguration {
                 "/api/v1/comments/**", "/api/v1/carts/**", "/api/v1/orders/**", "/api/v1/carts/addproduct",
                 "/api/v1/product-details/**", "/api/v1/notifications/**",
                 "/api/v1/email/**", "/api/v1/verify/**", "/api/v1/dashboard/**", "/api/v1/auth/resend-verification",
-                "/api/v1/review/**", "/api/v1/like/**",
+                "/api/v1/review/**", "/api/v1/like/**", "/api/v1/invoice/**",   
                 "/api/v1/auth/forgot-password", "/api/v1/auth/verify-reset-token", "/api/v1/auth/reset-password",
                 "/api/v1/auth/register", "/api/v1/auth/login", "/api/v1/auth/account", "api/v1/auth/logout",
                 "/api/v1/files", "/upload/avatars/**", "/upload/products/**", "/oauth2/authorization/github",
