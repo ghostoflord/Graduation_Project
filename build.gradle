@@ -36,6 +36,7 @@ dependencies {
 	implementation 'com.turkraft.springfilter:jpa:3.1.7'
 	// https://mvnrepository.com/artifact/com.itextpdf/itextpdf
 	implementation 'com.itextpdf:itextpdf:5.5.13.3'
+	    implementation 'org.springframework.boot:spring-boot-starter-webflux'
 	    implementation 'mysql:mysql-connector-java:8.0.27'  // Phiên bản mới nhất
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
