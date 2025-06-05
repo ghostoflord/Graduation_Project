@@ -27,7 +27,7 @@ public class UserDetailsCustom implements UserDetailsService {
         }
 
         // return new User(
-        // user.getEmail(),     
+        // user.getEmail(),
         // user.getPassword(),
         // Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")));
         return new CustomUserDetails(user); // Sử dụng CustomUserDetails thay vì User của Spring
