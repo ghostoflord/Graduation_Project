@@ -58,6 +58,12 @@ public class Order implements Serializable {
     private Instant deliveredAt;
     private String cancelReason;
 
+    @ManyToOne
+    @JoinColumn(name = "voucher_id")
+    private Voucher voucher;
+
+    private double discountedPrice; // tổng tiền sau khi áp dụng mã giảm giá
+
     public Instant getCreatedAt() {
         return createdAt;
     }
@@ -227,6 +233,22 @@ public class Order implements Serializable {
 
     public void setOrderDetails(List<OrderDetail> orderDetails) {
         this.orderDetails = orderDetails;
+    }
+
+    public Voucher getVoucher() {
+        return voucher;
+    }
+
+    public void setVoucher(Voucher voucher) {
+        this.voucher = voucher;
+    }
+
+    public double getDiscountedPrice() {
+        return discountedPrice;
+    }
+
+    public void setDiscountedPrice(double discountedPrice) {
+        this.discountedPrice = discountedPrice;
     }
 
     @PrePersist

@@ -71,7 +71,8 @@ public class OrderController {
                     req.getUserId(),
                     req.getName(),
                     req.getAddress(),
-                    req.getPhone());
+                    req.getPhone(),
+                    req.getVoucherCode());
 
             OrderResponse orderResponse = OrderResponse.from(order);
 

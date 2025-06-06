@@ -5,6 +5,7 @@ public class PlaceOrderRequest {
     private String name;
     private String address;
     private String phone;
+    private String voucherCode;
 
     public Long getUserId() {
         return userId;
@@ -37,4 +38,13 @@ public class PlaceOrderRequest {
     public void setPhone(String phone) {
         this.phone = phone;
     }
+
+    public String getVoucherCode() {
+        return voucherCode;
+    }
+
+    public void setVoucherCode(String voucherCode) {
+        this.voucherCode = voucherCode;
+    }
+
 }

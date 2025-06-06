@@ -19,6 +19,8 @@ public class OrderResponse {
     private Long userId;
     private Double total;
     private OrderStatus status;
+    private double discountedPrice; // thêm trường này
+    private String voucherCode;
     private Instant createdAt;
 
     public static OrderResponse from(Order o) {
@@ -27,6 +29,9 @@ public class OrderResponse {
                 o.getUser().getId(),
                 o.getTotalPrice(),
                 o.getStatus(),
+                o.getDiscountedPrice(), // sử dụng giá đã giảm
+                o.getVoucher() != null ? o.getVoucher().getCode() : null, // lấy mã voucher nếu có
                 o.getCreatedAt());
+
     }
 }

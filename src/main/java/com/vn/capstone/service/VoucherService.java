@@ -2,12 +2,15 @@ package com.vn.capstone.service;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 
 import com.vn.capstone.domain.User;
 import com.vn.capstone.domain.Voucher;
+import com.vn.capstone.domain.response.RestResponse;
+import com.vn.capstone.domain.response.voucher.VoucherDTO;
 import com.vn.capstone.domain.response.voucher.VoucherRequest;
 import com.vn.capstone.repository.UserRepository;
 import com.vn.capstone.repository.VoucherRepository;
@@ -55,9 +58,44 @@ public class VoucherService {
         voucherRepository.save(voucher);
     }
 
+    public List<VoucherDTO> getAvailableVouchersForUser(Long userId) {
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) {
+            return Collections.emptyList();
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        return voucherRepository.findAll().stream()
+                .filter(v -> v.isActive()
+                        && !v.isUsed()
+                        && (v.getStartDate() == null || !v.getStartDate().isAfter(now))
+                        && (v.getEndDate() == null || !v.getEndDate().isBefore(now))
+                        && (v.getAssignedUser() == null || Long.valueOf(v.getAssignedUser().getId()).equals(userId)))
+                .map(v -> {
+                    VoucherDTO dto = new VoucherDTO();
+                    dto.setId(v.getId());
+                    dto.setCode(v.getCode());
+                    dto.setDescription(v.getDescription());
+                    dto.setDiscountValue(v.getDiscountValue());
+                    dto.setPercentage(v.isPercentage());
+                    dto.setStartDate(v.getStartDate());
+                    dto.setEndDate(v.getEndDate());
+
+                    if (v.getAssignedUser() != null) {
+                        dto.setAssignedUser(
+                                new VoucherDTO.AssignedUserDTO(
+                                        v.getAssignedUser().getId(),
+                                        v.getAssignedUser().getName(),
+                                        v.getAssignedUser().getEmail()));
+                    }
+
+                    return dto;
+                })
+                .toList();
+    }
+
     public int applyVoucher(String code, Long userId, int orderTotal) {
-        Voucher voucher = voucherRepository.findByCode(code)
-                .orElseThrow(() -> new RuntimeException("Invalid voucher code"));
+        Voucher voucher = voucherRepository.findByCode(code);
 
         if (!voucher.isActive())
             throw new RuntimeException("Voucher is not active");

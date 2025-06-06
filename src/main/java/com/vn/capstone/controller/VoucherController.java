@@ -2,6 +2,7 @@ package com.vn.capstone.controller;
 
 import com.vn.capstone.domain.Voucher;
 import com.vn.capstone.domain.response.RestResponse;
+import com.vn.capstone.domain.response.voucher.VoucherDTO;
 import com.vn.capstone.domain.response.voucher.VoucherRequest;
 import com.vn.capstone.service.VoucherService;
 
@@ -75,4 +76,26 @@ public class VoucherController {
         response.setData("Deleted");
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<RestResponse<List<VoucherDTO>>> getVouchersForUser(@PathVariable Long userId) {
+        List<VoucherDTO> vouchers = voucherService.getAvailableVouchersForUser(userId);
+
+        RestResponse<List<VoucherDTO>> response = new RestResponse<>();
+        if (vouchers.isEmpty()) {
+            response.setStatusCode(HttpStatus.NOT_FOUND.value());
+            response.setError("Không tìm thấy voucher nào hoặc user không tồn tại");
+            response.setMessage(null);
+            response.setData(null);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+
+        response.setStatusCode(HttpStatus.OK.value());
+        response.setError(null);
+        response.setMessage("Danh sách voucher khả dụng cho người dùng");
+        response.setData(vouchers);
+
+        return ResponseEntity.ok(response);
+    }
+
 }

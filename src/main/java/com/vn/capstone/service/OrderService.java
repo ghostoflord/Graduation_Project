@@ -18,6 +18,7 @@ import com.vn.capstone.domain.OrderDetail;
 import com.vn.capstone.domain.OrderStatusHistory;
 import com.vn.capstone.domain.Product;
 import com.vn.capstone.domain.User;
+import com.vn.capstone.domain.Voucher;
 import com.vn.capstone.domain.response.order.OrderHistoryDTO;
 import com.vn.capstone.domain.response.order.OrderItemDTO;
 import com.vn.capstone.domain.response.order.OrderShipperDTO;
@@ -32,6 +33,7 @@ import com.vn.capstone.repository.OrderRepository;
 import com.vn.capstone.repository.OrderStatusHistoryRepository;
 import com.vn.capstone.repository.ProductRepository;
 import com.vn.capstone.repository.UserRepository;
+import com.vn.capstone.repository.VoucherRepository;
 import com.vn.capstone.util.constant.OrderStatus;
 import com.vn.capstone.util.constant.PaymentMethod;
 import com.vn.capstone.util.error.AccessDeniedException;
@@ -47,11 +49,12 @@ public class OrderService {
     private final UserRepository userRepository;
     private final OrderMapper orderMapper;
     private final ProductRepository productRepository;
+    private final VoucherRepository voucherRepository;
 
     public OrderService(OrderRepository orderRepository, OrderDetailRepository orderDetailRepository,
             CartRepository cartRepository, CartDetailRepository cartDetailRepository,
             OrderStatusHistoryRepository orderStatusHistoryRepository, UserRepository userRepository,
-            OrderMapper orderMapper, ProductRepository productRepository) {
+            OrderMapper orderMapper, ProductRepository productRepository, VoucherRepository voucherRepository) {
         this.orderRepository = orderRepository;
         this.orderDetailRepository = orderDetailRepository;
         this.cartRepository = cartRepository;
@@ -60,6 +63,7 @@ public class OrderService {
         this.userRepository = userRepository;
         this.orderMapper = orderMapper;
         this.productRepository = productRepository;
+        this.voucherRepository = voucherRepository;
     }
 
     public Optional<OrderSummaryDTO> getOrderSummaryById(Long id) {
@@ -89,7 +93,7 @@ public class OrderService {
 
     @Transactional
     public Order placeOrder(Long userId, String receiverName,
-            String address, String phone) {
+            String address, String phone, String voucherCode) {
 
         // Lấy Cart của user, kiểm tra rỗng
         Cart cart = cartRepository.findByUserId(userId);
@@ -140,8 +144,43 @@ public class OrderService {
             orderDetails.add(od);
         }
 
+        double discountedPrice = totalPrice;
+
+        if (voucherCode != null && !voucherCode.isBlank()) {
+            Voucher voucher = voucherRepository.findByCode(voucherCode);
+
+            if (!voucher.isActive()) {
+                throw new RuntimeException("Mã giảm giá không còn hiệu lực");
+            }
+
+            if (voucher.isSingleUse() && voucher.isUsed()) {
+                throw new RuntimeException("Mã giảm giá đã được sử dụng");
+            }
+
+            // Tính giảm giá
+            if (voucher.isPercentage()) {
+                discountedPrice = totalPrice * (100 - voucher.getDiscountValue()) / 100.0;
+            } else {
+                discountedPrice = totalPrice - voucher.getDiscountValue();
+            }
+
+            // Không để giá âm
+            discountedPrice = Math.max(0, discountedPrice);
+
+            // Gán vào order
+            order.setVoucher(voucher);
+            order.setDiscountedPrice(discountedPrice);
+
+            // Đánh dấu đã dùng nếu là mã dùng 1 lần
+            if (voucher.isSingleUse()) {
+                voucher.setUsed(true);
+                voucherRepository.save(voucher);
+            }
+        }
+
         // Set tổng tiền sau khi tính xong
         order.setTotalPrice(totalPrice);
+        order.setDiscountedPrice(discountedPrice);
         orderRepository.save(order); // update lại order đã có totalPrice
 
         // Lưu danh sách OrderDetail
