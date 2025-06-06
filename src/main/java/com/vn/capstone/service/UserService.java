@@ -153,7 +153,7 @@ public class UserService {
         res.setActivate(user.isActivate());
         res.setAddress(user.getAddress());
         res.setAvatar(user.getAvatar());
-        res.setRole(user.getRole().getName());
+        res.setRole(user.getRole() != null ? user.getRole().getName() : "NO_ROLE");
         return res;
     }
 
