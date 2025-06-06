@@ -99,4 +99,16 @@ public class GlobalException {
         res.setMessage(ex.getMessage());
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(res);
     }
+
+    /// VoucherException
+    @ExceptionHandler(value = {
+            VoucherException.class,
+    })
+    public ResponseEntity<RestResponse<Object>> handleVoucherException(Exception ex) {
+        RestResponse<Object> res = new RestResponse<Object>();
+        res.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        res.setMessage(ex.getMessage());
+        res.setError("Voucher Exception");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(res);
+    }
 }
