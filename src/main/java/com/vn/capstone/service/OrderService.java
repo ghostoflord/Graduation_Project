@@ -164,22 +164,20 @@ public class OrderService {
                 discountedPrice = totalPrice - voucher.getDiscountValue();
             }
 
-            // Không để giá âm
             discountedPrice = Math.max(0, discountedPrice);
-
-            // Gán vào order
             order.setVoucher(voucher);
             order.setDiscountedPrice(discountedPrice);
 
-            // Đánh dấu đã dùng nếu là mã dùng 1 lần
             if (voucher.isSingleUse()) {
                 voucher.setUsed(true);
                 voucherRepository.save(voucher);
             }
+        } else {
+            order.setDiscountedPrice(discountedPrice);
         }
 
         // Set tổng tiền sau khi tính xong
-        order.setTotalPrice(totalPrice);
+        order.setTotalPrice(discountedPrice);
         order.setDiscountedPrice(discountedPrice);
         orderRepository.save(order); // update lại order đã có totalPrice
 

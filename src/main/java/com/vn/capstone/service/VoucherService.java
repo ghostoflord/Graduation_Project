@@ -120,12 +120,30 @@ public class VoucherService {
         }
 
         long finalAmount = orderTotal - discount;
-
         return new OrderDiscountResult(discount, finalAmount);
     }
 
-    public List<Voucher> getAllVouchers() {
-        return voucherRepository.findAll();
+    public List<VoucherDTO> getAllVouchers() {
+        LocalDateTime now = LocalDateTime.now();
+
+        return voucherRepository.findAll().stream()
+                .filter(v -> v.isActive()
+                        && !v.isUsed()
+                        && (v.getStartDate() == null || !v.getStartDate().isAfter(now))
+                        && (v.getEndDate() == null || !v.getEndDate().isBefore(now)))
+                .map(v -> {
+                    VoucherDTO dto = new VoucherDTO();
+                    dto.setId(v.getId());
+                    dto.setCode(v.getCode());
+                    dto.setDescription(v.getDescription());
+                    dto.setDiscountValue(v.getDiscountValue());
+                    dto.setPercentage(v.isPercentage());
+                    dto.setStartDate(v.getStartDate());
+                    dto.setEndDate(v.getEndDate());
+                    // Không set assignedUser
+                    return dto;
+                })
+                .toList();
     }
 
     public void deleteVoucher(Long id) {

@@ -62,9 +62,9 @@ public class VoucherController {
     }
 
     @GetMapping
-    public ResponseEntity<RestResponse<List<Voucher>>> getAllVouchers() {
-        List<Voucher> vouchers = voucherService.getAllVouchers();
-        RestResponse<List<Voucher>> response = new RestResponse<>();
+    public ResponseEntity<RestResponse<List<VoucherDTO>>> getAllVouchers() {
+        List<VoucherDTO> vouchers = voucherService.getAllVouchers();
+        RestResponse<List<VoucherDTO>> response = new RestResponse<>();
         response.setStatusCode(HttpStatus.OK.value());
         response.setMessage("List of all vouchers");
         response.setData(vouchers);

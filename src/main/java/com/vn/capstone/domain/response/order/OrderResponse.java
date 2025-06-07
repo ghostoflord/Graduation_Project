@@ -27,7 +27,7 @@ public class OrderResponse {
         return new OrderResponse(
                 o.getId(),
                 o.getUser().getId(),
-                o.getTotalPrice(),
+                o.getDiscountedPrice(),
                 o.getStatus(),
                 o.getDiscountedPrice(), // sử dụng giá đã giảm
                 o.getVoucher() != null ? o.getVoucher().getCode() : null, // lấy mã voucher nếu có
