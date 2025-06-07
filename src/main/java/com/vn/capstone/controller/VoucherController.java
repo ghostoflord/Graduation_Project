@@ -2,6 +2,7 @@ package com.vn.capstone.controller;
 
 import com.vn.capstone.domain.Voucher;
 import com.vn.capstone.domain.response.RestResponse;
+import com.vn.capstone.domain.response.order.OrderDiscountResult;
 import com.vn.capstone.domain.response.voucher.VoucherDTO;
 import com.vn.capstone.domain.response.voucher.VoucherRequest;
 import com.vn.capstone.service.VoucherService;
@@ -45,15 +46,18 @@ public class VoucherController {
     }
 
     @PostMapping("/apply")
-    public ResponseEntity<RestResponse<Integer>> applyVoucher(
+    public ResponseEntity<RestResponse<OrderDiscountResult>> applyVoucher(
             @RequestParam String code,
             @RequestParam Long userId,
             @RequestParam int orderTotal) {
-        int discount = voucherService.applyVoucher(code, userId, orderTotal);
-        RestResponse<Integer> response = new RestResponse<>();
+
+        OrderDiscountResult result = voucherService.applyVoucher(code, userId, orderTotal);
+
+        RestResponse<OrderDiscountResult> response = new RestResponse<>();
         response.setStatusCode(HttpStatus.OK.value());
         response.setMessage("Voucher applied successfully");
-        response.setData(discount);
+        response.setData(result);
+
         return ResponseEntity.ok(response);
     }
 

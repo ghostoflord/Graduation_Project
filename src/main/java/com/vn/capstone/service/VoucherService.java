@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import com.vn.capstone.domain.User;
 import com.vn.capstone.domain.Voucher;
 import com.vn.capstone.domain.response.RestResponse;
+import com.vn.capstone.domain.response.order.OrderDiscountResult;
 import com.vn.capstone.domain.response.voucher.VoucherDTO;
 import com.vn.capstone.domain.response.voucher.VoucherRequest;
 import com.vn.capstone.repository.UserRepository;
@@ -94,7 +95,7 @@ public class VoucherService {
                 .toList();
     }
 
-    public int applyVoucher(String code, Long userId, int orderTotal) {
+    public OrderDiscountResult applyVoucher(String code, Long userId, int orderTotal) {
         Voucher voucher = voucherRepository.findByCode(code);
 
         if (!voucher.isActive())
@@ -106,17 +107,21 @@ public class VoucherService {
         if (voucher.getAssignedUser() != null && !Long.valueOf(voucher.getAssignedUser().getId()).equals(userId))
             throw new RuntimeException("Voucher not assigned to this user");
 
-        int discount = voucher.isPercentage()
+        long discount = voucher.isPercentage()
                 ? orderTotal * voucher.getDiscountValue() / 100
                 : voucher.getDiscountValue();
 
-        // Đánh dấu đã dùng nếu là mã dùng 1 lần
+        if (discount > orderTotal)
+            discount = orderTotal; // tránh âm tiền
+
         if (voucher.isSingleUse()) {
             voucher.setUsed(true);
             voucherRepository.save(voucher);
         }
 
-        return discount;
+        long finalAmount = orderTotal - discount;
+
+        return new OrderDiscountResult(discount, finalAmount);
     }
 
     public List<Voucher> getAllVouchers() {
