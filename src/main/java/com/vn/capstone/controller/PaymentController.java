@@ -48,9 +48,9 @@ public class PaymentController {
             Double amount = parseDouble(request.get("amount"));
             String paymentRef = parseString(request.get("paymentRef"));
             Long userId = parseLong(request.get("userId"));
-            String receiverName = parseString(request.get("receiverName"));
-            String receiverAddress = parseString(request.get("receiverAddress"));
-            String receiverPhone = parseString(request.get("receiverPhone"));
+            String receiverName = parseString(request.get("name"));
+            String receiverAddress = parseString(request.get("address"));
+            String receiverPhone = parseString(request.get("phone"));
 
             if (amount == null || paymentRef == null || userId == null || receiverName == null
                     || receiverAddress == null || receiverPhone == null) {

@@ -15,6 +15,7 @@ import com.vn.capstone.domain.Product;
 import com.vn.capstone.domain.ProductDetail;
 import com.vn.capstone.domain.response.ResProductDTO;
 import com.vn.capstone.domain.response.ResultPaginationDTO;
+import com.vn.capstone.domain.response.compare.CompareProductDTO;
 import com.vn.capstone.domain.response.product.ProductDTO;
 import com.vn.capstone.domain.response.product.ProductDetailDTO;
 import com.vn.capstone.domain.response.product.ProductUpdateRequest;
@@ -36,6 +37,7 @@ import org.springframework.http.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.*;
 import java.nio.file.*;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.io.*;
 
@@ -238,6 +240,38 @@ public class ProductService {
         }
 
         return dto;
+    }
+
+    public List<CompareProductDTO> getProductsForComparison(List<Long> ids) {
+        List<Product> products = productRepository.findAllByIdIn(ids);
+        List<CompareProductDTO> result = new ArrayList<>();
+
+        for (Product product : products) {
+            ProductDetail detail = product.getProductDetail();
+            if (detail == null)
+                continue;
+
+            CompareProductDTO dto = new CompareProductDTO();
+            dto.setId(product.getId());
+            dto.setName(product.getName());
+            dto.setImage(product.getImage());
+
+            dto.setCpu(detail.getCpu());
+            dto.setRam(detail.getRam());
+            dto.setStorage(detail.getStorage());
+            dto.setGpu(detail.getGpu());
+            dto.setScreen(detail.getScreen());
+            dto.setBattery(detail.getBattery());
+            dto.setWeight(detail.getWeight());
+            dto.setMaterial(detail.getMaterial());
+            dto.setOs(detail.getOs());
+            dto.setSpecialFeatures(detail.getSpecialFeatures());
+            dto.setPorts(detail.getPorts());
+
+            result.add(dto);
+        }
+
+        return result;
     }
 
 }

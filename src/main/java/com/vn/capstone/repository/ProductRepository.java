@@ -1,5 +1,6 @@
 package com.vn.capstone.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -20,4 +21,6 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT p FROM Product p WHERE p.id = :productId")
     Product findByIdForUpdate(@Param("productId") Long productId);
+
+    List<Product> findAllByIdIn(List<Long> ids);
 }
