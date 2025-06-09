@@ -274,4 +274,8 @@ public class ProductService {
         return result;
     }
 
+    public List<Product> getLowStockProducts(int threshold) {
+        return productRepository.findLowStockProducts(threshold);
+    }
+
 }

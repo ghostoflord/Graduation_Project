@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.*;
 import java.nio.file.*;
 import java.util.Base64;
+import java.util.List;
+import java.util.Optional;
 import java.io.*;
 
 import org.springframework.data.domain.Pageable;
@@ -80,7 +82,7 @@ public class ProductController {
     // return ResponseEntity.status(HttpStatus.OK).body(response);
     // }
 
-    @GetMapping("/products/{id}")
+    @GetMapping("/products/{id:\\\\d+}")
     @ApiMessage("Fetch Product by id")
     public ResponseEntity<RestResponse<ProductDTO>> getProductById(@PathVariable("id") long id) {
         ProductDTO dto = productService.fetchProductDTOById(id);
@@ -277,6 +279,18 @@ public class ProductController {
         response.setStatusCode(HttpStatus.OK.value());
         response.setMessage("Cập nhật sản phẩm thành công");
         response.setData(updatedProduct);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/products/low-stock")
+    public ResponseEntity<RestResponse<List<Product>>> getLowStockProducts() {
+        List<Product> products = productService.getLowStockProducts(5); // hoặc truyền threshold qua param
+        RestResponse<List<Product>> response = new RestResponse<>();
+        response.setStatusCode(200);
+        response.setError(null);
+        response.setMessage("Lấy danh sách sản phẩm sắp hết hàng thành công");
+        response.setData(products);
+
         return ResponseEntity.ok(response);
     }
 
