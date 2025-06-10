@@ -1,5 +1,6 @@
 package com.vn.capstone.domain.response;
 
+import com.vn.capstone.domain.response.product.ProductDetailDTO;
 import com.vn.capstone.util.constant.BestsellEnum;
 import com.vn.capstone.util.constant.GenderEnum;
 import com.vn.capstone.util.constant.GuaranteeEnum;
@@ -24,6 +25,8 @@ public class CreateProductDTO {
     private BestsellEnum bestsell;
 
     private String sell;
+
+    private ProductDetailDTO detail;
 
     public String getName() {
         return name;
@@ -119,6 +122,14 @@ public class CreateProductDTO {
 
     public void setGuarantee(GuaranteeEnum guarantee) {
         this.guarantee = guarantee;
+    }
+
+    public ProductDetailDTO getDetail() {
+        return detail;
+    }
+
+    public void setDetail(ProductDetailDTO detail) {
+        this.detail = detail;
     }
 
 }

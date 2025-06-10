@@ -53,6 +53,8 @@ public class Product {
 
     private String sell;
 
+    private String sku;
+
     @Enumerated(EnumType.STRING)
     private ProductCategoryEnum category;
 
@@ -285,6 +287,14 @@ public class Product {
                 + ", sold=" + sold + ", quantity=" + quantity + ", shortDescription=" + shortDescription
                 + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + ", createdBy=" + createdBy + ", updatedBy="
                 + updatedBy + "]";
+    }
+
+    public String getSku() {
+        return sku;
+    }
+
+    public void setSku(String sku) {
+        this.sku = sku;
     }
 
 }

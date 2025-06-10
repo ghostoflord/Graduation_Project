@@ -146,6 +146,9 @@ public class ProductController {
         // Kiểm tra lại giá trị trước khi lưu vào cơ sở dữ liệux
         System.out.println("Saving product: " + product);
 
+        // Tạo SKU tự động trước khi save
+        product.setSku(productService.generateSKU(dto));
+
         Product savedProduct = productService.handleCreateProduct(product);
 
         RestResponse<Product> response = new RestResponse<>();

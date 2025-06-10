@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import com.vn.capstone.domain.Order;
 import com.vn.capstone.domain.Product;
 import com.vn.capstone.domain.ProductDetail;
+import com.vn.capstone.domain.response.CreateProductDTO;
 import com.vn.capstone.domain.response.ResProductDTO;
 import com.vn.capstone.domain.response.ResultPaginationDTO;
 import com.vn.capstone.domain.response.compare.CompareProductDTO;
@@ -137,6 +138,7 @@ public class ProductService {
         if (product.getSlug() == null || product.getSlug().isEmpty()) {
             product.setSlug(SlugUtils.toSlug(product.getName()));
         }
+
         return this.productRepository.save(product);
     }
 
@@ -276,6 +278,20 @@ public class ProductService {
 
     public List<Product> getLowStockProducts(int threshold) {
         return productRepository.findLowStockProducts(threshold);
+    }
+
+    public String generateSKU(CreateProductDTO dto) {
+        ProductDetailDTO detail = dto.getDetail();
+        if (detail == null) {
+            throw new IllegalArgumentException("Chi tiết sản phẩm không được null để tạo SKU");
+        }
+
+        String brand = dto.getFactory().toUpperCase(); // factory tương ứng brand
+        String model = dto.getName().toUpperCase();
+        String cpu = detail.getCpu().toUpperCase().replaceAll("\\s+", "");
+        String ram = detail.getRam().toUpperCase();
+        String storage = detail.getStorage().toUpperCase();
+        return String.format("%s-%s-%s-%s-%s", brand, model, cpu, ram, storage);
     }
 
 }
