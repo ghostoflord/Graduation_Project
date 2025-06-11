@@ -44,6 +44,7 @@ import com.vn.capstone.domain.response.dtoAuth.EmailRequest;
 import com.vn.capstone.domain.response.dtoAuth.ForgotPasswordRequest;
 import com.vn.capstone.domain.response.dtoAuth.ResetPasswordRequest;
 import com.vn.capstone.domain.response.dtoAuth.VerifyTokenRequest;
+import com.vn.capstone.domain.response.register.RegisterRequestDTO;
 import com.vn.capstone.repository.RoleRepository;
 import com.vn.capstone.repository.VerificationTokenRepository;
 import com.vn.capstone.service.EmailService;
@@ -282,14 +283,22 @@ public class AuthController {
 
         @PostMapping("/auth/register")
         @ApiMessage("Register a new user")
-        public ResponseEntity<RestResponse<ResCreateUserDTO>> register(@Valid @RequestBody User postManUser)
+        public ResponseEntity<RestResponse<ResCreateUserDTO>> register(@Valid @RequestBody RegisterRequestDTO request)
                         throws IdInvalidException {
-                boolean isEmailExist = this.userService.isEmailExists(postManUser.getEmail());
+
+                boolean isEmailExist = this.userService.isEmailExists(request.getEmail());
                 if (isEmailExist) {
                         throw new IdInvalidException(
-                                        "Email " + postManUser.getEmail()
-                                                        + " đã tồn tại, vui lòng sử dụng email khác.");
+                                        "Email " + request.getEmail() + " đã tồn tại, vui lòng sử dụng email khác.");
                 }
+
+                // Tạo User từ DTO
+                User postManUser = new User();
+                postManUser.setName(request.getName());
+                postManUser.setEmail(request.getEmail());
+                postManUser.setPassword(this.passwordEncoder.encode(request.getPassword()));
+                postManUser.setAddress(request.getAddress());
+                postManUser.setAge(request.getAge());
 
                 String hashPassword = this.passwordEncoder.encode(postManUser.getPassword());
                 postManUser.setPassword(hashPassword);
