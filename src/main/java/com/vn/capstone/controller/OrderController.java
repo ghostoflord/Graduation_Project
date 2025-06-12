@@ -3,6 +3,8 @@ package com.vn.capstone.controller;
 import java.security.Principal;
 import java.util.List;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -15,8 +17,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.turkraft.springfilter.boot.Filter;
 import com.vn.capstone.domain.Order;
 import com.vn.capstone.domain.response.RestResponse;
+import com.vn.capstone.domain.response.ResultPaginationDTO;
 import com.vn.capstone.domain.response.order.OrderHistoryDTO;
 import com.vn.capstone.domain.response.order.OrderItemDTO;
 import com.vn.capstone.domain.response.order.OrderResponse;
@@ -26,6 +30,7 @@ import com.vn.capstone.domain.response.order.PlaceOrderRequest;
 import com.vn.capstone.domain.response.order.UpdateOrderRequest;
 import com.vn.capstone.service.OrderService;
 import com.vn.capstone.service.ProductService;
+import com.vn.capstone.util.annotation.ApiMessage;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -191,14 +196,22 @@ public class OrderController {
     }
 
     @GetMapping("/shipper")
-    public ResponseEntity<RestResponse<List<OrderShipperDTO>>> getOrdersForShipper(Authentication authentication) {
+    @ApiMessage("fetch orders for shipper")
+    public ResponseEntity<RestResponse<ResultPaginationDTO>> getOrdersForShipper(
+            @Filter Specification<Order> spec,
+            Pageable pageable,
+            Authentication authentication) {
+
         String username = authentication.getName();
-        List<OrderShipperDTO> orders = orderService.getOrdersForShipper(username);
-        RestResponse<List<OrderShipperDTO>> response = new RestResponse<>();
-        response.setStatusCode(200);
-        response.setMessage("Lấy danh sách đơn hàng thành công");
-        response.setData(orders);
-        return ResponseEntity.ok(response);
+
+        ResultPaginationDTO result = orderService.fetchOrdersForShipper(username, spec, pageable);
+
+        RestResponse<ResultPaginationDTO> response = new RestResponse<>();
+        response.setStatusCode(HttpStatus.OK.value());
+        response.setMessage("fetch orders for shipper");
+        response.setData(result);
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @PostMapping("/{orderId}/accept")

@@ -7,6 +7,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +22,7 @@ import com.vn.capstone.domain.OrderStatusHistory;
 import com.vn.capstone.domain.Product;
 import com.vn.capstone.domain.User;
 import com.vn.capstone.domain.Voucher;
+import com.vn.capstone.domain.response.ResultPaginationDTO;
 import com.vn.capstone.domain.response.order.OrderHistoryDTO;
 import com.vn.capstone.domain.response.order.OrderItemDTO;
 import com.vn.capstone.domain.response.order.OrderShipperDTO;
@@ -449,43 +453,47 @@ public class OrderService {
     }
 
     // shipper
-    public List<OrderShipperDTO> getOrdersForShipper(String username) {
-        User shipper = userRepository.findByEmail(username);
+    public ResultPaginationDTO fetchOrdersForShipper(String username, Specification<Order> spec, Pageable pageable) {
+        Page<Order> pageOrder = orderRepository.findAll(spec, pageable);
 
-        List<Order> allOrders = orderRepository.findAll();
+        ResultPaginationDTO result = new ResultPaginationDTO();
+        ResultPaginationDTO.Meta meta = new ResultPaginationDTO.Meta();
 
-        return allOrders.stream()
-                .filter(order -> {
-                    // Nếu đơn đang ở trạng thái PENDING (chưa ai nhận) => hiển thị để SHIPPER nhận
-                    if (order.getStatus() == OrderStatus.PENDING)
-                        return true;
+        meta.setPage(pageable.getPageNumber() + 1);
+        meta.setPageSize(pageable.getPageSize());
+        meta.setPages(pageOrder.getTotalPages());
+        meta.setTotal(pageOrder.getTotalElements());
 
-                    // Nếu đơn đã được gán cho shipper này và đang ở trạng thái SHIPPING => hiển thị
-                    // để SHIPPER xem
-                    return order.getShipper() != null &&
-                            order.getShipper().getId() == shipper.getId() &&
-                            order.getStatus() == OrderStatus.SHIPPING;
-                })
-                .map(order -> new OrderShipperDTO(
-                        order.getId(),
-                        order.getTotalPrice(),
-                        order.getReceiverName(),
-                        order.getReceiverAddress(),
-                        order.getReceiverPhone(),
-                        order.getStatus(),
-                        order.getPaymentStatus(),
-                        order.getPaymentMethod(),
-                        order.getPaymentRef(),
-                        order.getShippingMethod(),
-                        order.getTrackingCode(),
-                        order.getEstimatedDeliveryTime(),
-                        order.getCreatedAt(),
-                        order.getUpdatedAt(),
-                        order.getDeliveredAt(),
-                        order.getCancelReason(),
-                        order.getUser() != null ? order.getUser().getName() : null,
-                        order.getUser() != null ? order.getUser().getEmail() : null))
+        result.setMeta(meta);
+
+        List<OrderShipperDTO> dtoList = pageOrder.getContent().stream()
+                .map(this::convertToOrderShipperDTO)
                 .collect(Collectors.toList());
+
+        result.setResult(dtoList);
+        return result;
+    }
+
+    public OrderShipperDTO convertToOrderShipperDTO(Order order) {
+        return new OrderShipperDTO(
+                order.getId(),
+                order.getTotalPrice(),
+                order.getReceiverName(),
+                order.getReceiverAddress(),
+                order.getReceiverPhone(),
+                order.getStatus(),
+                order.getPaymentStatus(),
+                order.getPaymentMethod(),
+                order.getPaymentRef(),
+                order.getShippingMethod(),
+                order.getTrackingCode(),
+                order.getEstimatedDeliveryTime(),
+                order.getCreatedAt(),
+                order.getUpdatedAt(),
+                order.getDeliveredAt(),
+                order.getCancelReason(),
+                order.getUser() != null ? order.getUser().getName() : null,
+                order.getUser() != null ? order.getUser().getEmail() : null);
     }
 
     public void acceptOrder(Long orderId, String username) {
