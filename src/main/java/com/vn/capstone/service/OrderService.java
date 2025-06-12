@@ -68,16 +68,28 @@ public class OrderService {
 
     public Optional<OrderSummaryDTO> getOrderSummaryById(Long id) {
         Optional<Order> orderOpt = orderRepository.findById(id);
-        if (orderOpt.isEmpty())
+        if (orderOpt.isEmpty()) {
             return Optional.empty();
+        }
 
         Order order = orderOpt.get();
         OrderSummaryDTO dto = new OrderSummaryDTO();
+
         dto.setId(order.getId());
         dto.setReceiverName(order.getReceiverName());
         dto.setReceiverAddress(order.getReceiverAddress());
         dto.setReceiverPhone(order.getReceiverPhone());
         dto.setTotalPrice(order.getTotalPrice());
+        dto.setUserId(order.getUser().getId()); // giả sử Order có getUser()
+
+        dto.setStatus(order.getStatus());
+        dto.setPaymentStatus(order.getPaymentStatus());
+        dto.setPaymentMethod(order.getPaymentMethod());
+        dto.setShippingMethod(order.getShippingMethod());
+        dto.setTrackingCode(order.getTrackingCode());
+        dto.setEstimatedDeliveryTime(order.getEstimatedDeliveryTime());
+        dto.setCreatedAt(order.getCreatedAt());
+        dto.setUpdatedAt(order.getUpdatedAt());
 
         // Tính tổng quantity từ orderDetails
         long totalQuantity = 0;
@@ -428,9 +440,10 @@ public class OrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
 
-        if (order.getOrderDetails() != null && !order.getOrderDetails().isEmpty()) {
-            throw new IllegalStateException("Cannot delete order with existing order details.");
-        }
+        // Xóa toàn bộ OrderDetail trước
+        List<OrderDetail> details = orderDetailRepository.findByOrder(order);
+        orderDetailRepository.deleteAll(details); // xoá hết chi tiết
+
         orderStatusHistoryRepository.deleteAllByOrder(order);
         orderRepository.delete(order);
     }
