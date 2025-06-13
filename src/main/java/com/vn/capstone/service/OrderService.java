@@ -29,6 +29,7 @@ import com.vn.capstone.domain.response.order.OrderShipperDTO;
 import com.vn.capstone.domain.response.order.OrderStatusHistoryDTO;
 import com.vn.capstone.domain.response.order.OrderSummaryDTO;
 import com.vn.capstone.domain.response.order.UpdateOrderRequest;
+import com.vn.capstone.domain.response.shipper.ShipperStatsResponse;
 import com.vn.capstone.mapping.OrderMapper;
 import com.vn.capstone.repository.CartDetailRepository;
 import com.vn.capstone.repository.CartRepository;
@@ -540,7 +541,6 @@ public class OrderService {
         orderRepository.save(order);
     }
 
-    //
     public List<OrderShipperDTO> getDeliveredOrdersForShipper(String username) {
         User shipper = userRepository.findByEmail(username);
 
@@ -574,6 +574,46 @@ public class OrderService {
         }
 
         return dtoList;
+    }
+
+    //
+    // public ShipperStatsResponse getShipperStats(Long shipperId, Instant from,
+    // Instant to) {
+    // long delivered = orderRepository.countByStatusAndShipperAndDateRange(
+    // shipperId, OrderStatus.SHIPPING, from, to);
+
+    // long failed = orderRepository.countByStatusAndShipperAndDateRange(
+    // shipperId, OrderStatus.FAILED, from, to);
+
+    // long inProgress = orderRepository.countByStatusAndShipperAndDateRange(
+    // shipperId, OrderStatus.DELIVERED, from, to);
+
+    // long cod = orderRepository.sumCODByShipperAndDateRange(shipperId, from, to);
+
+    // return new ShipperStatsResponse(delivered, failed, inProgress, cod);
+    // }
+
+    public ShipperStatsResponse getShipperStats(Long shipperId) {
+        // Đơn giao thành công (DELIVERED)
+        long delivered = orderRepository.countByStatusAndShipper(shipperId, OrderStatus.DELIVERED);
+
+        // Đơn đang giao (SHIPPING)
+        long inProgress = orderRepository.countByStatusAndShipper(shipperId, OrderStatus.SHIPPING);
+
+        // Đơn thất bại (CANCELED + RETURNED)
+        long failed = orderRepository.countByStatusesAndShipper(
+                shipperId, List.of(OrderStatus.CANCELED, OrderStatus.RETURNED));
+
+        // Tổng COD = tổng totalPrice các đơn DELIVERED
+        long codAmount = orderRepository.sumCODByShipper(shipperId);
+
+        ShipperStatsResponse response = new ShipperStatsResponse();
+        response.setDelivered(delivered);
+        response.setFailed(failed);
+        response.setInProgress(inProgress);
+        response.setCodAmount(codAmount);
+
+        return response;
     }
 
 }

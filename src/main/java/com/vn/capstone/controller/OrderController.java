@@ -1,10 +1,12 @@
 package com.vn.capstone.controller;
 
 import java.security.Principal;
+import java.time.Instant;
 import java.util.List;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.turkraft.springfilter.boot.Filter;
@@ -28,6 +31,7 @@ import com.vn.capstone.domain.response.order.OrderShipperDTO;
 import com.vn.capstone.domain.response.order.OrderSummaryDTO;
 import com.vn.capstone.domain.response.order.PlaceOrderRequest;
 import com.vn.capstone.domain.response.order.UpdateOrderRequest;
+import com.vn.capstone.domain.response.shipper.ShipperStatsResponse;
 import com.vn.capstone.service.OrderService;
 import com.vn.capstone.service.ProductService;
 import com.vn.capstone.util.annotation.ApiMessage;
@@ -256,6 +260,20 @@ public class OrderController {
         response.setStatusCode(200);
         response.setMessage("Lấy danh sách đơn hàng đã giao thành công");
         response.setData(orders);
+
+        return ResponseEntity.ok(response);
+    }
+
+    //
+    @GetMapping("/shipper-stats")
+    public ResponseEntity<RestResponse<ShipperStatsResponse>> getStats(@RequestParam Long shipperId) {
+        ShipperStatsResponse stats = orderService.getShipperStats(shipperId);
+
+        RestResponse<ShipperStatsResponse> response = new RestResponse<>();
+        response.setStatusCode(200);
+        response.setError(null);
+        response.setMessage("Lấy thống kê thành công");
+        response.setData(stats);
 
         return ResponseEntity.ok(response);
     }
