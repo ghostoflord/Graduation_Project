@@ -3,6 +3,7 @@ package com.vn.capstone.domain;
 import java.io.Serializable;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Entity;
@@ -30,6 +31,7 @@ public class Cart implements Serializable {
     // user_id
     @OneToOne()
     @JoinColumn(name = "user_id")
+    @JsonBackReference
     private User user;
 
     // cart_detail_id

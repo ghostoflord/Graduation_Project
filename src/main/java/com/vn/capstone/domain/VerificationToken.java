@@ -2,6 +2,8 @@ package com.vn.capstone.domain;
 
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -21,6 +23,7 @@ public class VerificationToken {
     private LocalDateTime expiryDate;
 
     @OneToOne
+    @JsonManagedReference
     private User user;
 
     // constructors, getters, setters

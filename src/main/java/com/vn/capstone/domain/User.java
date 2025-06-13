@@ -73,6 +73,7 @@ public class User {
     private LocalDateTime resetPasswordTokenExpiry;
 
     @OneToOne
+    @JsonBackReference
     private VerificationToken verificationToken;
 
     @ManyToOne
@@ -84,9 +85,11 @@ public class User {
     List<Comment> comments;
 
     @OneToOne(mappedBy = "user")
+    @JsonBackReference
     private Cart cart;
 
     @OneToMany(mappedBy = "user")
+    @JsonBackReference
     private List<Order> orders;
 
     private String provider;

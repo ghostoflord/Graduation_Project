@@ -5,6 +5,8 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.vn.capstone.util.constant.OrderStatus;
 import com.vn.capstone.util.constant.PaymentMethod;
 import com.vn.capstone.util.constant.PaymentStatus;
@@ -83,6 +85,7 @@ public class Order implements Serializable {
     // user id
     @ManyToOne
     @JoinColumn(name = "user_id")
+    @JsonBackReference
     private User user;
 
     @ManyToOne
