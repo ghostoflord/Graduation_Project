@@ -3,6 +3,7 @@ package com.vn.capstone.domain;
 import java.time.Instant;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.vn.capstone.util.SecurityUtil;
@@ -41,6 +42,7 @@ public class Role {
     @ManyToMany(fetch = FetchType.LAZY)
     @JsonIgnoreProperties(value = { "roles" })
     @JoinTable(name = "permission_role", joinColumns = @JoinColumn(name = "role_id"), inverseJoinColumns = @JoinColumn(name = "permission_id"))
+    @JsonBackReference
     private List<Permission> permissions;
 
     public long getId() {
@@ -114,7 +116,7 @@ public class Role {
     public void setPermissions(List<Permission> permissions) {
         this.permissions = permissions;
     }
-    
+
     @PrePersist
     public void handleBeforeCreate() {
         this.createdBy = SecurityUtil.getCurrentUserLogin().isPresent() == true

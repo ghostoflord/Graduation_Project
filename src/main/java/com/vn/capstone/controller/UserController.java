@@ -20,6 +20,7 @@ import org.springframework.web.server.ResponseStatusException;
 import com.turkraft.springfilter.boot.Filter;
 import com.vn.capstone.domain.Order;
 import com.vn.capstone.domain.Product;
+import com.vn.capstone.domain.Role;
 import com.vn.capstone.domain.User;
 import com.vn.capstone.domain.response.RestResponse;
 import com.vn.capstone.domain.response.ResultPaginationDTO;
@@ -30,6 +31,7 @@ import com.vn.capstone.domain.response.user.UserAccountInfoDto;
 import com.vn.capstone.domain.response.user.UserImportDTO;
 import com.vn.capstone.repository.OrderRepository;
 import com.vn.capstone.repository.UserRepository;
+import com.vn.capstone.service.RoleService;
 import com.vn.capstone.service.UserService;
 import com.vn.capstone.util.SecurityUtil;
 import com.vn.capstone.util.annotation.ApiMessage;
@@ -59,13 +61,15 @@ public class UserController {
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
     private final OrderRepository orderRepository;
+    private final RoleService roleService;
 
     public UserController(UserService userService, PasswordEncoder passwordEncoder, UserRepository userRepository,
-            OrderRepository orderRepository) {
+            OrderRepository orderRepository, RoleService roleService) {
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
         this.userRepository = userRepository;
         this.orderRepository = orderRepository;
+        this.roleService = roleService;
     }
 
     @GetMapping("/users")
@@ -339,9 +343,18 @@ public class UserController {
         user.setAddress(userDTO.getAddress());
         user.setAge(userDTO.getAge());
 
+        // Cập nhật role nếu có
+        if (userDTO.getRoleId() != null) {
+            Role role = roleService.fetchRoleById(userDTO.getRoleId());
+            if (role == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Không tìm thấy role với id: " + userDTO.getRoleId());
+            }
+            user.setRole(role);
+        }
+
         // Nếu có avatar mới
         if (userDTO.getAvatar() != null && !userDTO.getAvatar().trim().isEmpty()) {
-            // Xóa avatar cũ nếu có
             if (user.getAvatar() != null) {
                 File oldAvatar = new File(avatarUploadDir + File.separator + user.getAvatar());
                 if (oldAvatar.exists()) {
@@ -349,7 +362,6 @@ public class UserController {
                 }
             }
 
-            // Lưu avatar mới
             String newAvatarFileName = saveAvatar(userDTO.getAvatar());
             user.setAvatar(newAvatarFileName);
         }
