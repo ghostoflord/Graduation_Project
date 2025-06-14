@@ -68,8 +68,10 @@ public class LikeController {
                         like.getUser().getId(), // userId
                         like.getUser().getName(), // userName
                         like.getProduct().getId(), // productId
-                        like.getProduct().getName() // productName
-                ))
+                        like.getProduct().getName(), // productName
+                        like.getProduct().getImage(),
+                        like.getProduct().getDetailDescription(),
+                        like.getProduct().getPrice()))
                 .toList();
 
         RestResponse<List<LikeDTO>> response = new RestResponse<>();
