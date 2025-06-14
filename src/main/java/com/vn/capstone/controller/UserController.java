@@ -375,4 +375,61 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/users/me/update")
+    public ResponseEntity<RestResponse<User>> selfUpdateUser(@RequestBody UpdateUserDTO userDTO) throws IOException {
+        // Tìm user theo id
+        User user = userService.findById(userDTO.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy user"));
+
+        // Cập nhật thông tin
+        user.setName(userDTO.getName());
+        user.setGender(userDTO.getGender());
+        user.setAddress(userDTO.getAddress());
+        user.setAge(userDTO.getAge());
+
+        // Cập nhật role nếu có
+        if (userDTO.getRoleId() != null) {
+            Role role = roleService.fetchRoleById(userDTO.getRoleId());
+            if (role == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Không tìm thấy role với id: " + userDTO.getRoleId());
+            }
+            user.setRole(role);
+        }
+
+        // Nếu có avatar mới
+        if (userDTO.getAvatar() != null && !userDTO.getAvatar().trim().isEmpty()) {
+            if (user.getAvatar() != null) {
+                File oldAvatar = new File(avatarUploadDir + File.separator + user.getAvatar());
+                if (oldAvatar.exists()) {
+                    oldAvatar.delete();
+                }
+            }
+
+            String newAvatarFileName = saveAvatar(userDTO.getAvatar());
+            user.setAvatar(newAvatarFileName);
+        }
+
+        User updatedUser = userService.handleUpdateUser(user);
+
+        RestResponse<User> response = new RestResponse<>();
+        response.setStatusCode(HttpStatus.OK.value());
+        response.setMessage("Cập nhật người dùng thành công");
+        response.setData(updatedUser);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/users/me/{id}")
+    @ApiMessage("fetch user by id")
+    public ResponseEntity<RestResponse<User>> userTakeProfile(@PathVariable("id") long id) {
+        User fetchUser = this.userService.fetchUserById(id);
+
+        RestResponse<User> response = new RestResponse<>();
+        response.setStatusCode(HttpStatus.OK.value());
+        response.setData(fetchUser);
+        response.setMessage("Lấy thông tin người dùng thành công");
+
+        return ResponseEntity.ok(response);
+    }
+
 }

@@ -24,7 +24,9 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.stereotype.Service;
 
 import com.nimbusds.jose.util.Base64;
+import com.vn.capstone.config.CustomUserDetails;
 import com.vn.capstone.domain.response.ResLoginDTO;
+import com.vn.capstone.util.error.AccessDeniedException;
 
 @Service
 public class SecurityUtil {
@@ -137,6 +139,22 @@ public class SecurityUtil {
             return s;
         }
         return null;
+    }
+
+     public static Long getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new AccessDeniedException("User chưa đăng nhập");
+        }
+
+        Object principal = authentication.getPrincipal();
+
+        if (principal instanceof CustomUserDetails) {
+            return ((CustomUserDetails) principal).getId(); // custom user info
+        }
+
+        throw new AccessDeniedException("Không thể lấy userId từ principal");
     }
 
     /**

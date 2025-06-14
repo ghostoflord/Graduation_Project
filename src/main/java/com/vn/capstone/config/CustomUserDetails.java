@@ -5,7 +5,6 @@ import java.util.List;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Component;
 
 import com.vn.capstone.domain.User;
 
@@ -44,17 +43,19 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return user.isActivate(); // kiểm tra tài khoản active
+        return user.isActivate();
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(); // bạn có thể return roles ở đây nếu muốn
+        return List.of(); // Hoặc lấy từ user.getRole()
     }
 
-    // Thêm phương thức này nếu bạn cần truy cập đối tượng User đầy đủ
     public User getUser() {
         return user;
     }
 
+    public Long getId() {
+        return user.getId();
+    }
 }
