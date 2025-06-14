@@ -15,6 +15,11 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.vn.capstone.domain.Cart;
+import com.vn.capstone.domain.Comment;
+import com.vn.capstone.domain.Like;
+import com.vn.capstone.domain.Order;
+import com.vn.capstone.domain.Review;
 import com.vn.capstone.domain.Role;
 import com.vn.capstone.domain.User;
 import com.vn.capstone.domain.VerificationToken;
@@ -22,8 +27,15 @@ import com.vn.capstone.domain.response.ResCreateUserDTO;
 import com.vn.capstone.domain.response.ResUpdateUserDTO;
 import com.vn.capstone.domain.response.ResUserDTO;
 import com.vn.capstone.domain.response.ResultPaginationDTO;
+import com.vn.capstone.repository.CartRepository;
+import com.vn.capstone.repository.CommentRepository;
+import com.vn.capstone.repository.LikeRepository;
+import com.vn.capstone.repository.OrderRepository;
+import com.vn.capstone.repository.ReviewRepository;
 import com.vn.capstone.repository.UserRepository;
 import com.vn.capstone.repository.VerificationTokenRepository;
+
+import jakarta.transaction.Transactional;
 
 @Service
 public class UserService {
@@ -31,17 +43,35 @@ public class UserService {
     private final VerificationTokenRepository verificationTokenRepository;
     private final RoleService roleService;
 
-    @Autowired
-    private JavaMailSender mailSender;
+    private final JavaMailSender mailSender;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
+
+    private final OrderRepository orderRepository;
+
+    private final CommentRepository commentRepository;
+
+    private final ReviewRepository reviewRepository;
+
+    private final LikeRepository likeRepository;
+
+    private final CartRepository cartRepository;
 
     public UserService(UserRepository userRepository, VerificationTokenRepository verificationTokenRepository,
-            RoleService roleService) {
+            RoleService roleService, OrderRepository orderRepository, CommentRepository commentRepository,
+            ReviewRepository reviewRepository,
+            LikeRepository likeRepository, CartRepository cartRepository, JavaMailSender mailSender,
+            PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.verificationTokenRepository = verificationTokenRepository;
         this.roleService = roleService;
+        this.orderRepository = orderRepository;
+        this.commentRepository = commentRepository;
+        this.reviewRepository = reviewRepository;
+        this.likeRepository = likeRepository;
+        this.cartRepository = cartRepository;
+        this.mailSender = mailSender;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public ResultPaginationDTO fetchAllUser(Specification<User> spec, Pageable pageable) {
@@ -103,8 +133,48 @@ public class UserService {
         return this.userRepository.save(user);
     }
 
-    public void handleDeleteUser(long id) {
-        this.userRepository.deleteById(id);
+    @Transactional
+    public void safeDeleteUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy user"));
+
+        // 1. Order
+        List<Order> orders = orderRepository.findAllByUserId(userId);
+        for (Order order : orders) {
+            order.setUser(null);
+        }
+        orderRepository.saveAll(orders);
+
+        // 2. Cart
+        Cart cart = cartRepository.findByUserId(userId);
+        if (cart != null) {
+            cart.setUser(null);
+            cartRepository.save(cart);
+        }
+
+        // 3. Likes
+        List<Like> likes = likeRepository.findAllByUserId(userId);
+        for (Like like : likes) {
+            like.setUser(null);
+        }
+        likeRepository.saveAll(likes);
+
+        // 4. Reviews
+        List<Review> reviews = reviewRepository.findAllByUserId(userId);
+        for (Review review : reviews) {
+            review.setUser(null);
+        }
+        reviewRepository.saveAll(reviews);
+
+        // 5. Comments
+        List<Comment> comments = commentRepository.findAllByUserId(userId);
+        for (Comment comment : comments) {
+            comment.setUser(null);
+        }
+        commentRepository.saveAll(comments);
+
+        // 6. Cuối cùng, xóa User
+        userRepository.delete(user);
     }
 
     // check email

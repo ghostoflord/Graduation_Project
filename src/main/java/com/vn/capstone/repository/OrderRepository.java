@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -45,5 +46,7 @@ public interface OrderRepository extends JpaRepository<Order, Long>, JpaSpecific
 
         @Query("SELECT COALESCE(SUM(o.totalPrice), 0) FROM Order o WHERE o.shipper.id = :shipperId AND o.status = 'DELIVERED'")
         long sumCODByShipper(@Param("shipperId") Long shipperId);
+
+        List<Order> findAllByUserId(Long userId);
 
 }

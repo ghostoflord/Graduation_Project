@@ -205,7 +205,7 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
 
-        this.userService.handleDeleteUser(id);
+        this.userService.safeDeleteUser(id);
 
         response.setStatusCode(HttpStatus.OK.value());
         response.setMessage("User deleted successfully");
