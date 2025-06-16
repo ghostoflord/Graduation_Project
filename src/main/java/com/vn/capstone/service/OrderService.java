@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -23,6 +24,7 @@ import com.vn.capstone.domain.Product;
 import com.vn.capstone.domain.User;
 import com.vn.capstone.domain.Voucher;
 import com.vn.capstone.domain.response.ResultPaginationDTO;
+import com.vn.capstone.domain.response.order.OrderDiscountResult;
 import com.vn.capstone.domain.response.order.OrderHistoryDTO;
 import com.vn.capstone.domain.response.order.OrderItemDTO;
 import com.vn.capstone.domain.response.order.OrderShipperDTO;
@@ -55,6 +57,8 @@ public class OrderService {
     private final OrderMapper orderMapper;
     private final ProductRepository productRepository;
     private final VoucherRepository voucherRepository;
+    @Autowired
+    private VoucherService voucherService;
 
     public OrderService(OrderRepository orderRepository, OrderDetailRepository orderDetailRepository,
             CartRepository cartRepository, CartDetailRepository cartDetailRepository,
@@ -125,7 +129,7 @@ public class OrderService {
         order.setReceiverAddress(address);
         order.setReceiverPhone(phone);
         order.setStatus(OrderStatus.PENDING);
-        order = orderRepository.save(order); // lưu trước để có ID
+        order = orderRepository.save(order); // Lưu trước để có ID
 
         // Tính tổng tiền từ CartDetail
         double totalPrice = 0;
@@ -161,42 +165,31 @@ public class OrderService {
             orderDetails.add(od);
         }
 
-        double discountedPrice = totalPrice;
+        double finalAmount = totalPrice;
+        long discountAmount = 0;
 
+        // Áp dụng voucher nếu có
         if (voucherCode != null && !voucherCode.isBlank()) {
+            // Gọi applyVoucher để vừa kiểm tra, vừa lưu lịch sử (user_voucher)
+            OrderDiscountResult discountResult = voucherService.applyVoucher(
+                    voucherCode,
+                    userId,
+                    (int) totalPrice,
+                    true // ✅ Đảm bảo là lưu
+            );
+
+            discountAmount = discountResult.getDiscountAmount();
+            finalAmount = discountResult.getFinalAmount();
+
+            // Lấy voucher từ repository và set vào order
             Voucher voucher = voucherRepository.findByCode(voucherCode);
-
-            if (!voucher.isActive()) {
-                throw new RuntimeException("Mã giảm giá không còn hiệu lực");
-            }
-
-            if (voucher.isSingleUse() && voucher.isUsed()) {
-                throw new RuntimeException("Mã giảm giá đã được sử dụng");
-            }
-
-            // Tính giảm giá
-            if (voucher.isPercentage()) {
-                discountedPrice = totalPrice * (100 - voucher.getDiscountValue()) / 100.0;
-            } else {
-                discountedPrice = totalPrice - voucher.getDiscountValue();
-            }
-
-            discountedPrice = Math.max(0, discountedPrice);
             order.setVoucher(voucher);
-            order.setDiscountedPrice(discountedPrice);
-
-            if (voucher.isSingleUse()) {
-                voucher.setUsed(true);
-                voucherRepository.save(voucher);
-            }
-        } else {
-            order.setDiscountedPrice(discountedPrice);
         }
 
-        // Set tổng tiền sau khi tính xong
-        order.setTotalPrice(discountedPrice);
-        order.setDiscountedPrice(discountedPrice);
-        orderRepository.save(order); // update lại order đã có totalPrice
+        // Lưu order với giá cuối cùng
+        order.setTotalPrice(finalAmount);
+        order.setDiscountedPrice(finalAmount); // bạn có thể tách nếu cần
+        orderRepository.save(order);
 
         // Lưu danh sách OrderDetail
         orderDetailRepository.saveAll(orderDetails);

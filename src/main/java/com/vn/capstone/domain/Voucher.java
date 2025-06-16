@@ -2,11 +2,15 @@ package com.vn.capstone.domain;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
@@ -37,6 +41,10 @@ public class Voucher {
 
     private Instant createdAt;
     private Instant updatedAt;
+
+    @OneToMany(mappedBy = "voucher")
+    @JsonIgnore
+    private List<UserVoucher> userVouchers;
 
     public Long getId() {
         return id;
@@ -140,6 +148,14 @@ public class Voucher {
 
     public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public List<UserVoucher> getUserVouchers() {
+        return userVouchers;
+    }
+
+    public void setUserVouchers(List<UserVoucher> userVouchers) {
+        this.userVouchers = userVouchers;
     }
 
 }

@@ -49,9 +49,10 @@ public class VoucherController {
     public ResponseEntity<RestResponse<OrderDiscountResult>> applyVoucher(
             @RequestParam String code,
             @RequestParam Long userId,
-            @RequestParam int orderTotal) {
+            @RequestParam int orderTotal,
+            @RequestParam(defaultValue = "false") boolean saveUsage) {
 
-        OrderDiscountResult result = voucherService.applyVoucher(code, userId, orderTotal);
+        OrderDiscountResult result = voucherService.applyVoucher(code, userId, orderTotal, saveUsage);
 
         RestResponse<OrderDiscountResult> response = new RestResponse<>();
         response.setStatusCode(HttpStatus.OK.value());

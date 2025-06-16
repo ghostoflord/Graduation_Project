@@ -102,6 +102,10 @@ public class User {
     @JsonBackReference
     private List<Like> likes;
 
+    @OneToMany(mappedBy = "user")
+    @JsonIgnore
+    private List<UserVoucher> userVouchers;
+
     // @PrePersist
     // public void prePersist() {
     // if (this.provider == null) {
@@ -351,4 +355,14 @@ public class User {
     public void setOrders(List<Order> orders) {
         this.orders = orders;
     }
+
+    public List<UserVoucher> getUserVouchers() {
+        return userVouchers;
+    }
+
+    public void setUserVouchers(List<UserVoucher> userVouchers) {
+        this.userVouchers = userVouchers;
+    }
+
+    
 }
