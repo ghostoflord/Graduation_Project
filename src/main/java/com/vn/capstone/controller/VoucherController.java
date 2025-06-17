@@ -5,6 +5,7 @@ import com.vn.capstone.domain.response.RestResponse;
 import com.vn.capstone.domain.response.order.OrderDiscountResult;
 import com.vn.capstone.domain.response.voucher.VoucherDTO;
 import com.vn.capstone.domain.response.voucher.VoucherRequest;
+import com.vn.capstone.domain.response.voucher.VoucherUpdateDTO;
 import com.vn.capstone.service.VoucherService;
 
 import org.springframework.http.HttpStatus;
@@ -99,6 +100,23 @@ public class VoucherController {
         response.setError(null);
         response.setMessage("Danh sách voucher khả dụng cho người dùng");
         response.setData(vouchers);
+
+        return ResponseEntity.ok(response);
+    }
+
+    ///
+    @PutMapping("/{id}")
+    public ResponseEntity<RestResponse<Voucher>> updateVoucher(
+            @PathVariable Long id,
+            @RequestBody VoucherUpdateDTO dto) {
+
+        Voucher result = voucherService.updateVoucherFromDTO(id, dto);
+
+        RestResponse<Voucher> response = new RestResponse<>();
+        response.setStatusCode(200);
+        response.setError(null);
+        response.setMessage("Voucher updated successfully");
+        response.setData(result);
 
         return ResponseEntity.ok(response);
     }

@@ -14,6 +14,7 @@ import com.vn.capstone.domain.response.RestResponse;
 import com.vn.capstone.domain.response.order.OrderDiscountResult;
 import com.vn.capstone.domain.response.voucher.VoucherDTO;
 import com.vn.capstone.domain.response.voucher.VoucherRequest;
+import com.vn.capstone.domain.response.voucher.VoucherUpdateDTO;
 import com.vn.capstone.repository.UserRepository;
 import com.vn.capstone.repository.UserVoucherRepository;
 import com.vn.capstone.repository.VoucherRepository;
@@ -187,4 +188,33 @@ public class VoucherService {
     public void deleteVoucher(Long id) {
         voucherRepository.deleteById(id);
     }
+
+    //
+    public Voucher updateVoucherFromDTO(Long id, VoucherUpdateDTO dto) {
+        Voucher voucher = voucherRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Voucher not found"));
+
+        voucher.setCode(dto.getCode());
+        voucher.setDescription(dto.getDescription());
+        voucher.setDiscountValue(dto.getDiscountValue());
+        voucher.setPercentage(dto.isPercentage());
+        voucher.setStartDate(dto.getStartDate());
+        voucher.setEndDate(dto.getEndDate());
+        voucher.setSingleUse(dto.isSingleUse());
+        voucher.setActive(dto.isActive());
+        voucher.setUsed(dto.isUsed());
+
+        if (dto.getAssignedUserId() != null) {
+            User user = userRepository.findById(dto.getAssignedUserId())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            voucher.setAssignedUser(user);
+        } else {
+            voucher.setAssignedUser(null);
+        }
+
+        voucher.setUpdatedAt(Instant.now());
+
+        return voucherRepository.save(voucher);
+    }
+
 }
