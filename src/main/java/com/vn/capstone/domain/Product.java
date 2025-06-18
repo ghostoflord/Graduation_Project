@@ -79,6 +79,10 @@ public class Product {
     @JsonBackReference
     private List<Like> likes;
 
+    @OneToMany(mappedBy = "product")
+    @JsonBackReference
+    private List<FlashSaleItem> flashSaleItems;
+
     public List<Review> getReviews() {
         return reviews;
     }
@@ -295,6 +299,14 @@ public class Product {
 
     public void setSku(String sku) {
         this.sku = sku;
+    }
+
+    public List<FlashSaleItem> getFlashSaleItems() {
+        return flashSaleItems;
+    }
+
+    public void setFlashSaleItems(List<FlashSaleItem> flashSaleItems) {
+        this.flashSaleItems = flashSaleItems;
     }
 
 }
