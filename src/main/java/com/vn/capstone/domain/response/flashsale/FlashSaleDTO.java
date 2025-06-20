@@ -62,7 +62,7 @@ public class FlashSaleDTO {
     }
 
     public void setStatus(String status) {
-        this.status = status;
+        this.status = (status != null) ? status.trim() : null;
     }
 
     public List<FlashSaleItemDTO> getItems() {

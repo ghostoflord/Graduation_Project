@@ -6,6 +6,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -13,6 +16,7 @@ import com.vn.capstone.domain.FlashSale;
 import com.vn.capstone.domain.FlashSaleItem;
 import com.vn.capstone.domain.Product;
 import com.vn.capstone.domain.request.FlashSaleRequest;
+import com.vn.capstone.domain.response.ResultPaginationDTO;
 import com.vn.capstone.domain.response.flashsale.FlashSaleDTO;
 import com.vn.capstone.domain.response.flashsale.FlashSaleItemDTO;
 import com.vn.capstone.repository.FlashSaleItemRepository;
@@ -40,10 +44,58 @@ public class FlashSaleService {
                 .collect(Collectors.toList());
     }
 
-    public List<FlashSaleDTO> getAllFlashSales() {
-        return flashSaleRepo.findAll().stream()
-                .map(this::toFlashSaleDTO)
+    public ResultPaginationDTO fetchAllFlashSales(Specification<FlashSale> spec, Pageable pageable) {
+        Page<FlashSale> flashSalePage = flashSaleRepo.findAll(spec, pageable);
+
+        ResultPaginationDTO result = new ResultPaginationDTO();
+        ResultPaginationDTO.Meta meta = new ResultPaginationDTO.Meta();
+
+        meta.setPage(pageable.getPageNumber() + 1);
+        meta.setPageSize(pageable.getPageSize());
+        meta.setPages(flashSalePage.getTotalPages());
+        meta.setTotal(flashSalePage.getTotalElements());
+
+        result.setMeta(meta);
+
+        List<FlashSaleDTO> flashSaleDTOs = flashSalePage.getContent()
+                .stream()
+                .map(this::convertToFlashSaleDTO)
                 .collect(Collectors.toList());
+
+        result.setResult(flashSaleDTOs);
+        return result;
+    }
+
+    public FlashSaleDTO convertToFlashSaleDTO(FlashSale entity) {
+        FlashSaleDTO dto = new FlashSaleDTO();
+        dto.setId(entity.getId());
+        dto.setName(entity.getName());
+        dto.setStartTime(entity.getStartTime());
+        dto.setEndTime(entity.getEndTime());
+        String status = entity.getStatus();
+        dto.setStatus(status != null ? status.trim() : null);
+
+        List<FlashSaleItemDTO> items = entity.getItems().stream().map(item -> {
+            FlashSaleItemDTO itemDTO = new FlashSaleItemDTO();
+            itemDTO.setId(item.getId());
+            itemDTO.setProductId(item.getProduct().getId());
+            itemDTO.setProductName(item.getProduct().getName());
+            String priceStr = item.getProduct().getPrice();
+            Double originalPrice = null;
+            try {
+                originalPrice = (priceStr != null) ? Double.valueOf(priceStr) : null;
+            } catch (NumberFormatException e) {
+                originalPrice = 0.0; // hoặc throw/log tuỳ bạn
+            }
+            itemDTO.setOriginalPrice(originalPrice);
+
+            itemDTO.setSalePrice(item.getSalePrice());
+            itemDTO.setQuantity(item.getQuantity());
+            return itemDTO;
+        }).collect(Collectors.toList());
+
+        dto.setItems(items);
+        return dto;
     }
 
     @Scheduled(fixedRate = 60000)
