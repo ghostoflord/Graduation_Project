@@ -24,7 +24,7 @@ public class FlashSale {
     private LocalDateTime endTime;
     private String status;
 
-    @OneToMany(mappedBy = "flashSale", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "flashSale", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<FlashSaleItem> items;
 

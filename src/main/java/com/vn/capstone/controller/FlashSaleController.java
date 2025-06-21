@@ -7,6 +7,7 @@ import com.vn.capstone.domain.response.RestResponse;
 import com.vn.capstone.domain.response.ResultPaginationDTO;
 import com.vn.capstone.domain.response.flashsale.FlashSaleDTO;
 import com.vn.capstone.domain.response.flashsale.FlashSaleItemDTO;
+import com.vn.capstone.domain.response.flashsale.FlashSaleUpdateDTO;
 import com.vn.capstone.service.FlashSaleService;
 import com.vn.capstone.util.annotation.ApiMessage;
 
@@ -64,4 +65,21 @@ public class FlashSaleController {
         response.setData(created);
         return ResponseEntity.ok(response);
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<RestResponse<Void>> updateFlashSale(
+            @PathVariable Long id,
+            @RequestBody FlashSaleUpdateDTO dto) {
+
+        flashSaleService.updateFlashSale(id, dto);
+
+        RestResponse<Void> response = new RestResponse<>();
+        response.setStatusCode(200);
+        response.setError(null);
+        response.setMessage("Cập nhật Flash Sale thành công");
+        response.setData(null);
+
+        return ResponseEntity.ok(response);
+    }
+
 }

@@ -19,18 +19,24 @@ import com.vn.capstone.domain.request.FlashSaleRequest;
 import com.vn.capstone.domain.response.ResultPaginationDTO;
 import com.vn.capstone.domain.response.flashsale.FlashSaleDTO;
 import com.vn.capstone.domain.response.flashsale.FlashSaleItemDTO;
+import com.vn.capstone.domain.response.flashsale.FlashSaleUpdateDTO;
 import com.vn.capstone.repository.FlashSaleItemRepository;
 import com.vn.capstone.repository.FlashSaleRepository;
+import com.vn.capstone.repository.ProductRepository;
+import com.vn.capstone.util.error.NotFoundException;
 
 @Service
 public class FlashSaleService {
 
     private final FlashSaleRepository flashSaleRepo;
     private final FlashSaleItemRepository flashSaleItemRepo;
+    private final ProductRepository productRepository;
 
-    public FlashSaleService(FlashSaleRepository flashSaleRepo, FlashSaleItemRepository flashSaleItemRepo) {
+    public FlashSaleService(FlashSaleRepository flashSaleRepo, FlashSaleItemRepository flashSaleItemRepo,
+            ProductRepository productRepository) {
         this.flashSaleRepo = flashSaleRepo;
         this.flashSaleItemRepo = flashSaleItemRepo;
+        this.productRepository = productRepository;
     }
 
     public List<FlashSaleItemDTO> getActiveFlashSaleItems() {
@@ -166,4 +172,50 @@ public class FlashSaleService {
                 item.getSalePrice(),
                 item.getQuantity());
     }
+
+    // update
+    public void updateFlashSale(Long id, FlashSaleUpdateDTO dto) {
+        // Lấy flashSale từ DB
+        FlashSale flashSale = flashSaleRepo.findById(id)
+                .orElseThrow(() -> new NotFoundException("Không tìm thấy Flash Sale"));
+
+        // Xóa hết item cũ (Hibernate sẽ tự xoá trong DB do orphanRemoval = true)
+        flashSale.getItems().clear();
+
+        // Tạo danh sách mới
+        List<FlashSaleItem> newItems = dto.getItems().stream()
+                .map(itemDto -> {
+                    Product product = productRepository.findById(itemDto.getProductId())
+                            .orElseThrow(() -> new NotFoundException("Không tìm thấy sản phẩm"));
+
+                    FlashSaleItem item = new FlashSaleItem();
+                    item.setProduct(product);
+                    item.setSalePrice(itemDto.getSalePrice());
+                    item.setQuantity(itemDto.getQuantity());
+                    String priceStr = item.getProduct().getPrice();
+                    Double originalPrice = null;
+                    try {
+                        originalPrice = (priceStr != null) ? Double.valueOf(priceStr) : null;
+                    } catch (NumberFormatException e) {
+                        originalPrice = 0.0;
+                    }
+                    item.setFlashSale(flashSale);
+
+                    return item;
+                })
+                .collect(Collectors.toList());
+
+        // Thêm lại từng item mới vào danh sách cũ
+        flashSale.getItems().addAll(newItems);
+
+        // Cập nhật thông tin flash sale
+        flashSale.setName(dto.getName());
+        flashSale.setStartTime(dto.getStartTime());
+        flashSale.setEndTime(dto.getEndTime());
+        flashSale.setStatus(dto.getStatus() != null ? dto.getStatus().trim() : null);
+
+        // Lưu lại flash sale
+        flashSaleRepo.save(flashSale);
+    }
+
 }
