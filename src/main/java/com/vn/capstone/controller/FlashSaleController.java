@@ -82,4 +82,16 @@ public class FlashSaleController {
         return ResponseEntity.ok(response);
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<RestResponse<Void>> deleteFlashSale(@PathVariable Long id) {
+        flashSaleService.deleteFlashSale(id);
+
+        RestResponse<Void> response = new RestResponse<>();
+        response.setStatusCode(HttpStatus.OK.value());
+        response.setMessage("Xóa Flash Sale thành công");
+        response.setData(null);
+        response.setError(null); // không lỗi nên để null
+        return ResponseEntity.ok(response);
+    }
+
 }

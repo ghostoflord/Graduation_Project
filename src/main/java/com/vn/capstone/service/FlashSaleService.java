@@ -25,6 +25,8 @@ import com.vn.capstone.repository.FlashSaleRepository;
 import com.vn.capstone.repository.ProductRepository;
 import com.vn.capstone.util.error.NotFoundException;
 
+import jakarta.transaction.Transactional;
+
 @Service
 public class FlashSaleService {
 
@@ -216,6 +218,21 @@ public class FlashSaleService {
 
         // Lưu lại flash sale
         flashSaleRepo.save(flashSale);
+    }
+
+    @Transactional
+    public void deleteFlashSale(Long id) {
+        FlashSale flashSale = flashSaleRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy Flash Sale với ID: " + id));
+
+        // Nếu có item thì xóa từng cái trước
+        List<FlashSaleItem> items = flashSale.getItems();
+        if (items != null && !items.isEmpty()) {
+            flashSaleItemRepo.deleteAll(items);
+        }
+
+        // Rồi xóa Flash Sale
+        flashSaleRepo.delete(flashSale);
     }
 
 }
