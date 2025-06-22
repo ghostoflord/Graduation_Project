@@ -94,4 +94,20 @@ public class FlashSaleController {
         return ResponseEntity.ok(response);
     }
 
+    // đếm số lượng sản phẩm flash sale
+    @PostMapping("/reduce-quantity")
+    public ResponseEntity<RestResponse<Void>> reduceQuantity(@RequestParam Long flashSaleItemId,
+            @RequestParam int quantity) {
+        flashSaleService.reduceFlashSaleItemQuantity(flashSaleItemId, quantity);
+
+        RestResponse<Void> response = new RestResponse<>();
+        response.setStatusCode(200);
+        response.setMessage("Quantity reduced successfully");
+        response.setData(null); // Vì không trả object cụ thể
+        response.setError(null);
+
+        return ResponseEntity.ok(response);
+    }
+
+    
 }

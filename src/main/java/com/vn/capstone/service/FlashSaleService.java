@@ -99,6 +99,7 @@ public class FlashSaleService {
 
             itemDTO.setSalePrice(item.getSalePrice());
             itemDTO.setQuantity(item.getQuantity());
+            itemDTO.setImageUrl(item.getProduct().getImage());
             return itemDTO;
         }).collect(Collectors.toList());
 
@@ -172,7 +173,8 @@ public class FlashSaleService {
                 item.getProduct().getName(),
                 item.getOriginalPrice(),
                 item.getSalePrice(),
-                item.getQuantity());
+                item.getQuantity(),
+                item.getImageUrl());
     }
 
     // update
@@ -233,6 +235,20 @@ public class FlashSaleService {
 
         // Rồi xóa Flash Sale
         flashSaleRepo.delete(flashSale);
+    }
+
+    // đếm sản phẩm trong flash sale
+    @Transactional
+    public void reduceFlashSaleItemQuantity(Long flashSaleItemId, int quantityToReduce) {
+        FlashSaleItem item = flashSaleItemRepo.findById(flashSaleItemId)
+                .orElseThrow(() -> new NotFoundException("Không tìm thấy sản phẩm trong Flash Sale"));
+
+        if (item.getQuantity() < quantityToReduce) {
+            throw new RuntimeException("Sản phẩm không đủ số lượng khuyến mãi");
+        }
+
+        item.setQuantity(item.getQuantity() - quantityToReduce);
+        flashSaleItemRepo.save(item);
     }
 
 }

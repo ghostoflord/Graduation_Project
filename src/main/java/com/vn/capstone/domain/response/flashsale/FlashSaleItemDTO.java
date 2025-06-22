@@ -7,17 +7,20 @@ public class FlashSaleItemDTO {
     private Double originalPrice;
     private Double salePrice;
     private Integer quantity;
+    private String imageUrl;
+
     public FlashSaleItemDTO() {
     }
 
     public FlashSaleItemDTO(Long id, Long productId, String productName, Double originalPrice, Double salePrice,
-            Integer quantity) {
+            Integer quantity, String imageUrl) {
         this.id = id;
         this.productId = productId;
         this.productName = productName;
         this.originalPrice = originalPrice;
         this.salePrice = salePrice;
         this.quantity = quantity;
+        this.imageUrl = imageUrl;
     }
 
     public Long getId() {
@@ -66,6 +69,14 @@ public class FlashSaleItemDTO {
 
     public void setQuantity(Integer quantity) {
         this.quantity = quantity;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 
     // Getters và setters

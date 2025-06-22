@@ -30,6 +30,7 @@ public class FlashSaleItem {
     private Double originalPrice;
     private Double salePrice;
     private Integer quantity;
+    private String imageUrl;
 
     public Long getId() {
         return id;
@@ -77,6 +78,14 @@ public class FlashSaleItem {
 
     public void setQuantity(Integer quantity) {
         this.quantity = quantity;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 
     // Getter, Setter
