@@ -1,6 +1,7 @@
 package com.vn.capstone.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -20,6 +21,8 @@ public interface CartDetailRepository extends JpaRepository<CartDetail, Long> {
     Long sumQuantityByCart(@Param("cartId") long cartId);
 
     void deleteByCartUserIdAndProductId(Long userId, Long productId);
+
+    Optional<CartDetail> findByCartIdAndProductId(Long cartId, Long productId);
 
     @Transactional
     @Modifying

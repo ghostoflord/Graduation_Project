@@ -2,6 +2,7 @@ package com.vn.capstone.service;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
 import org.springframework.stereotype.Service;
@@ -48,18 +49,26 @@ public class CartService {
             cart.setSum(0);
             cart = cartRepository.save(cart);
         }
+        Optional<CartDetail> optionalDetail = cartDetailRepository.findByCartIdAndProductId(cart.getId(),
+                product.getId());
 
-        CartDetail detail = new CartDetail();
-        detail.setCart(cart);
-        detail.setProduct(product);
-        detail.setQuantity(quantity);
-        detail.setPrice(price);
-        CartDetail savedDetail = cartDetailRepository.save(detail);
+        CartDetail detail;
+        if (optionalDetail.isPresent()) {
+            detail = optionalDetail.get();
+            detail.setQuantity(detail.getQuantity() + quantity);
+            detail.setPrice(price); // Cập nhật giá nếu muốn
+        } else {
+            detail = new CartDetail();
+            detail.setCart(cart);
+            detail.setProduct(product);
+            detail.setQuantity(quantity);
+            detail.setPrice(price);
+        }
 
-        cart.setSum(cart.getSum() + (int) (price * quantity));
-        cartRepository.save(cart);
+        cartDetailRepository.save(detail);
         recalcSum(cart);
-        return savedDetail;
+        return detail;
+
     }
 
     private void recalcSum(Cart cart) {
