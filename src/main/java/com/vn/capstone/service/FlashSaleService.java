@@ -247,8 +247,14 @@ public class FlashSaleService {
             throw new RuntimeException("Sản phẩm không đủ số lượng khuyến mãi");
         }
 
-        item.setQuantity(item.getQuantity() - quantityToReduce);
-        flashSaleItemRepo.save(item);
+        int updatedQuantity = item.getQuantity() - quantityToReduce;
+
+        if (updatedQuantity <= 0) {
+            flashSaleItemRepo.delete(item); // Xoá luôn khỏi flash sale nếu số lượng = 0
+        } else {
+            item.setQuantity(updatedQuantity);
+            flashSaleItemRepo.save(item); // Cập nhật số lượng còn lại
+        }
     }
 
 }

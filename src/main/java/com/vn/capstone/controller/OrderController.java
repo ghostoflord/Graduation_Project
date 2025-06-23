@@ -81,7 +81,8 @@ public class OrderController {
                     req.getName(),
                     req.getAddress(),
                     req.getPhone(),
-                    req.getVoucherCode());
+                    req.getVoucherCode(),
+                    req.getFlashSaleItemId());
 
             OrderResponse orderResponse = OrderResponse.from(order);
 

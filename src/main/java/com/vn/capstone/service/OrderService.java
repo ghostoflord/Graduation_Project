@@ -46,6 +46,8 @@ import com.vn.capstone.util.constant.PaymentMethod;
 import com.vn.capstone.util.error.AccessDeniedException;
 import com.vn.capstone.util.error.NotFoundException;
 
+import jakarta.annotation.Nullable;
+
 @Service
 public class OrderService {
     private final OrderRepository orderRepository;
@@ -57,13 +59,15 @@ public class OrderService {
     private final OrderMapper orderMapper;
     private final ProductRepository productRepository;
     private final VoucherRepository voucherRepository;
+    private final FlashSaleService flashSaleService;
     @Autowired
     private VoucherService voucherService;
 
     public OrderService(OrderRepository orderRepository, OrderDetailRepository orderDetailRepository,
             CartRepository cartRepository, CartDetailRepository cartDetailRepository,
             OrderStatusHistoryRepository orderStatusHistoryRepository, UserRepository userRepository,
-            OrderMapper orderMapper, ProductRepository productRepository, VoucherRepository voucherRepository) {
+            OrderMapper orderMapper, ProductRepository productRepository, VoucherRepository voucherRepository,
+            FlashSaleService flashSaleService) {
         this.orderRepository = orderRepository;
         this.orderDetailRepository = orderDetailRepository;
         this.cartRepository = cartRepository;
@@ -73,6 +77,7 @@ public class OrderService {
         this.orderMapper = orderMapper;
         this.productRepository = productRepository;
         this.voucherRepository = voucherRepository;
+        this.flashSaleService = flashSaleService;
     }
 
     public Optional<OrderSummaryDTO> getOrderSummaryById(Long id) {
@@ -114,7 +119,7 @@ public class OrderService {
 
     @Transactional
     public Order placeOrder(Long userId, String receiverName,
-            String address, String phone, String voucherCode) {
+            String address, String phone, String voucherCode, @Nullable Long flashSaleItemId) {
 
         // Lấy Cart của user, kiểm tra rỗng
         Cart cart = cartRepository.findByUserId(userId);
@@ -151,6 +156,13 @@ public class OrderService {
             product.setQuantity(String.valueOf(currentQuantity - cd.getQuantity()));
             productRepository.save(product);
 
+            long quantityLong = cd.getQuantity();
+            if (quantityLong > Integer.MAX_VALUE) {
+                throw new IllegalArgumentException("Số lượng quá lớn, không thể xử lý");
+            }
+            if (flashSaleItemId != null) {
+                flashSaleService.reduceFlashSaleItemQuantity(flashSaleItemId, (int) quantityLong);
+            }
             // Tính tổng tiền
             totalPrice += cd.getPrice() * cd.getQuantity();
 

@@ -7,6 +7,8 @@ public class PlaceOrderRequest {
     private String phone;
     private String voucherCode;
 
+    private Long flashSaleItemId;
+
     public Long getUserId() {
         return userId;
     }
@@ -45,6 +47,14 @@ public class PlaceOrderRequest {
 
     public void setVoucherCode(String voucherCode) {
         this.voucherCode = voucherCode;
+    }
+
+    public Long getFlashSaleItemId() {
+        return flashSaleItemId;
+    }
+
+    public void setFlashSaleItemId(Long flashSaleItemId) {
+        this.flashSaleItemId = flashSaleItemId;
     }
 
 }
