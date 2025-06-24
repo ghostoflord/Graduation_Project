@@ -20,7 +20,9 @@ import com.vn.capstone.domain.response.compare.CompareProductDTO;
 import com.vn.capstone.domain.response.product.ProductDTO;
 import com.vn.capstone.domain.response.product.ProductDetailDTO;
 import com.vn.capstone.domain.response.product.ProductUpdateRequest;
+import com.vn.capstone.domain.specification.ProductSpecifications;
 import com.vn.capstone.repository.CommentRepository;
+import com.vn.capstone.repository.FlashSaleItemRepository;
 import com.vn.capstone.repository.LikeRepository;
 import com.vn.capstone.repository.OrderDetailRepository;
 import com.vn.capstone.repository.OrderRepository;
@@ -50,35 +52,48 @@ public class ProductService {
     private final OrderRepository orderRepository;
     private final ReviewRepository reviewRepository;
     private final LikeRepository likeRepository;
+    private final FlashSaleItemRepository flashSaleItemRepository;
 
     public ProductService(ProductRepository productRepository, CommentRepository commentRepository,
             OrderDetailRepository orderDetailRepository, OrderRepository orderRepository,
-            ReviewRepository reviewRepository, LikeRepository likeRepository) {
+            ReviewRepository reviewRepository, LikeRepository likeRepository,
+            FlashSaleItemRepository flashSaleItemRepository) {
         this.productRepository = productRepository;
         this.commentRepository = commentRepository;
         this.orderDetailRepository = orderDetailRepository;
         this.orderRepository = orderRepository;
         this.reviewRepository = reviewRepository;
         this.likeRepository = likeRepository;
+        this.flashSaleItemRepository = flashSaleItemRepository;
     }
 
     public ResultPaginationDTO fetchAllProduct(Specification<Product> spec, Pageable pageable) {
-        Page<Product> pageProduct = this.productRepository.findAll(spec, pageable);
+        // Lấy danh sách ID của sản phẩm đang trong Flash Sale
+        List<Long> flashSaleProductIds = flashSaleItemRepository.findAll()
+                .stream()
+                .map(item -> item.getProduct().getId())
+                .toList();
+
+        // Kết hợp specification hiện có với bộ lọc không flash sale
+        Specification<Product> finalSpec = spec.and(
+                ProductSpecifications.notInFlashSale(flashSaleProductIds));
+
+        // Lấy danh sách sản phẩm đã lọc
+        Page<Product> pageProduct = this.productRepository.findAll(finalSpec, pageable);
+
+        // Build response
         ResultPaginationDTO rs = new ResultPaginationDTO();
         ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
 
         mt.setPage(pageable.getPageNumber() + 1);
         mt.setPageSize(pageable.getPageSize());
-
         mt.setPages(pageProduct.getTotalPages());
         mt.setTotal(pageProduct.getTotalElements());
-
         rs.setMeta(mt);
-        rs.setResult(pageProduct.getContent());
 
-        // remove sensitive data
         List<ResProductDTO> listProduct = pageProduct.getContent()
-                .stream().map(item -> this.convertToResProductDTO(item))
+                .stream()
+                .map(this::convertToResProductDTO)
                 .collect(Collectors.toList());
 
         rs.setResult(listProduct);
