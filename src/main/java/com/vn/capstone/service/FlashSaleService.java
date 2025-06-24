@@ -107,19 +107,28 @@ public class FlashSaleService {
         return dto;
     }
 
-    @Scheduled(fixedRate = 60000)
+    @Scheduled(fixedRate = 60000) // chạy mỗi 60s
     public void updateFlashSaleStatuses() {
         List<FlashSale> all = flashSaleRepo.findAll();
         LocalDateTime now = LocalDateTime.now();
+
         for (FlashSale sale : all) {
+            String newStatus;
+
             if (now.isBefore(sale.getStartTime())) {
-                sale.setStatus("UPCOMING");
+                newStatus = "UPCOMING";
             } else if (now.isAfter(sale.getEndTime())) {
-                sale.setStatus("ENDED");
+                newStatus = "ENDED";
             } else {
-                sale.setStatus("ACTIVE");
+                newStatus = "ACTIVE";
+            }
+
+            // Chỉ update nếu status thay đổi
+            if (!newStatus.equals(sale.getStatus())) {
+                sale.setStatus(newStatus);
             }
         }
+
         flashSaleRepo.saveAll(all);
     }
 
