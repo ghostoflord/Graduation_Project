@@ -2,12 +2,14 @@ package com.vn.capstone.controller;
 
 import com.turkraft.springfilter.boot.Filter;
 import com.vn.capstone.domain.FlashSale;
+import com.vn.capstone.domain.FlashSaleItem;
 import com.vn.capstone.domain.request.FlashSaleRequest;
 import com.vn.capstone.domain.response.RestResponse;
 import com.vn.capstone.domain.response.ResultPaginationDTO;
 import com.vn.capstone.domain.response.flashsale.FlashSaleDTO;
 import com.vn.capstone.domain.response.flashsale.FlashSaleItemDTO;
 import com.vn.capstone.domain.response.flashsale.FlashSaleUpdateDTO;
+import com.vn.capstone.repository.FlashSaleItemRepository;
 import com.vn.capstone.service.FlashSaleService;
 import com.vn.capstone.util.annotation.ApiMessage;
 
@@ -17,16 +19,21 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/flash-sales")
 public class FlashSaleController {
 
     private final FlashSaleService flashSaleService;
+    private final FlashSaleItemRepository flashSaleItemRepo;
 
-    public FlashSaleController(FlashSaleService flashSaleService) {
+    public FlashSaleController(FlashSaleService flashSaleService, FlashSaleItemRepository flashSaleItemRepo) {
         this.flashSaleService = flashSaleService;
+        this.flashSaleItemRepo = flashSaleItemRepo;
     }
 
     @GetMapping("/active-items")
@@ -109,5 +116,27 @@ public class FlashSaleController {
         return ResponseEntity.ok(response);
     }
 
-    
+    ///
+    @GetMapping("/flash-sale-items/{id}/validate")
+    public ResponseEntity<RestResponse<Map<String, Object>>> validateFlashSaleItem(@PathVariable Long id) {
+        FlashSaleItem item = flashSaleItemRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Item not found"));
+
+        FlashSale flashSale = item.getFlashSale();
+        LocalDateTime now = LocalDateTime.now();
+
+        boolean expired = now.isAfter(flashSale.getEndTime());
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("expired", expired);
+        result.put("originalPrice", item.getProduct().getPrice());
+
+        RestResponse<Map<String, Object>> response = new RestResponse<>();
+        response.setStatusCode(200);
+        response.setMessage("Validate flash sale item successfully");
+        response.setData(result);
+
+        return ResponseEntity.ok(response);
+    }
+
 }
