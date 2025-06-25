@@ -2,21 +2,27 @@ package com.vn.capstone.controller;
 
 import com.vn.capstone.domain.ManualChat;
 import com.vn.capstone.domain.response.RestResponse;
+import com.vn.capstone.service.ChatBotService;
 import com.vn.capstone.service.ManualChatService;
+
+import java.util.Map;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1")
+@RequestMapping("/api/v1/manual-chats")
 public class ManualChatController {
 
     private final ManualChatService manualChatService;
+    private final ChatBotService chatBotService;
 
-    public ManualChatController(ManualChatService manualChatService) {
+    public ManualChatController(ManualChatService manualChatService, ChatBotService chatBotService) {
         this.manualChatService = manualChatService;
+        this.chatBotService = chatBotService;
     }
 
-    @PostMapping("/manual-chats")
+    @PostMapping("")
     public ResponseEntity<RestResponse<ManualChat>> createManualChat(@RequestBody ManualChat manualChat) {
         ManualChat savedChat = manualChatService.save(manualChat);
 
@@ -27,5 +33,12 @@ public class ManualChatController {
         response.setData(savedChat);
 
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/manual-chat")
+    public ResponseEntity<String> chat(@RequestBody Map<String, String> payload) {
+        String message = payload.get("message");
+        String reply = chatBotService.handleUserMessage(message);
+        return ResponseEntity.ok(reply);
     }
 }

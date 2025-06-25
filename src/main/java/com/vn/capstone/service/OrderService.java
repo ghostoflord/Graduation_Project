@@ -233,7 +233,12 @@ public class OrderService {
         dto.setReceiverAddress(order.getReceiverAddress());
         dto.setReceiverPhone(order.getReceiverPhone());
         dto.setStatus(order.getStatus());
-        dto.setUserId(order.getUser().getId());
+
+        if (order.getUser() != null) {
+            dto.setUserId(order.getUser().getId());
+        } else {
+            dto.setUserId(-1); // hoặc bỏ dòng này nếu không cần userId
+        }
 
         // Tính tổng số lượng
         long totalQuantity = orderDetailRepository.findByOrder(order).stream()
