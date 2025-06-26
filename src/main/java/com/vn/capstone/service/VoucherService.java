@@ -166,10 +166,6 @@ public class VoucherService {
         LocalDateTime now = LocalDateTime.now();
 
         return voucherRepository.findAll().stream()
-                .filter(v -> v.isActive()
-                        && !v.isUsed()
-                        && (v.getStartDate() == null || !v.getStartDate().isAfter(now))
-                        && (v.getEndDate() == null || !v.getEndDate().isBefore(now)))
                 .map(v -> {
                     VoucherDTO dto = new VoucherDTO();
                     dto.setId(v.getId());
