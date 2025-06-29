@@ -34,19 +34,26 @@ public class PermissionController {
 
     @PostMapping("/permissions")
     @ApiMessage("Create a permission")
-    public ResponseEntity<Permission> create(@Valid @RequestBody Permission p) throws IdInvalidException {
+    public ResponseEntity<RestResponse<Permission>> create(@Valid @RequestBody Permission p) throws IdInvalidException {
         // check exist
         if (this.permissionService.isPermissionExist(p)) {
             throw new IdInvalidException("Permission đã tồn tại.");
         }
 
-        // create new permission
-        return ResponseEntity.status(HttpStatus.CREATED).body(this.permissionService.create(p));
+        Permission created = this.permissionService.create(p);
+
+        RestResponse<Permission> response = new RestResponse<>();
+        response.setStatusCode(HttpStatus.CREATED.value());
+        response.setMessage("Tạo permission thành công");
+        response.setData(created);
+        response.setError(null);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PutMapping("/permissions")
     @ApiMessage("Update a permission")
-    public ResponseEntity<Permission> update(@Valid @RequestBody Permission p) throws IdInvalidException {
+    public ResponseEntity<RestResponse<Permission>> update(@Valid @RequestBody Permission p) throws IdInvalidException {
         // check exist by id
         if (this.permissionService.fetchById(p.getId()) == null) {
             throw new IdInvalidException("Permission với id = " + p.getId() + " không tồn tại.");
@@ -57,8 +64,15 @@ public class PermissionController {
             throw new IdInvalidException("Permission đã tồn tại.");
         }
 
-        // update permission
-        return ResponseEntity.ok().body(this.permissionService.update(p));
+        Permission updated = this.permissionService.update(p);
+
+        RestResponse<Permission> response = new RestResponse<>();
+        response.setStatusCode(HttpStatus.OK.value());
+        response.setMessage("Cập nhật permission thành công");
+        response.setData(updated);
+        response.setError(null);
+
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/permissions/{id}")
