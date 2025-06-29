@@ -63,13 +63,21 @@ public class PermissionController {
 
     @DeleteMapping("/permissions/{id}")
     @ApiMessage("delete a permission")
-    public ResponseEntity<Void> delete(@PathVariable("id") long id) throws IdInvalidException {
-        // check exist by id
+    public ResponseEntity<RestResponse<Void>> delete(@PathVariable("id") long id) throws IdInvalidException {
+        // Check exist by id
         if (this.permissionService.fetchById(id) == null) {
             throw new IdInvalidException("Permission với id = " + id + " không tồn tại.");
         }
+
         this.permissionService.delete(id);
-        return ResponseEntity.ok().body(null);
+
+        RestResponse<Void> response = new RestResponse<>();
+        response.setStatusCode(200);
+        response.setMessage("Xóa permission thành công");
+        response.setData(null); // Không có dữ liệu trả về
+        response.setError(null);
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/permissions")
