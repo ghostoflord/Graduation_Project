@@ -4,13 +4,18 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import com.vn.capstone.domain.User;
 import com.vn.capstone.domain.UserVoucher;
 import com.vn.capstone.domain.Voucher;
 import com.vn.capstone.domain.response.RestResponse;
+import com.vn.capstone.domain.response.ResultPaginationDTO;
 import com.vn.capstone.domain.response.order.OrderDiscountResult;
 import com.vn.capstone.domain.response.voucher.VoucherDTO;
 import com.vn.capstone.domain.response.voucher.VoucherRequest;
@@ -162,23 +167,38 @@ public class VoucherService {
         return new OrderDiscountResult(discount, finalAmount);
     }
 
-    public List<VoucherDTO> getAllVouchers() {
-        LocalDateTime now = LocalDateTime.now();
+    public ResultPaginationDTO fetchAllVouchers(Specification<Voucher> spec, Pageable pageable) {
+        Page<Voucher> page = voucherRepository.findAll(pageable);
 
-        return voucherRepository.findAll().stream()
-                .map(v -> {
-                    VoucherDTO dto = new VoucherDTO();
-                    dto.setId(v.getId());
-                    dto.setCode(v.getCode());
-                    dto.setDescription(v.getDescription());
-                    dto.setDiscountValue(v.getDiscountValue());
-                    dto.setPercentage(v.isPercentage());
-                    dto.setStartDate(v.getStartDate());
-                    dto.setEndDate(v.getEndDate());
-                    // Không set assignedUser
-                    return dto;
-                })
-                .toList();
+        ResultPaginationDTO.Meta meta = new ResultPaginationDTO.Meta();
+        meta.setPage(pageable.getPageNumber() + 1);
+        meta.setPageSize(pageable.getPageSize());
+        meta.setPages(page.getTotalPages());
+        meta.setTotal(page.getTotalElements());
+
+        List<VoucherDTO> result = page.getContent()
+                .stream()
+                .map(this::convertToResVoucherDTO)
+                .collect(Collectors.toList());
+
+        ResultPaginationDTO rs = new ResultPaginationDTO();
+        rs.setMeta(meta);
+        rs.setResult(result);
+        return rs;
+    }
+
+    ///
+    public VoucherDTO convertToResVoucherDTO(Voucher v) {
+        VoucherDTO dto = new VoucherDTO();
+        dto.setId(v.getId());
+        dto.setCode(v.getCode());
+        dto.setDescription(v.getDescription());
+        dto.setDiscountValue(v.getDiscountValue());
+        dto.setPercentage(v.isPercentage());
+        dto.setStartDate(v.getStartDate());
+        dto.setEndDate(v.getEndDate());
+        // Không set assignedUser
+        return dto;
     }
 
     public void deleteVoucher(Long id) {

@@ -1,13 +1,18 @@
 package com.vn.capstone.controller;
 
+import com.turkraft.springfilter.boot.Filter;
 import com.vn.capstone.domain.Voucher;
 import com.vn.capstone.domain.response.RestResponse;
+import com.vn.capstone.domain.response.ResultPaginationDTO;
 import com.vn.capstone.domain.response.order.OrderDiscountResult;
 import com.vn.capstone.domain.response.voucher.VoucherDTO;
 import com.vn.capstone.domain.response.voucher.VoucherRequest;
 import com.vn.capstone.domain.response.voucher.VoucherUpdateDTO;
 import com.vn.capstone.service.VoucherService;
+import com.vn.capstone.util.annotation.ApiMessage;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -64,13 +69,19 @@ public class VoucherController {
     }
 
     @GetMapping
-    public ResponseEntity<RestResponse<List<VoucherDTO>>> getAllVouchers() {
-        List<VoucherDTO> vouchers = voucherService.getAllVouchers();
-        RestResponse<List<VoucherDTO>> response = new RestResponse<>();
+    @ApiMessage("Fetch all vouchers")
+    public ResponseEntity<RestResponse<ResultPaginationDTO>> getAllVouchers(
+            @Filter Specification<Voucher> spec,
+            Pageable pageable) {
+
+        ResultPaginationDTO result = this.voucherService.fetchAllVouchers(spec, pageable);
+
+        RestResponse<ResultPaginationDTO> response = new RestResponse<>();
         response.setStatusCode(HttpStatus.OK.value());
-        response.setMessage("List of all vouchers");
-        response.setData(vouchers);
-        return ResponseEntity.ok(response);
+        response.setMessage("Fetch all vouchers");
+        response.setData(result);
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @DeleteMapping("/{id}")
