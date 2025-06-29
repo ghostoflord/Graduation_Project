@@ -5,6 +5,7 @@ import com.vn.capstone.domain.ProductDetail;
 import com.vn.capstone.domain.response.RestResponse;
 import com.vn.capstone.domain.response.product.ProductDetailDTO;
 import com.vn.capstone.domain.response.product.ProductIdDTO;
+import com.vn.capstone.domain.response.productdetail.ProductDetailUpdateDTO;
 import com.vn.capstone.repository.ProductDetailRepository;
 import com.vn.capstone.repository.ProductRepository;
 import com.vn.capstone.service.ProductDetailService;
@@ -62,9 +63,11 @@ public class ProductDetailController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<RestResponse<ProductDetail>> update(@PathVariable Long id,
-            @RequestBody ProductDetail detail) {
-        ProductDetail updated = productDetailService.update(id, detail);
+    public ResponseEntity<RestResponse<ProductDetail>> update(
+            @PathVariable Long id,
+            @RequestBody ProductDetailUpdateDTO detailDTO) {
+
+        ProductDetail updated = productDetailService.update(id, detailDTO);
 
         RestResponse<ProductDetail> response = new RestResponse<>();
         response.setStatusCode(200);
