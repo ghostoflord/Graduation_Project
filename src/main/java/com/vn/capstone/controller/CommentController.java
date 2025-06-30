@@ -17,7 +17,7 @@ import com.vn.capstone.domain.response.comment.CommentResponse;
 import com.vn.capstone.service.CommentService;
 
 @RestController
-@RequestMapping("/api/v1/comments")
+@RequestMapping("/api/v1")
 public class CommentController {
 
     private final CommentService commentService;
@@ -26,7 +26,7 @@ public class CommentController {
         this.commentService = commentService;
     }
 
-    @PostMapping
+    @PostMapping("/comments")
     public ResponseEntity<RestResponse<Comment>> createComment(@RequestBody CommentRequest request) {
         Comment comment = commentService.saveComment(
                 request.getUserId(),
@@ -41,7 +41,7 @@ public class CommentController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/product/{productId}")
+    @GetMapping("/comments/product/{productId}")
     public ResponseEntity<RestResponse<List<CommentResponse>>> getCommentsByProduct(@PathVariable Long productId) {
         List<CommentResponse> commentResponses = commentService.getCommentsByProduct(productId);
         RestResponse<List<CommentResponse>> response = new RestResponse<>();

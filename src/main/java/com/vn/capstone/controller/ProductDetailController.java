@@ -3,7 +3,6 @@ package com.vn.capstone.controller;
 import com.vn.capstone.domain.Product;
 import com.vn.capstone.domain.ProductDetail;
 import com.vn.capstone.domain.response.RestResponse;
-import com.vn.capstone.domain.response.product.ProductDetailDTO;
 import com.vn.capstone.domain.response.product.ProductIdDTO;
 import com.vn.capstone.domain.response.productdetail.ProductDetailUpdateDTO;
 import com.vn.capstone.repository.ProductDetailRepository;
@@ -18,7 +17,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/v1/product-details")
+@RequestMapping("/api/v1")
 public class ProductDetailController {
 
     private final ProductDetailService productDetailService;
@@ -32,7 +31,7 @@ public class ProductDetailController {
         this.detailRepo = detailRepo;
     }
 
-    @PostMapping
+    @PostMapping("/product-details")
     public ResponseEntity<RestResponse<ProductIdDTO>> create(@RequestBody ProductIdDTO dto) {
         Product product = productRepo.findById(dto.getProductId())
                 .orElseThrow(() -> new RuntimeException("Product not found"));
@@ -62,7 +61,7 @@ public class ProductDetailController {
         return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/product-details/{id}")
     public ResponseEntity<RestResponse<ProductDetail>> update(
             @PathVariable Long id,
             @RequestBody ProductDetailUpdateDTO detailDTO) {
@@ -78,7 +77,7 @@ public class ProductDetailController {
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/product-details/{id}")
     public ResponseEntity<RestResponse<Void>> delete(@PathVariable Long id) {
         RestResponse<Void> response = new RestResponse<>();
         try {
@@ -97,7 +96,7 @@ public class ProductDetailController {
         }
     }
 
-    @GetMapping()
+    @GetMapping("/product-details")
     public ResponseEntity<RestResponse<List<ProductIdDTO>>> getAll() {
         List<ProductDetail> list = productDetailService.getAll();
 
@@ -123,7 +122,7 @@ public class ProductDetailController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/by-product/{productId}")
+    @GetMapping("/product-details/by-product/{productId}")
     public RestResponse<ProductDetail> getByProductId(@PathVariable Long productId) {
         RestResponse<ProductDetail> response = new RestResponse<>();
         try {
@@ -139,7 +138,7 @@ public class ProductDetailController {
         return response;
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/product-details/{id}")
     public RestResponse<ProductDetail> getById(@PathVariable Long id) {
         RestResponse<ProductDetail> response = new RestResponse<>();
         try {

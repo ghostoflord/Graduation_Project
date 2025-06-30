@@ -11,7 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/manual-chats")
+@RequestMapping("/api/v1")
 public class ManualChatController {
 
     private final ManualChatService manualChatService;
@@ -22,7 +22,7 @@ public class ManualChatController {
         this.chatBotService = chatBotService;
     }
 
-    @PostMapping("")
+    @PostMapping("/manual-chats")
     public ResponseEntity<RestResponse<ManualChat>> createManualChat(@RequestBody ManualChat manualChat) {
         ManualChat savedChat = manualChatService.save(manualChat);
 
@@ -35,7 +35,7 @@ public class ManualChatController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/manual-chat")
+    @PostMapping("/manual-chats/manual-chat")
     public ResponseEntity<String> chat(@RequestBody Map<String, String> payload) {
         String message = payload.get("message");
         String reply = chatBotService.handleUserMessage(message);

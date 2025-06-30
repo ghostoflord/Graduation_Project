@@ -1,12 +1,10 @@
 package com.vn.capstone.controller;
 
 import java.security.Principal;
-import java.time.Instant;
 import java.util.List;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -37,10 +35,9 @@ import com.vn.capstone.service.ProductService;
 import com.vn.capstone.util.annotation.ApiMessage;
 
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/v1/orders")
+@RequestMapping("/api/v1")
 public class OrderController {
 
     private final OrderService orderService;
@@ -51,7 +48,7 @@ public class OrderController {
         this.productService = productService;
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/orders/{id}")
     public ResponseEntity<RestResponse<OrderSummaryDTO>> getOrderSummaryById(@PathVariable Long id) {
         var restResponse = new RestResponse<OrderSummaryDTO>();
         return orderService.getOrderSummaryById(id)
@@ -71,7 +68,7 @@ public class OrderController {
                 });
     }
 
-    @PostMapping("/place")
+    @PostMapping("/orders/place")
     public ResponseEntity<RestResponse<OrderResponse>> placeOrder(@Valid @RequestBody PlaceOrderRequest req) {
         RestResponse<OrderResponse> restResponse = new RestResponse<>();
 
@@ -104,7 +101,7 @@ public class OrderController {
         }
     }
 
-    @GetMapping("/all")
+    @GetMapping("/orders/all")
     public ResponseEntity<RestResponse<List<OrderSummaryDTO>>> getAllOrders() {
         List<OrderSummaryDTO> orders = orderService.getAllOrderSummaries();
 
@@ -118,7 +115,7 @@ public class OrderController {
     }
 
     // người dùng khi đặt hàng xong có thể hủy đơn hàng đó .
-    @PostMapping("/{id}/cancel")
+    @PostMapping("/orders/{id}/cancel")
     public ResponseEntity<RestResponse<Void>> cancelOrder(@PathVariable Long id, Principal principal) {
         orderService.cancelOrder(id, principal.getName());
 
@@ -132,7 +129,7 @@ public class OrderController {
     }
 
     // get order by user
-    @GetMapping("/my-orders")
+    @GetMapping("/orders/my-orders")
     public ResponseEntity<RestResponse<List<OrderSummaryDTO>>> getMyOrders(Principal principal) {
         String email = principal.getName();
         List<OrderSummaryDTO> orderSummaries = orderService.getOrderSummariesForUser(email);
@@ -146,7 +143,7 @@ public class OrderController {
     }
 
     // người dùng khi click vào orderId có thể xem chi tiết sản phẩm
-    @GetMapping("/{orderId}/details")
+    @GetMapping("/orders/{orderId}/details")
     public ResponseEntity<RestResponse<OrderHistoryDTO>> getOrderDetails(@PathVariable Long orderId,
             Principal principal) {
         OrderHistoryDTO dto = orderService.getOrderDetails(orderId, principal.getName());
@@ -160,7 +157,7 @@ public class OrderController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/checkout")
+    @PostMapping("/orders/checkout")
     public ResponseEntity<RestResponse<Void>> checkout(@RequestBody List<OrderItemDTO> orderItems) {
         try {
             orderService.processOrder(orderItems);
@@ -178,7 +175,7 @@ public class OrderController {
     }
 
     // cập nhập order bởi admin
-    @PostMapping("/{id}/update")
+    @PostMapping("/orders/{id}/update")
     public ResponseEntity<RestResponse<Void>> updateOrder(@PathVariable Long id,
             @RequestBody UpdateOrderRequest request,
             Principal principal) {
@@ -190,7 +187,7 @@ public class OrderController {
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/orders/{id}")
     public ResponseEntity<RestResponse<Void>> deleteOrder(@PathVariable("id") Long orderId) {
         RestResponse<Void> response = new RestResponse<>();
         orderService.deleteOrderById(orderId);
@@ -200,7 +197,7 @@ public class OrderController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/shipper")
+    @GetMapping("/orders/shipper")
     @ApiMessage("fetch orders for shipper")
     public ResponseEntity<RestResponse<ResultPaginationDTO>> getOrdersForShipper(
             @Filter Specification<Order> spec,
@@ -219,7 +216,7 @@ public class OrderController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @PostMapping("/{orderId}/accept")
+    @PostMapping("/orders/{orderId}/accept")
     public ResponseEntity<RestResponse<Void>> acceptOrder(@PathVariable Long orderId, Authentication auth) {
         orderService.acceptOrder(orderId, auth.getName());
         RestResponse<Void> response = new RestResponse<>();
@@ -229,7 +226,7 @@ public class OrderController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/{orderId}/complete")
+    @PostMapping("/orders/{orderId}/complete")
     public ResponseEntity<RestResponse<Void>> completeOrder(@PathVariable Long orderId, Authentication auth) {
         orderService.completeOrder(orderId, auth.getName());
         RestResponse<Void> response = new RestResponse<>();
@@ -239,7 +236,7 @@ public class OrderController {
         return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/{orderId}/delivered")
+    @PutMapping("/orders/{orderId}/delivered")
     public ResponseEntity<RestResponse<Void>> markAsDelivered(@PathVariable Long orderId) {
         orderService.markAsDelivered(orderId);
 
@@ -251,7 +248,7 @@ public class OrderController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/shipper/delivered")
+    @GetMapping("/orders/shipper/delivered")
     public ResponseEntity<RestResponse<List<OrderShipperDTO>>> getDeliveredOrdersForShipper(
             Authentication authentication) {
         String username = authentication.getName();
@@ -266,7 +263,7 @@ public class OrderController {
     }
 
     //
-    @GetMapping("/shipper-stats")
+    @GetMapping("/orders/shipper-stats")
     public ResponseEntity<RestResponse<ShipperStatsResponse>> getStats(@RequestParam Long shipperId) {
         ShipperStatsResponse stats = orderService.getShipperStats(shipperId);
 

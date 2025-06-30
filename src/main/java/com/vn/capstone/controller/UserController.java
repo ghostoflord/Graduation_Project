@@ -7,14 +7,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.turkraft.springfilter.boot.Filter;
@@ -35,18 +33,11 @@ import com.vn.capstone.service.RoleService;
 import com.vn.capstone.service.UserService;
 import com.vn.capstone.util.SecurityUtil;
 import com.vn.capstone.util.annotation.ApiMessage;
-import com.vn.capstone.util.error.IdInvalidException;
 
 import jakarta.validation.Valid;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.http.*;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.*;
-import java.nio.file.*;
 import java.util.Base64;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.io.*;
 
@@ -94,22 +85,6 @@ public class UserController {
         User fetchUser = this.userService.fetchUserById(id);
         return ResponseEntity.status(HttpStatus.OK).body(fetchUser);
     }
-
-    // @PostMapping("/users")
-    // @ApiMessage("Create a new user")
-    // public ResponseEntity<User> createUser(@Valid @RequestBody User takeUser)
-    // throws IdInvalidException {
-
-    // boolean isEmailExists = this.userService.isEmailExists(takeUser.getEmail());
-    // if (isEmailExists) {
-    // throw new IdInvalidException(
-    // "Email" + takeUser.getEmail() + "already exists, please use another email.");
-    // }
-    // String hashPassword = this.passwordEncoder.encode(takeUser.getPassword());
-    // takeUser.setPassword(hashPassword);
-    // User pressUser = this.userService.handleCreateUser(takeUser);
-    // return ResponseEntity.status(HttpStatus.CREATED).body(pressUser);
-    // }
 
     @PostMapping("/users")
     public ResponseEntity<RestResponse<User>> createUser(@RequestBody CreateUserDTO userDTO) throws IOException {

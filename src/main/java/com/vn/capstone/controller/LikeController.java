@@ -19,7 +19,7 @@ import com.vn.capstone.domain.response.like.LikeDTO;
 import com.vn.capstone.service.LikeService;
 
 @RestController
-@RequestMapping("/api/v1/likes")
+@RequestMapping("/api/v1")
 public class LikeController {
 
     private final LikeService likeService;
@@ -28,7 +28,7 @@ public class LikeController {
         this.likeService = likeService;
     }
 
-    @PostMapping("/toggle")
+    @PostMapping("/likes/toggle")
     public RestResponse<Map<String, Object>> toggleLike(
             @RequestParam Long productId,
             @RequestParam Long userId) {
@@ -47,7 +47,7 @@ public class LikeController {
     }
 
     // API lấy tổng số like của sản phẩm
-    @GetMapping("/count/{productId}")
+    @GetMapping("/likes/count/{productId}")
     public RestResponse<Long> getLikeCount(@PathVariable Long productId) {
         Long totalLikes = likeService.countLikes(productId);
 
@@ -58,7 +58,7 @@ public class LikeController {
         return response;
     }
 
-    @GetMapping("/user/{userId}")
+    @GetMapping("/likes/user/{userId}")
     public ResponseEntity<RestResponse<List<LikeDTO>>> getLikesByUserId(@PathVariable Long userId) {
         List<Like> likes = likeService.getLikesByUserId(userId);
 

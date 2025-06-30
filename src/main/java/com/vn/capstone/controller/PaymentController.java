@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @RestController
-@RequestMapping("/api/v1/payment")
+@RequestMapping("/api/v1")
 public class PaymentController {
 
     private final VNPayService vnPayService;
@@ -38,7 +38,7 @@ public class PaymentController {
         }
     }
 
-    @PostMapping("/vnpay")
+    @PostMapping("/payment/vnpay")
     public ResponseEntity<RestResponse<String>> createVNPayUrl(@RequestBody Map<String, Object> request,
             HttpServletRequest httpRequest) {
         RestResponse<String> restResponse = new RestResponse<>();
@@ -80,7 +80,7 @@ public class PaymentController {
         }
     }
 
-    @PostMapping("/vnpay/response")
+    @PostMapping("/payment/vnpay/response")
     public ResponseEntity<RestResponse<String>> handleVNPAYResponse(@RequestBody Map<String, Object> request) {
         RestResponse<String> restResponse = new RestResponse<>();
 

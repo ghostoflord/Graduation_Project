@@ -6,13 +6,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -31,8 +29,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.vn.capstone.config.CustomUserDetails;
-import com.vn.capstone.domain.response.dtoAuth.ResponseUtils;
 import com.vn.capstone.domain.Role;
 import com.vn.capstone.domain.User;
 import com.vn.capstone.domain.VerificationToken;
@@ -350,7 +346,6 @@ public class AuthController {
                 }
         }
 
-        // remake
         @PostMapping("/auth/forgot-password")
         public ResponseEntity<RestResponse<Map<String, String>>> forgotPassword(
                         @RequestBody ForgotPasswordRequest request) {

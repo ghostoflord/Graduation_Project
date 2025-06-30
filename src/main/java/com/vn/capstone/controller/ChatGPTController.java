@@ -9,7 +9,7 @@ import com.vn.capstone.domain.request.PromptRequest;
 import com.vn.capstone.service.ChatService;
 
 @RestController
-@RequestMapping("/api/v1/chat")
+@RequestMapping("/api/v1")
 public class ChatGPTController {
     private final ChatService chatService;
 
@@ -17,7 +17,7 @@ public class ChatGPTController {
         this.chatService = chatService;
     }
 
-    @PostMapping()
+    @PostMapping("/chat")
     public String chat(@RequestBody PromptRequest promptRequest) {
         return chatService.getChatResponse(promptRequest);
     }

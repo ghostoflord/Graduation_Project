@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.vn.capstone.domain.Review;
@@ -17,7 +16,7 @@ import com.vn.capstone.domain.response.review.ReviewDTO;
 import com.vn.capstone.service.ReviewService;
 
 @RestController
-@RequestMapping("/api/v1/reviews")
+@RequestMapping("/api/v1")
 public class ReviewController {
     private final ReviewService reviewService;
 
@@ -25,7 +24,7 @@ public class ReviewController {
         this.reviewService = reviewService;
     }
 
-    @GetMapping("/product/{productId}")
+    @GetMapping("/reviews/product/{productId}")
     public RestResponse<List<Review>> getReviews(@PathVariable Long productId) {
         List<Review> reviews = reviewService.getReviewsByProduct(productId);
         RestResponse<List<Review>> response = new RestResponse<>();
@@ -35,7 +34,7 @@ public class ReviewController {
         return response;
     }
 
-    @PostMapping
+    @PostMapping("/reviews")
     public RestResponse<Review> addReview(@RequestBody ReviewDTO dto) {
         Review review = reviewService.addOrUpdateReview(
                 dto.getProductId(),
@@ -48,7 +47,7 @@ public class ReviewController {
         return response;
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/reviews/{id}")
     public RestResponse<Void> deleteReview(@PathVariable Long id) {
         reviewService.deleteReview(id);
         RestResponse<Void> response = new RestResponse<>();

@@ -19,7 +19,6 @@ public class DashboardController {
     private final ProductRepository productRepository;
     private final OrderRepository orderRepository;
 
-    @Autowired
     public DashboardController(UserRepository userRepository,
             ProductRepository productRepository,
             OrderRepository orderRepository) {

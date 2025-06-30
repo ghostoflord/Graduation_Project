@@ -1,15 +1,9 @@
 package com.vn.capstone.controller;
 
 import jakarta.validation.Valid;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.http.*;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.*;
-import java.nio.file.*;
 import java.util.Base64;
 import java.util.List;
-import java.util.Optional;
 import java.io.*;
 
 import org.springframework.data.domain.Pageable;
@@ -36,8 +30,6 @@ import com.vn.capstone.domain.response.product.ProductUpdateRequest;
 import com.vn.capstone.service.ProductService;
 import com.vn.capstone.util.annotation.ApiMessage;
 import com.vn.capstone.util.error.IdInvalidException;
-
-import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -67,20 +59,6 @@ public class ProductController {
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
-
-    // @GetMapping("/products/{id}")
-    // @ApiMessage("Fetch Product by id")
-    // public ResponseEntity<RestResponse<Product>>
-    // getProductById(@PathVariable("id") long id) {
-    // Product fetchProduct = this.productService.fetchProductById(id);
-
-    // RestResponse<Product> response = new RestResponse<>();
-    // response.setStatusCode(HttpStatus.OK.value());
-    // response.setMessage("Lấy sản phẩm thành công");
-    // response.setData(fetchProduct);
-
-    // return ResponseEntity.status(HttpStatus.OK).body(response);
-    // }
 
     @GetMapping("/products/{id:\\\\d+}")
     @ApiMessage("Fetch Product by id")

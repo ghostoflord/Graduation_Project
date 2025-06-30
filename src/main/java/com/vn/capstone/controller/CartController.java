@@ -16,10 +16,10 @@ import com.vn.capstone.domain.response.RestResponse;
 import com.vn.capstone.domain.response.SimplifiedCartDetailDTO;
 import com.vn.capstone.domain.response.cart.AddToCartRequest;
 import com.vn.capstone.domain.response.cart.CartSummaryDTO;
-import com.vn.capstone.service.*;
+import com.vn.capstone.service.CartService;
 
 @RestController
-@RequestMapping("/api/v1/carts")
+@RequestMapping("/api/v1")
 public class CartController {
 
     private final CartService cartService;
@@ -29,7 +29,7 @@ public class CartController {
     }
 
     // Lấy giỏ hàng của người dùng
-    @GetMapping("/users/{userId}")
+    @GetMapping("/carts/users/{userId}")
     public RestResponse<CartSummaryDTO> getCartByUser(@PathVariable Long userId) {
         CartSummaryDTO cartSummary = cartService.getCartSummaryByUserId(userId);
 
@@ -43,7 +43,7 @@ public class CartController {
     }
 
     // Thêm sản phẩm vào giỏ hàng
-    @PostMapping("/addproduct")
+    @PostMapping("/carts/addproduct")
     public RestResponse<SimplifiedCartDetailDTO> addProductToCartJson(@RequestBody AddToCartRequest request) {
         Product product = new Product();
         product.setId(request.getProductId());
@@ -65,14 +65,14 @@ public class CartController {
     }
 
     // delete sản phẩm trong giỏ hàng
-    @DeleteMapping("/{cartId}/clear")
+    @DeleteMapping("/carts/{cartId}/clear")
     public ResponseEntity<Void> clearCart(@PathVariable Long cartId) {
         cartService.clearCart(cartId); // gọi service
         return ResponseEntity.noContent().build(); // 204 No Content
     }
 
     // delete all cart
-    @DeleteMapping("/{userId}/clears")
+    @DeleteMapping("/carts/{userId}/clears")
     public ResponseEntity<Void> clearAllCart(@PathVariable Long userId) {
         cartService.clearCartUserId(userId);
         return ResponseEntity.noContent().build();
@@ -89,7 +89,7 @@ public class CartController {
     }
 
     // delete one product in cart page
-    @DeleteMapping("/remove")
+    @DeleteMapping("/carts/remove")
     public ResponseEntity<RestResponse<Void>> removeCartItem(
             @RequestParam Long userId,
             @RequestParam Long productId) {

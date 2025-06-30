@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/flash-sales")
+@RequestMapping("/api/v1")
 public class FlashSaleController {
 
     private final FlashSaleService flashSaleService;
@@ -36,7 +36,7 @@ public class FlashSaleController {
         this.flashSaleItemRepo = flashSaleItemRepo;
     }
 
-    @GetMapping("/active-items")
+    @GetMapping("/flash-sales/active-items")
     public ResponseEntity<RestResponse<List<FlashSaleItemDTO>>> getActiveFlashSaleItems() {
         List<FlashSaleItemDTO> items = flashSaleService.getActiveFlashSaleItems();
         RestResponse<List<FlashSaleItemDTO>> response = new RestResponse<>();
@@ -47,7 +47,7 @@ public class FlashSaleController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping
+    @GetMapping("/flash-sales")
     @ApiMessage("Fetch all flash sales")
     public ResponseEntity<RestResponse<ResultPaginationDTO>> getAllFlashSales(
             @Filter Specification<FlashSale> spec,
@@ -62,7 +62,7 @@ public class FlashSaleController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping
+    @PostMapping("/flash-sales")
     public ResponseEntity<RestResponse<FlashSaleDTO>> createFlashSale(@RequestBody FlashSaleRequest request) {
         FlashSaleDTO created = flashSaleService.createFlashSale(request);
         RestResponse<FlashSaleDTO> response = new RestResponse<>();
@@ -73,7 +73,7 @@ public class FlashSaleController {
         return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/flash-sales/{id}")
     public ResponseEntity<RestResponse<Void>> updateFlashSale(
             @PathVariable Long id,
             @RequestBody FlashSaleUpdateDTO dto) {
@@ -89,7 +89,7 @@ public class FlashSaleController {
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/flash-sales/{id}")
     public ResponseEntity<RestResponse<Void>> deleteFlashSale(@PathVariable Long id) {
         flashSaleService.deleteFlashSale(id);
 
@@ -102,7 +102,7 @@ public class FlashSaleController {
     }
 
     // đếm số lượng sản phẩm flash sale
-    @PostMapping("/reduce-quantity")
+    @PostMapping("/flash-sales/reduce-quantity")
     public ResponseEntity<RestResponse<Void>> reduceQuantity(@RequestParam Long flashSaleItemId,
             @RequestParam int quantity) {
         flashSaleService.reduceFlashSaleItemQuantity(flashSaleItemId, quantity);
@@ -117,7 +117,7 @@ public class FlashSaleController {
     }
 
     ///
-    @GetMapping("/flash-sale-items/{id}/validate")
+    @GetMapping("/flash-sales/flash-sale-items/{id}/validate")
     public ResponseEntity<RestResponse<Map<String, Object>>> validateFlashSaleItem(@PathVariable Long id) {
         FlashSaleItem item = flashSaleItemRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Item not found"));

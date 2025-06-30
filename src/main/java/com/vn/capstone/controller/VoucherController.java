@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/vouchers")
+@RequestMapping("/api/v1")
 public class VoucherController {
 
     private final VoucherService voucherService;
@@ -29,7 +29,7 @@ public class VoucherController {
         this.voucherService = voucherService;
     }
 
-    @PostMapping
+    @PostMapping("/vouchers")
     public ResponseEntity<RestResponse<Voucher>> createVoucher(@RequestBody VoucherRequest voucher) {
         Voucher created = voucherService.createVoucher(voucher);
         RestResponse<Voucher> response = new RestResponse<>();
@@ -39,7 +39,7 @@ public class VoucherController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PostMapping("/assign")
+    @PostMapping("/vouchers/assign")
     public ResponseEntity<RestResponse<String>> assignVoucher(
             @RequestParam Long voucherId,
             @RequestParam Long userId) {
@@ -51,7 +51,7 @@ public class VoucherController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/apply")
+    @PostMapping("/vouchers/apply")
     public ResponseEntity<RestResponse<OrderDiscountResult>> applyVoucher(
             @RequestParam String code,
             @RequestParam Long userId,
@@ -68,7 +68,7 @@ public class VoucherController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping
+    @GetMapping("/vouchers")
     @ApiMessage("Fetch all vouchers")
     public ResponseEntity<RestResponse<ResultPaginationDTO>> getAllVouchers(
             @Filter Specification<Voucher> spec,
@@ -84,7 +84,7 @@ public class VoucherController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/vouchers/{id}")
     public ResponseEntity<RestResponse<String>> deleteVoucher(@PathVariable Long id) {
         voucherService.deleteVoucher(id);
         RestResponse<String> response = new RestResponse<>();
@@ -94,7 +94,7 @@ public class VoucherController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/user/{userId}")
+    @GetMapping("/vouchers/user/{userId}")
     public ResponseEntity<RestResponse<List<VoucherDTO>>> getVouchersForUser(@PathVariable Long userId) {
         List<VoucherDTO> vouchers = voucherService.getAvailableVouchersForUser(userId);
 
@@ -116,7 +116,7 @@ public class VoucherController {
     }
 
     ///
-    @PutMapping("/{id}")
+    @PutMapping("/vouchers/{id}")
     public ResponseEntity<RestResponse<Voucher>> updateVoucher(
             @PathVariable Long id,
             @RequestBody VoucherUpdateDTO dto) {

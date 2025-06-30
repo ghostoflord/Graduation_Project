@@ -1,14 +1,11 @@
 package com.vn.capstone.controller;
 
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.vn.capstone.service.EmailService;
 import com.vn.capstone.util.annotation.ApiMessage;
-
-import jakarta.transaction.Transactional;
 
 @RestController
 @RequestMapping("/api/v1")
