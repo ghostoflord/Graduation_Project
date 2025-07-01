@@ -12,6 +12,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import com.vn.capstone.domain.CartDetail;
+import com.vn.capstone.domain.Product;
 import com.vn.capstone.domain.User;
 import com.vn.capstone.domain.UserVoucher;
 import com.vn.capstone.domain.Voucher;
@@ -119,8 +120,27 @@ public class VoucherService {
             throw new RuntimeException("Voucher đã hết hạn hoặc chưa bắt đầu");
         }
 
-        if (voucher.getAssignedUser() != null && !Long.valueOf(voucher.getAssignedUser().getId()).equals(userId)) {
+        if (voucher.getAssignedUser() != null && !(Long.valueOf(voucher.getAssignedUser().getId()).equals(userId))) {
             throw new RuntimeException("Voucher không áp dụng cho bạn");
+        }
+
+        // Nếu voucher chỉ áp dụng cho 1 sản phẩm cụ thể
+        Product applicableProduct = voucher.getApplicableProduct();
+        CartDetail productToDiscount;
+
+        if (applicableProduct != null) {
+            // Tìm sản phẩm trong giỏ hàng khớp với applicableProduct
+            productToDiscount = cartDetails.stream()
+                    .filter(cd -> cd.getProduct().getId() == applicableProduct.getId())
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException(
+                            "Voucher này chỉ áp dụng cho sản phẩm: " + applicableProduct.getName()));
+        } else {
+            // Nếu không giới hạn, lấy sản phẩm có giá cao nhất
+            productToDiscount = cartDetails.stream()
+                    .sorted((a, b) -> Double.compare(b.getPrice(), a.getPrice()))
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("Giỏ hàng rỗng"));
         }
 
         // SINGLE-USE CHECK
@@ -153,13 +173,7 @@ public class VoucherService {
                 .mapToLong(cd -> Math.round(cd.getPrice() * cd.getQuantity()))
                 .sum();
 
-        // Tìm sản phẩm có giá cao nhất
-        CartDetail productToDiscount = cartDetails.stream()
-                .sorted((a, b) -> Double.compare(b.getPrice(), a.getPrice()))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("Giỏ hàng rỗng"));
-
-        // Chỉ giảm giá cho 1 đơn vị sản phẩm
+        // Chỉ giảm cho 1 đơn vị sản phẩm
         long pricePerUnit = Math.round(productToDiscount.getPrice());
 
         long discount = voucher.isPercentage()

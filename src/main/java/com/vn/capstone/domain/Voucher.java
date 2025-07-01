@@ -47,6 +47,9 @@ public class Voucher {
     @JsonIgnore
     private List<UserVoucher> userVouchers;
 
+    @ManyToOne
+    private Product applicableProduct;
+
     public Long getId() {
         return id;
     }
@@ -157,6 +160,14 @@ public class Voucher {
 
     public void setUserVouchers(List<UserVoucher> userVouchers) {
         this.userVouchers = userVouchers;
+    }
+
+    public Product getApplicableProduct() {
+        return applicableProduct;
+    }
+
+    public void setApplicableProduct(Product applicableProduct) {
+        this.applicableProduct = applicableProduct;
     }
 
 }
