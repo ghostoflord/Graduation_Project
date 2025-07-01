@@ -187,7 +187,8 @@ public class OrderService {
             OrderDiscountResult discountResult = voucherService.applyVoucher(
                     voucherCode,
                     userId,
-                    (int) totalPrice,
+                    // (int) totalPrice,
+                    cart.getCartDetails(),
                     true // Đảm bảo là lưu
             );
 
@@ -198,8 +199,7 @@ public class OrderService {
             Voucher voucher = voucherRepository.findByCode(voucherCode);
             order.setVoucher(voucher);
 
-            //  Nếu voucher là dùng 1 lần và dành riêng cho user, thì disable
-            // nó
+            // Nếu voucher là dùng 1 lần và dành riêng cho user, thì disable nó
             if (voucher.isSingleUse() && voucher.getAssignedUser() != null) {
                 voucher.setActive(false); // Ẩn khỏi danh sách voucher sau khi dùng
                 voucher.setUsed(true); // Đánh dấu đã dùng

@@ -11,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import com.vn.capstone.domain.CartDetail;
 import com.vn.capstone.domain.User;
 import com.vn.capstone.domain.UserVoucher;
 import com.vn.capstone.domain.Voucher;
@@ -106,42 +107,36 @@ public class VoucherService {
                 .toList();
     }
 
-    public OrderDiscountResult applyVoucher(String code, Long userId, int orderTotal, boolean saveUsage) {
+    public OrderDiscountResult applyVoucher(String code, Long userId, List<CartDetail> cartDetails, boolean saveUsage) {
         Voucher voucher = voucherRepository.findByCode(code);
 
         if (voucher == null || !voucher.isActive()) {
             throw new RuntimeException("Voucher không tồn tại hoặc không còn hiệu lực");
         }
 
-        // Check hạn sử dụng
         LocalDateTime now = LocalDateTime.now();
         if (voucher.getStartDate().isAfter(now) || voucher.getEndDate().isBefore(now)) {
             throw new RuntimeException("Voucher đã hết hạn hoặc chưa bắt đầu");
         }
 
-        // Nếu voucher chỉ áp dụng cho 1 user cụ thể
         if (voucher.getAssignedUser() != null && !Long.valueOf(voucher.getAssignedUser().getId()).equals(userId)) {
             throw new RuntimeException("Voucher không áp dụng cho bạn");
         }
 
-        // Xử lý SINGLE-USE
+        // SINGLE-USE CHECK
         if (voucher.isSingleUse()) {
             if (voucher.getAssignedUser() != null) {
-                // Trường hợp dành riêng cho 1 user
-                if (voucher.isUsed()) {
+                if (voucher.isUsed())
                     throw new RuntimeException("Bạn đã dùng voucher này rồi");
-                }
 
                 if (saveUsage) {
                     voucher.setUsed(true);
                     voucherRepository.save(voucher);
                 }
             } else {
-                // Dùng chung → check trong bảng user_voucher
                 boolean alreadyUsed = userVoucherRepository.existsByUserIdAndVoucherId(userId, voucher.getId());
-                if (alreadyUsed) {
+                if (alreadyUsed)
                     throw new RuntimeException("Bạn đã dùng voucher này rồi");
-                }
 
                 if (saveUsage) {
                     UserVoucher uv = new UserVoucher();
@@ -153,16 +148,31 @@ public class VoucherService {
             }
         }
 
-        // Tính giảm giá
+        // Tổng tiền giỏ hàng
+        long orderTotal = cartDetails.stream()
+                .mapToLong(cd -> Math.round(cd.getPrice() * cd.getQuantity()))
+                .sum();
+
+        // Tìm sản phẩm có giá cao nhất
+        CartDetail productToDiscount = cartDetails.stream()
+                .sorted((a, b) -> Double.compare(b.getPrice(), a.getPrice()))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Giỏ hàng rỗng"));
+
+        // Chỉ giảm giá cho 1 đơn vị sản phẩm
+        long pricePerUnit = Math.round(productToDiscount.getPrice());
+
         long discount = voucher.isPercentage()
-                ? (long) orderTotal * voucher.getDiscountValue() / 100
+                ? pricePerUnit * voucher.getDiscountValue() / 100
                 : voucher.getDiscountValue();
 
-        if (discount > orderTotal) {
-            discount = orderTotal;
+        if (discount > pricePerUnit) {
+            discount = pricePerUnit;
         }
 
         long finalAmount = orderTotal - discount;
+        if (finalAmount < 0)
+            finalAmount = 0;
 
         return new OrderDiscountResult(discount, finalAmount);
     }

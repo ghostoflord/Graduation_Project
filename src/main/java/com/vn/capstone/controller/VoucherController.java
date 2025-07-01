@@ -1,6 +1,7 @@
 package com.vn.capstone.controller;
 
 import com.turkraft.springfilter.boot.Filter;
+import com.vn.capstone.domain.Cart;
 import com.vn.capstone.domain.Voucher;
 import com.vn.capstone.domain.response.RestResponse;
 import com.vn.capstone.domain.response.ResultPaginationDTO;
@@ -8,6 +9,7 @@ import com.vn.capstone.domain.response.order.OrderDiscountResult;
 import com.vn.capstone.domain.response.voucher.VoucherDTO;
 import com.vn.capstone.domain.response.voucher.VoucherRequest;
 import com.vn.capstone.domain.response.voucher.VoucherUpdateDTO;
+import com.vn.capstone.repository.CartRepository;
 import com.vn.capstone.service.VoucherService;
 import com.vn.capstone.util.annotation.ApiMessage;
 
@@ -24,9 +26,11 @@ import java.util.List;
 public class VoucherController {
 
     private final VoucherService voucherService;
+    private final CartRepository cartRepository;
 
-    public VoucherController(VoucherService voucherService) {
+    public VoucherController(VoucherService voucherService,CartRepository cartRepository) {
         this.voucherService = voucherService;
+        this.cartRepository = cartRepository;
     }
 
     @PostMapping("/vouchers")
@@ -55,10 +59,16 @@ public class VoucherController {
     public ResponseEntity<RestResponse<OrderDiscountResult>> applyVoucher(
             @RequestParam String code,
             @RequestParam Long userId,
-            @RequestParam int orderTotal,
             @RequestParam(defaultValue = "false") boolean saveUsage) {
 
-        OrderDiscountResult result = voucherService.applyVoucher(code, userId, orderTotal, saveUsage);
+        // Lấy cart và cartDetails từ userId
+        Cart cart = cartRepository.findByUserId(userId);
+        if (cart == null || cart.getCartDetails().isEmpty()) {
+            throw new IllegalArgumentException("Giỏ hàng trống hoặc không tồn tại");
+        }
+
+        // Gọi service với cartDetails thay vì orderTotal
+        OrderDiscountResult result = voucherService.applyVoucher(code, userId, cart.getCartDetails(), saveUsage);
 
         RestResponse<OrderDiscountResult> response = new RestResponse<>();
         response.setStatusCode(HttpStatus.OK.value());
