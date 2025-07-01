@@ -155,7 +155,7 @@ public class VoucherService {
 
         // Tính giảm giá
         long discount = voucher.isPercentage()
-                ? orderTotal * voucher.getDiscountValue() / 100
+                ? (long) orderTotal * voucher.getDiscountValue() / 100
                 : voucher.getDiscountValue();
 
         if (discount > orderTotal) {

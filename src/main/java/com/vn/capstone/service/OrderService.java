@@ -181,13 +181,14 @@ public class OrderService {
         long discountAmount = 0;
 
         // Áp dụng voucher nếu có
+        // Áp dụng voucher nếu có
         if (voucherCode != null && !voucherCode.isBlank()) {
             // Gọi applyVoucher để vừa kiểm tra, vừa lưu lịch sử (user_voucher)
             OrderDiscountResult discountResult = voucherService.applyVoucher(
                     voucherCode,
                     userId,
                     (int) totalPrice,
-                    true // ✅ Đảm bảo là lưu
+                    true // Đảm bảo là lưu
             );
 
             discountAmount = discountResult.getDiscountAmount();
@@ -196,6 +197,14 @@ public class OrderService {
             // Lấy voucher từ repository và set vào order
             Voucher voucher = voucherRepository.findByCode(voucherCode);
             order.setVoucher(voucher);
+
+            //  Nếu voucher là dùng 1 lần và dành riêng cho user, thì disable
+            // nó
+            if (voucher.isSingleUse() && voucher.getAssignedUser() != null) {
+                voucher.setActive(false); // Ẩn khỏi danh sách voucher sau khi dùng
+                voucher.setUsed(true); // Đánh dấu đã dùng
+                voucherRepository.save(voucher);
+            }
         }
 
         // Lưu order với giá cuối cùng
