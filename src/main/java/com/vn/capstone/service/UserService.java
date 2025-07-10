@@ -280,16 +280,16 @@ public class UserService {
         return true;
     }
 
-    public void resetPassword(String token, String newPassword) {
-        User user = userRepository.findByResetPasswordToken(token)
-                .orElseThrow(() -> new RuntimeException("Invalid token"));
+    public void resetPassword(String otp, String newPassword) {
+        User user = userRepository.findByResetPasswordToken(otp)
+                .orElseThrow(() -> new RuntimeException("Mã OTP không hợp lệ."));
 
         if (user.getResetPasswordTokenExpiry().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("Token expired");
+            throw new RuntimeException("Mã OTP đã hết hạn.");
         }
 
         user.setPassword(passwordEncoder.encode(newPassword));
-        user.setResetPasswordToken(null); // Xóa token sau khi dùng
+        user.setResetPasswordToken(null); // Xóa OTP sau khi dùng
         user.setResetPasswordTokenExpiry(null);
         userRepository.save(user);
     }

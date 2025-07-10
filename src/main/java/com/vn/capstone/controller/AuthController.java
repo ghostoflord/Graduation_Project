@@ -4,6 +4,7 @@ import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -42,6 +43,7 @@ import com.vn.capstone.domain.response.dtoAuth.ResetPasswordRequest;
 import com.vn.capstone.domain.response.dtoAuth.VerifyTokenRequest;
 import com.vn.capstone.domain.response.register.RegisterRequestDTO;
 import com.vn.capstone.repository.RoleRepository;
+import com.vn.capstone.repository.UserRepository;
 import com.vn.capstone.repository.VerificationTokenRepository;
 import com.vn.capstone.service.EmailService;
 import com.vn.capstone.service.UserService;
@@ -62,6 +64,7 @@ public class AuthController {
         private final EmailService emailService;
         private final VerificationTokenRepository verificationTokenRepository;
         private final RoleRepository roleRepository;
+        private final UserRepository userRepository;
 
         @Value("${ghost.jwt.refresh-token-validity-in-seconds}")
         private long refreshTokenExpiration;
@@ -69,7 +72,7 @@ public class AuthController {
         public AuthController(AuthenticationManagerBuilder authenticationManagerBuilder,
                         SecurityUtil securityUtil, UserService userService, PasswordEncoder passwordEncoder,
                         EmailService emailService, VerificationTokenRepository verificationTokenRepository,
-                        RoleRepository roleRepository) {
+                        RoleRepository roleRepository, UserRepository userRepository) {
                 this.authenticationManagerBuilder = authenticationManagerBuilder;
                 this.securityUtil = securityUtil;
                 this.userService = userService;
@@ -77,6 +80,7 @@ public class AuthController {
                 this.emailService = emailService;
                 this.verificationTokenRepository = verificationTokenRepository;
                 this.roleRepository = roleRepository;
+                this.userRepository = userRepository;
         }
 
         @PostMapping("/auth/login")
@@ -378,6 +382,40 @@ public class AuthController {
                 return ResponseEntity.ok(isValid ? "Token valid" : "Invalid token");
         }
 
+        // gửi mã otp vào email
+        @PostMapping("/auth/send-reset-otp")
+        @Transactional
+        public ResponseEntity<RestResponse<Map<String, String>>> sendResetPasswordOTP(
+                        @RequestBody EmailRequest request) {
+                String email = request.getEmail();
+
+                // Dùng repository trả về null thay vì Optional
+                User user = userRepository.findByEmail(email);
+                if (user == null) {
+                        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Email không tồn tại trong hệ thống.");
+                }
+
+                // Tạo mã OTP và cập nhật
+                String otp = generateOTP();
+                user.setResetPasswordToken(otp);
+                user.setResetPasswordTokenExpiry(LocalDateTime.now().plusMinutes(5));
+                userRepository.save(user);
+
+                // Gửi OTP qua email
+                emailService.sendOTPEmail(email, otp);
+
+                // Trả về response có email
+                Map<String, String> data = new HashMap<>();
+                data.put("email", email);
+
+                RestResponse<Map<String, String>> res = new RestResponse<>();
+                res.setStatusCode(HttpStatus.OK.value());
+                res.setMessage("Đã gửi mã OTP tới email, có hiệu lực trong 5 phút.");
+                res.setData(data);
+
+                return ResponseEntity.ok(res);
+        }
+
         @PostMapping("/auth/reset-password")
         public ResponseEntity<RestResponse<Void>> resetPassword(@RequestBody ResetPasswordRequest request) {
                 try {
@@ -385,21 +423,24 @@ public class AuthController {
 
                         RestResponse<Void> res = new RestResponse<>();
                         res.setStatusCode(HttpStatus.OK.value());
-                        res.setMessage("Password reset successfully");
-                        res.setData(null);
-
+                        res.setMessage("Đổi mật khẩu thành công");
                         return ResponseEntity.ok(res);
                 } catch (RuntimeException e) {
                         RestResponse<Void> res = new RestResponse<>();
                         res.setStatusCode(HttpStatus.BAD_REQUEST.value());
-                        res.setError("Bad Request");
+                        res.setError("Yêu cầu không hợp lệ");
                         res.setMessage(e.getMessage());
-                        res.setData(null);
-
                         return ResponseEntity.badRequest().body(res);
                 }
         }
 
+        public String generateOTP() {
+                Random random = new Random();
+                int otp = 100000 + random.nextInt(900000); // tạo số từ 100000 đến 999999
+                return String.valueOf(otp);
+        }
+
+        // not active acc
         @PostMapping("/auth/resend-verification")
         @Transactional
         public ResponseEntity<RestResponse<Void>> resendVerification(@RequestBody EmailRequest request) {

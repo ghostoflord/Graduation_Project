@@ -70,7 +70,7 @@ public class EmailService {
         this.sendEmailSync(to, subject, content, false, true);
     }
 
-    //send token active email
+    // send token active email
     public void sendVerificationEmail(String toEmail, String token) {
         String link = "http://localhost:8080/api/v1/verify?token=" + token;
 
@@ -78,6 +78,20 @@ public class EmailService {
         message.setTo(toEmail);
         message.setSubject("Email Verification");
         message.setText("Click the link to verify your email:\n" + link);
+
+        mailSender.send(message);
+    }
+
+    public void sendOTPEmail(String toEmail, String otpCode) {
+        String subject = "Mã xác thực của bạn";
+        String content = "Mã xác thực của bạn là: " + otpCode + "\n"
+                + "Mã này có hiệu lực trong 5 phút.\n\n"
+                + "Nếu bạn không yêu cầu, hãy bỏ qua email này.";
+
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(toEmail);
+        message.setSubject(subject);
+        message.setText(content);
 
         mailSender.send(message);
     }
