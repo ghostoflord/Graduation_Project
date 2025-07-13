@@ -1,8 +1,10 @@
 package com.vn.capstone.domain.response.voucher;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 public class VoucherApplyRequest {
     private String code;
     private Long userId;

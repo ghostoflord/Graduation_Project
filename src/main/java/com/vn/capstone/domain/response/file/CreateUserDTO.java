@@ -1,12 +1,18 @@
 package com.vn.capstone.domain.response.file;
 
-import org.springframework.web.multipart.MultipartFile;
 import com.vn.capstone.util.constant.GenderEnum;
 
 import jakarta.persistence.Column;
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+
 public class CreateUserDTO {
     private String username;
     private String name;

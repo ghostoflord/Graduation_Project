@@ -2,9 +2,11 @@ package com.vn.capstone.domain.response.user;
 
 import com.vn.capstone.util.constant.GenderEnum;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 public class UpdateUserDTO {
     private Long id;
     private String name;

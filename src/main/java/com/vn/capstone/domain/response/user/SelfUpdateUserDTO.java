@@ -1,9 +1,10 @@
 package com.vn.capstone.domain.response.user;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
-
+@Getter
+@Setter
 public class SelfUpdateUserDTO {
 
     private String firstName;

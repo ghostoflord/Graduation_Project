@@ -3,8 +3,6 @@ package com.vn.capstone.domain.response.order;
 import java.time.Instant;
 import java.util.List;
 
-import com.vn.capstone.domain.Order;
-
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

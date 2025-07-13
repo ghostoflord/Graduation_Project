@@ -1,8 +1,14 @@
 package com.vn.capstone.domain.response.product;
 
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class ProductDetailDTO {
     private String cpu;
     private String ram;

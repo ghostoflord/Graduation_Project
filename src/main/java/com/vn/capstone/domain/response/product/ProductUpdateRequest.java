@@ -5,9 +5,15 @@ import com.vn.capstone.util.constant.GuaranteeEnum;
 
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class ProductUpdateRequest {
     private long id;
     private String name;

@@ -1,7 +1,5 @@
 package com.vn.capstone.domain.response.productdetail;
 
-
-
 public class ProductDetailUpdateDTO {
     private String cpu;
     private String ram;

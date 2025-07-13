@@ -1,4 +1,4 @@
-package com.vn.capstone.controller;
+package com.vn.capstone.config;
 
 import java.util.List;
 
@@ -15,9 +15,9 @@ public class PageableConfig implements WebMvcConfigurer {
         PageableHandlerMethodArgumentResolver pageableResolver = new PageableHandlerMethodArgumentResolver();
 
         // Cấu hình custom tên query param
-        pageableResolver.setPageParameterName("current");   // thay vì "page"
-        pageableResolver.setSizeParameterName("pageSize");  // thay vì "size"
-        pageableResolver.setOneIndexedParameters(true);     // current = 1 là page 0
+        pageableResolver.setPageParameterName("current"); // thay vì "page"
+        pageableResolver.setSizeParameterName("pageSize"); // thay vì "size"
+        pageableResolver.setOneIndexedParameters(true); // current = 1 là page 0
 
         resolvers.add(pageableResolver);
     }

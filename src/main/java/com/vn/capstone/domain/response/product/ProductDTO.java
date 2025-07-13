@@ -3,9 +3,15 @@ package com.vn.capstone.domain.response.product;
 import com.vn.capstone.util.constant.BestsellEnum;
 import com.vn.capstone.util.constant.GuaranteeEnum;
 import com.vn.capstone.util.constant.ProductCategoryEnum;
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class ProductDTO {
     private long id;
     private String name;

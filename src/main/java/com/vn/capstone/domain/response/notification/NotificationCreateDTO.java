@@ -2,9 +2,15 @@ package com.vn.capstone.domain.response.notification;
 
 import java.time.Instant;
 
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class NotificationCreateDTO {
     private Long id;
     private String title;
