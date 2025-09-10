@@ -56,14 +56,14 @@ public class SecurityConfiguration {
                 "/",
                 "/api/v1/users/**", "/api/v1/roles/**", "/api/v1/products/**", "/api/v1/permissions/**",
                 "/api/v1/comments/**", "/api/v1/carts/**", "/api/v1/orders/**", "/api/v1/carts/addproduct",
-                "/api/v1/product-details/**", "/api/v1/notifications/**","/api/v1/auth/**",
+                "/api/v1/product-details/**", "/api/v1/notifications/**", "/api/v1/auth/**",
                 "/api/v1/email/**", "/api/v1/verify/**", "/api/v1/dashboard/**", "/api/v1/auth/resend-verification",
                 "/api/v1/review/**", "/api/v1/like/**", "/api/v1/invoice/**", "/api/v1/chat/**",
-                "/api/v1/manual-chat/**", "/api/v1/vouchers/**", "/api/v1/compare/**","/api/v1/flash-sales/**",
+                "/api/v1/manual-chat/**", "/api/v1/vouchers/**", "/api/v1/compare/**", "/api/v1/flash-sales/**",
                 "/api/v1/auth/forgot-password", "/api/v1/auth/verify-reset-token", "/api/v1/auth/reset-password",
                 "/api/v1/auth/register", "/api/v1/auth/login", "/api/v1/auth/account", "api/v1/auth/logout",
                 "/api/v1/files", "/upload/avatars/**", "/upload/products/**", "/oauth2/authorization/github",
-                "/api/v1/payment/**","/api/v1/manual-chats/**"
+                "/api/v1/payment/**", "/api/v1/manual-chats/**", "/api/v1/slides/**",
         };
 
         http
