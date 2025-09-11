@@ -1,5 +1,7 @@
 package com.vn.capstone.domain.response;
 
+import java.math.BigDecimal;
+
 import com.vn.capstone.domain.response.product.ProductDetailDTO;
 import com.vn.capstone.util.constant.BestsellEnum;
 import com.vn.capstone.util.constant.GenderEnum;
@@ -20,6 +22,7 @@ public class CreateProductDTO {
     private String sold;
     private String quantity;
     private String image; // base64 image
+    private String discountPrice;
 
     @Enumerated(EnumType.STRING)
     private BestsellEnum bestsell;
@@ -130,6 +133,14 @@ public class CreateProductDTO {
 
     public void setDetail(ProductDetailDTO detail) {
         this.detail = detail;
+    }
+
+    public String getDiscountPrice() {
+        return discountPrice;
+    }
+
+    public void setDiscountPrice(String discountPrice) {
+        this.discountPrice = discountPrice;
     }
 
 }

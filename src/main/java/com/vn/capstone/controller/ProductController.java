@@ -125,7 +125,8 @@ public class ProductController {
         System.out.println("Saving product: " + product);
 
         // Tạo SKU tự động trước khi save
-        product.setSku(productService.generateSKU(dto));
+        // product.setSku(productService.generateSKU(dto));
+        product.setDiscountPrice(dto.getDiscountPrice());
 
         Product savedProduct = productService.handleCreateProduct(product);
 

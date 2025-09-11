@@ -45,6 +45,7 @@ public class Product {
 
     private String factory;
     private String price;
+    private String discountPrice;
     private String sold;
     private String quantity;
     private String shortDescription;
@@ -309,4 +310,11 @@ public class Product {
         this.flashSaleItems = flashSaleItems;
     }
 
+    public String getDiscountPrice() {
+        return discountPrice;
+    }
+
+    public void setDiscountPrice(String discountPrice) {
+        this.discountPrice = discountPrice;
+    }
 }
