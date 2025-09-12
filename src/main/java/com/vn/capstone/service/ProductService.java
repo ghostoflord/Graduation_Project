@@ -180,6 +180,7 @@ public class ProductService {
         res.setShortDescription(product.getShortDescription());
         res.setBestsell(product.getBestsell());
         res.setSell(product.getSell());
+        res.setDiscountPrice(product.getDiscountPrice());
 
         Double avgRating = reviewRepository.getAverageRatingByProductId(product.getId());
         Long totalReview = likeRepository.countByProductId(product.getId());
