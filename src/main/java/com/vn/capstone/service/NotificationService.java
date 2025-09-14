@@ -11,6 +11,7 @@ import com.vn.capstone.domain.User;
 import com.vn.capstone.domain.response.ResultPaginationDTO;
 import com.vn.capstone.domain.response.notification.NotificationCreateDTO;
 import com.vn.capstone.domain.response.notification.NotificationDTO;
+import com.vn.capstone.domain.response.notification.NotificationUpdateDTO;
 import com.vn.capstone.repository.NotificationRepository;
 import com.vn.capstone.repository.UserRepository;
 
@@ -128,6 +129,33 @@ public class NotificationService {
 
         result.setResult(list);
         return result;
+    }
+
+    public void deleteNotification(Long id) {
+        if (!notificationRepository.existsById(id)) {
+            throw new RuntimeException("Notification not found");
+        }
+        notificationRepository.deleteById(id);
+    }
+
+    public void updateNotification(Long id, NotificationUpdateDTO dto) {
+        Notification noti = notificationRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Notification not found"));
+
+        if (dto.getTitle() != null) {
+            noti.setTitle(dto.getTitle());
+        }
+        if (dto.getContent() != null) {
+            noti.setContent(dto.getContent());
+        }
+        if (dto.getIsRead() != null) {
+            noti.setIsRead(dto.getIsRead());
+        }
+        if (dto.getForAll() != null) {
+            noti.setForAll(dto.getForAll());
+        }
+
+        notificationRepository.save(noti);
     }
 
 }

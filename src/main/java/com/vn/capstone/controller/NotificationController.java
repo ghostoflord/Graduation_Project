@@ -5,9 +5,12 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,6 +19,7 @@ import com.turkraft.springfilter.boot.Filter;
 import com.vn.capstone.domain.Notification;
 import com.vn.capstone.domain.response.RestResponse;
 import com.vn.capstone.domain.response.ResultPaginationDTO;
+import com.vn.capstone.domain.response.notification.NotificationUpdateDTO;
 import com.vn.capstone.service.NotificationService;
 import com.vn.capstone.util.annotation.ApiMessage;
 
@@ -85,6 +89,37 @@ public class NotificationController {
                 userId == null ? "Đã gửi thông báo đến tất cả người dùng" : "Đã gửi thông báo đến người dùng");
         response.setError(null);
         response.setData(null);
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/notifications/{id}")
+    @ApiMessage("delete notification")
+    public ResponseEntity<RestResponse<?>> deleteNotification(@PathVariable Long id) {
+        notificationService.deleteNotification(id);
+
+        RestResponse<Object> response = new RestResponse<>();
+        response.setStatusCode(HttpStatus.OK.value());
+        response.setMessage("Xóa thông báo thành công");
+        response.setError(null);
+        response.setData(null);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/notifications/{id}")
+    @ApiMessage("update notification")
+    public ResponseEntity<RestResponse<?>> updateNotification(
+            @PathVariable Long id,
+            @RequestBody NotificationUpdateDTO dto) {
+
+        notificationService.updateNotification(id, dto);
+
+        RestResponse<Object> response = new RestResponse<>();
+        response.setStatusCode(HttpStatus.OK.value());
+        response.setMessage("Cập nhật thông báo thành công");
+        response.setError(null);
+        response.setData(null);
+
         return ResponseEntity.ok(response);
     }
 
