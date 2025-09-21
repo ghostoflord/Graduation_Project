@@ -15,20 +15,16 @@ import com.vn.capstone.util.constant.OrderStatus;
 
 @Repository
 public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> {
-    void deleteByProductId(Long productId);
+        void deleteByProductId(Long productId);
 
-    List<OrderDetail> findByOrder(Order order);
+        List<OrderDetail> findByOrder(Order order);
 
-    // Thống kê trong khoảng thời gian bất kỳ
-    @Query("SELECT new com.vn.capstone.domain.response.product.ProductStatisticDTO(" +
-            "od.product.id, od.product.name, SUM(od.quantity)) " +
-            "FROM OrderDetail od " +
-            "JOIN od.order o " +
-            "WHERE o.createdAt >= :start AND o.createdAt < :end " +
-            "AND o.status = :status " +
-            "GROUP BY od.product.id, od.product.name " +
-            "ORDER BY SUM(od.quantity) DESC")
-    List<ProductStatisticDTO> getTopProductsByTimeRange(@Param("start") Instant start,
-            @Param("end") Instant end,
-            @Param("status") OrderStatus status);
+        // Thống kê trong khoảng thời gian bất kỳ
+        @Query("SELECT SUM(od.quantity) FROM OrderDetail od " +
+                        "WHERE od.order.createdAt >= :start AND od.order.createdAt < :end " +
+                        "AND od.order.status = :status")
+        Long getTotalProductsByTimeRange(@Param("start") Instant start,
+                        @Param("end") Instant end,
+                        @Param("status") OrderStatus status);
+
 }

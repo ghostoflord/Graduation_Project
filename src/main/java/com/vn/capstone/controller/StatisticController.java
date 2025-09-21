@@ -22,18 +22,26 @@ public class StatisticController {
     }
 
     @GetMapping("/top-products/day")
-    public List<ProductStatisticDTO> getTopProductsByDay(@RequestParam String date) {
+    public Long getTotalProductsByDay(@RequestParam String date) {
         LocalDate localDate = LocalDate.parse(date);
-        return statisticService.getTopProductsByDay(localDate);
+        return statisticService.getTotalProductsByDay(localDate);
     }
 
     @GetMapping("/top-products/week")
-    public List<ProductStatisticDTO> getTopProductsByWeek(@RequestParam int year, @RequestParam int week) {
-        return statisticService.getTopProductsByWeek(year, week);
+    public Long getTotalProductsByWeek(@RequestParam int year, @RequestParam int week) {
+        return statisticService.getTotalProductsByWeek(year, week);
     }
 
-    @GetMapping("/top-products/month")
-    public List<ProductStatisticDTO> getTopProductsByMonth(@RequestParam int year, @RequestParam int month) {
-        return statisticService.getTopProductsByMonth(year, month);
+    // @GetMapping("/top-products/month")
+    // public ProductStatisticDTO getTotalProductsByMonth(@RequestParam int year,
+    // @RequestParam int month) {
+    // Long total = statisticService.getTotalProductsByMonth(year, month);
+    // return new ProductStatisticDTO(null, "TOTAL", total);
+    // }
+
+    @GetMapping("/top-products/year")
+    public List<ProductStatisticDTO> getTotalProductsByYear(@RequestParam int year) {
+        return statisticService.getTotalProductsByYear(year);
     }
+
 }
