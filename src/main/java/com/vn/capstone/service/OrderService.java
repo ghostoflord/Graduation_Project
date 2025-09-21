@@ -246,7 +246,7 @@ public class OrderService {
         if (order.getUser() != null) {
             dto.setUserId(order.getUser().getId());
         } else {
-            dto.setUserId(-1); // hoặc bỏ dòng này nếu không cần userId
+            dto.setUserId(-1); // hoặc bỏ nếu không cần userId
         }
 
         // Tính tổng số lượng
@@ -254,6 +254,14 @@ public class OrderService {
                 .mapToLong(OrderDetail::getQuantity)
                 .sum();
         dto.setTotalQuantity(totalQuantity);
+
+        dto.setPaymentStatus(order.getPaymentStatus());
+        dto.setPaymentMethod(order.getPaymentMethod());
+        dto.setShippingMethod(order.getShippingMethod());
+        dto.setTrackingCode(order.getTrackingCode());
+        dto.setEstimatedDeliveryTime(order.getEstimatedDeliveryTime());
+        dto.setCreatedAt(order.getCreatedAt());
+        dto.setUpdatedAt(order.getUpdatedAt());
 
         return dto;
     }

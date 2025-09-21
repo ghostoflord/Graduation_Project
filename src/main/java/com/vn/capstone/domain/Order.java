@@ -21,6 +21,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 
 @Entity
@@ -255,7 +256,11 @@ public class Order implements Serializable {
     }
 
     @PrePersist
-    public void prePersist() {
+    public void onCreate() {
+        Instant now = Instant.now();
+        this.createdAt = now;
+        this.updatedAt = now;
+
         if (this.paymentRef == null || this.paymentRef.isBlank()) {
             this.paymentRef = "PAY_" + UUID.randomUUID().toString().replace("-", "").substring(0, 16).toUpperCase();
         }
@@ -266,4 +271,8 @@ public class Order implements Serializable {
         return "Order [id=" + id + ", totalPrice=" + totalPrice + "]";
     }
 
+    @PreUpdate
+    public void onUpdate() {
+        this.updatedAt = Instant.now();
+    }
 }

@@ -20,11 +20,21 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
         List<OrderDetail> findByOrder(Order order);
 
         // Thống kê trong khoảng thời gian bất kỳ
+        // Thống kê trong khoảng thời gian bất kỳ
         @Query("SELECT SUM(od.quantity) FROM OrderDetail od " +
-                        "WHERE od.order.createdAt >= :start AND od.order.createdAt < :end " +
+                        "WHERE od.order.updatedAt >= :start AND od.order.updatedAt < :end " +
                         "AND od.order.status = :status")
         Long getTotalProductsByTimeRange(@Param("start") Instant start,
                         @Param("end") Instant end,
+                        @Param("status") OrderStatus status);
+
+        // Thống kê theo tháng trong năm
+        @Query("SELECT SUM(od.quantity) FROM OrderDetail od " +
+                        "WHERE FUNCTION('YEAR', od.order.createdAt) = :year " +
+                        "AND FUNCTION('MONTH', od.order.createdAt) = :month " +
+                        "AND od.order.status = :status")
+        Long getTotalProductsByMonth(@Param("year") int year,
+                        @Param("month") int month,
                         @Param("status") OrderStatus status);
 
 }

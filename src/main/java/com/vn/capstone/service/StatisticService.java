@@ -21,44 +21,12 @@ public class StatisticService {
         this.orderDetailRepository = orderDetailRepository;
     }
 
-    public Long getTotalProductsByDay(LocalDate date) {
-        Instant start = date.atStartOfDay(ZoneId.systemDefault()).toInstant();
-        Instant end = date.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant();
-        return orderDetailRepository.getTotalProductsByTimeRange(start, end, OrderStatus.DELIVERED);
-    }
-
-    public Long getTotalProductsByWeek(int year, int week) {
-        LocalDate startOfWeek = LocalDate.ofYearDay(year, 1)
-                .with(java.time.temporal.WeekFields.ISO.weekOfYear(), week)
-                .with(java.time.DayOfWeek.MONDAY);
-        LocalDate endOfWeek = startOfWeek.plusDays(7);
-        Instant start = startOfWeek.atStartOfDay(ZoneId.systemDefault()).toInstant();
-        Instant end = endOfWeek.atStartOfDay(ZoneId.systemDefault()).toInstant();
-        return orderDetailRepository.getTotalProductsByTimeRange(start, end, OrderStatus.DELIVERED);
-    }
-
-    public Long getTotalProductsByMonth(int year, int month) {
-        LocalDate startOfMonth = LocalDate.of(year, month, 1);
-        LocalDate endOfMonth = startOfMonth.plusMonths(1);
-        Instant start = startOfMonth.atStartOfDay(ZoneId.systemDefault()).toInstant();
-        Instant end = endOfMonth.atStartOfDay(ZoneId.systemDefault()).toInstant();
-        return orderDetailRepository.getTotalProductsByTimeRange(start, end, OrderStatus.DELIVERED);
-    }
-
     public List<ProductStatisticDTO> getTotalProductsByYear(int year) {
         List<ProductStatisticDTO> result = new ArrayList<>();
         for (int month = 1; month <= 12; month++) {
-            LocalDate startOfMonth = LocalDate.of(year, month, 1);
-            LocalDate endOfMonth = startOfMonth.plusMonths(1);
-            Instant start = startOfMonth.atStartOfDay(ZoneId.systemDefault()).toInstant();
-            Instant end = endOfMonth.atStartOfDay(ZoneId.systemDefault()).toInstant();
-
-            Long total = orderDetailRepository.getTotalProductsByTimeRange(start, end, OrderStatus.DELIVERED);
-            if (total == null) {
-                total = 0L; // tránh null
-            }
-
-            // Trả về DTO cho từng tháng
+            Long total = orderDetailRepository.getTotalProductsByMonth(year, month, OrderStatus.DELIVERED);
+            if (total == null)
+                total = 0L;
             result.add(new ProductStatisticDTO(null, null, total, month, null, null));
         }
         return result;

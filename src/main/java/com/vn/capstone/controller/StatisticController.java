@@ -21,17 +21,6 @@ public class StatisticController {
         this.statisticService = statisticService;
     }
 
-    @GetMapping("/top-products/day")
-    public Long getTotalProductsByDay(@RequestParam String date) {
-        LocalDate localDate = LocalDate.parse(date);
-        return statisticService.getTotalProductsByDay(localDate);
-    }
-
-    @GetMapping("/top-products/week")
-    public Long getTotalProductsByWeek(@RequestParam int year, @RequestParam int week) {
-        return statisticService.getTotalProductsByWeek(year, week);
-    }
-
     // @GetMapping("/top-products/month")
     // public ProductStatisticDTO getTotalProductsByMonth(@RequestParam int year,
     // @RequestParam int month) {
