@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.turkraft.springfilter.boot.Filter;
@@ -26,6 +27,7 @@ import com.vn.capstone.domain.response.CreateProductDTO;
 import com.vn.capstone.domain.response.RestResponse;
 import com.vn.capstone.domain.response.ResultPaginationDTO;
 import com.vn.capstone.domain.response.product.ProductDTO;
+import com.vn.capstone.domain.response.product.ProductSuggestionDTO;
 import com.vn.capstone.domain.response.product.ProductUpdateRequest;
 import com.vn.capstone.service.ProductService;
 import com.vn.capstone.util.annotation.ApiMessage;
@@ -276,4 +278,18 @@ public class ProductController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/products/suggest")
+    public ResponseEntity<RestResponse<List<ProductSuggestionDTO>>> suggestProducts(
+            @RequestParam("keyword") String keyword) {
+
+        List<ProductSuggestionDTO> result = productService.getSuggestions(keyword);
+
+        RestResponse<List<ProductSuggestionDTO>> response = new RestResponse<>();
+        response.setStatusCode(HttpStatus.OK.value());
+        response.setError(null);
+        response.setMessage("Lấy gợi ý sản phẩm thành công");
+        response.setData(result);
+
+        return ResponseEntity.ok(response);
+    }
 }

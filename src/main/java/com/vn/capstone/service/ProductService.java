@@ -19,6 +19,7 @@ import com.vn.capstone.domain.response.ResultPaginationDTO;
 import com.vn.capstone.domain.response.compare.CompareProductDTO;
 import com.vn.capstone.domain.response.product.ProductDTO;
 import com.vn.capstone.domain.response.product.ProductDetailDTO;
+import com.vn.capstone.domain.response.product.ProductSuggestionDTO;
 import com.vn.capstone.domain.response.product.ProductUpdateRequest;
 import com.vn.capstone.domain.specification.ProductSpecifications;
 import com.vn.capstone.repository.CommentRepository;
@@ -308,6 +309,22 @@ public class ProductService {
         String ram = detail.getRam().toUpperCase();
         String storage = detail.getStorage().toUpperCase();
         return String.format("%s-%s-%s-%s-%s", brand, model, cpu, ram, storage);
+    }
+
+    public List<ProductSuggestionDTO> getSuggestions(String keyword) {
+        List<Product> products = productRepository.searchProducts(keyword);
+
+        return products.stream()
+                .map(p -> new ProductSuggestionDTO(
+                        p.getId(),
+                        p.getName(),
+                        // logic giá hiển thị: nếu discountPrice null/0/empty thì fallback về price
+                        (p.getDiscountPrice() == null || p.getDiscountPrice().equals("0")
+                                || p.getDiscountPrice().isEmpty())
+                                        ? p.getPrice()
+                                        : p.getDiscountPrice(),
+                        p.getImage()))
+                .collect(Collectors.toList());
     }
 
 }

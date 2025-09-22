@@ -26,4 +26,10 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
 
     @Query("SELECT p FROM Product p WHERE CAST(p.quantity AS int) - CAST(p.sold AS int) <= :threshold")
     List<Product> findLowStockProducts(@Param("threshold") int threshold);
+
+    @Query(value = "SELECT * FROM products p " +
+            "WHERE LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+            "ORDER BY LOCATE(LOWER(:keyword), LOWER(p.name)) ASC " +
+            "LIMIT 10", nativeQuery = true)
+    List<Product> searchProducts(@Param("keyword") String keyword);
 }
