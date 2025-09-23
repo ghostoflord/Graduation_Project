@@ -62,7 +62,7 @@ public class ProductController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @GetMapping("/products/{id:\\\\d+}")
+    @GetMapping("/products/{id}")
     @ApiMessage("Fetch Product by id")
     public ResponseEntity<RestResponse<ProductDTO>> getProductById(@PathVariable("id") long id) {
         ProductDTO dto = productService.fetchProductDTOById(id);

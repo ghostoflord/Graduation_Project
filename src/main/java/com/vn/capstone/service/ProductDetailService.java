@@ -30,22 +30,29 @@ public class ProductDetailService {
     }
 
     public ProductDetail update(Long id, ProductDetailUpdateDTO dto) {
-        ProductDetail existing = detailRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("ProductDetail not found"));
+        Product product = productRepo.findById(dto.getProductId())
+                .orElseThrow(() -> new RuntimeException("Product not found"));
 
-        existing.setCpu(dto.getCpu());
-        existing.setRam(dto.getRam());
-        existing.setStorage(dto.getStorage());
-        existing.setGpu(dto.getGpu());
-        existing.setScreen(dto.getScreen());
-        existing.setBattery(dto.getBattery());
-        existing.setWeight(dto.getWeight());
-        existing.setMaterial(dto.getMaterial());
-        existing.setOs(dto.getOs());
-        existing.setSpecialFeatures(dto.getSpecialFeatures());
-        existing.setPorts(dto.getPorts());
+        // Nếu product chưa có detail thì tạo mới
+        ProductDetail detail = product.getProductDetail();
+        if (detail == null) {
+            detail = new ProductDetail();
+            detail.setProduct(product);
+        }
 
-        return detailRepo.save(existing);
+        detail.setCpu(dto.getCpu());
+        detail.setRam(dto.getRam());
+        detail.setStorage(dto.getStorage());
+        detail.setGpu(dto.getGpu());
+        detail.setScreen(dto.getScreen());
+        detail.setBattery(dto.getBattery());
+        detail.setWeight(dto.getWeight());
+        detail.setMaterial(dto.getMaterial());
+        detail.setOs(dto.getOs());
+        detail.setSpecialFeatures(dto.getSpecialFeatures());
+        detail.setPorts(dto.getPorts());
+
+        return detailRepo.save(detail);
     }
 
     @Transactional

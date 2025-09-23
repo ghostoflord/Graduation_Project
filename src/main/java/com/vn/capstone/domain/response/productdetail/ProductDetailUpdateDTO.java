@@ -1,6 +1,7 @@
 package com.vn.capstone.domain.response.productdetail;
 
 public class ProductDetailUpdateDTO {
+    private Long productId;
     private String cpu;
     private String ram;
     private String storage;
@@ -12,6 +13,14 @@ public class ProductDetailUpdateDTO {
     private String os;
     private String specialFeatures;
     private String ports;
+
+    public Long getProductId() {
+        return productId;
+    }
+
+    public void setProductId(Long productId) {
+        this.productId = productId;
+    }
 
     public String getCpu() {
         return cpu;
