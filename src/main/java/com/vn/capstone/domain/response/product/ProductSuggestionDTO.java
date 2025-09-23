@@ -5,10 +5,12 @@ public class ProductSuggestionDTO {
     private String name;
     private String price; // đã xử lý final price
     private String image;
+    private String slug;
 
-    public ProductSuggestionDTO(Long id, String name, String price, String image) {
+    public ProductSuggestionDTO(Long id, String name, String slug, String price, String image) {
         this.id = id;
         this.name = name;
+        this.slug = slug;
         this.price = price;
         this.image = image;
     }
@@ -43,6 +45,14 @@ public class ProductSuggestionDTO {
 
     public void setImage(String image) {
         this.image = image;
+    }
+
+    public String getSlug() {
+        return slug;
+    }
+
+    public void setSlug(String slug) {
+        this.slug = slug;
     }
 
 }

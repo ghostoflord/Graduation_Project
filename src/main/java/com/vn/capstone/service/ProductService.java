@@ -318,6 +318,7 @@ public class ProductService {
                 .map(p -> new ProductSuggestionDTO(
                         p.getId(),
                         p.getName(),
+                        p.getSlug(),
                         // logic giá hiển thị: nếu discountPrice null/0/empty thì fallback về price
                         (p.getDiscountPrice() == null || p.getDiscountPrice().equals("0")
                                 || p.getDiscountPrice().isEmpty())
