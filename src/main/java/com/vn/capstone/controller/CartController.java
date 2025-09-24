@@ -16,6 +16,7 @@ import com.vn.capstone.domain.response.RestResponse;
 import com.vn.capstone.domain.response.SimplifiedCartDetailDTO;
 import com.vn.capstone.domain.response.cart.AddToCartRequest;
 import com.vn.capstone.domain.response.cart.CartSummaryDTO;
+import com.vn.capstone.repository.ProductRepository;
 import com.vn.capstone.service.CartService;
 
 @RestController
@@ -23,9 +24,11 @@ import com.vn.capstone.service.CartService;
 public class CartController {
 
     private final CartService cartService;
+    private final ProductRepository productRepository;
 
-    public CartController(CartService cartService) {
+    public CartController(CartService cartService, ProductRepository productRepository) {
         this.cartService = cartService;
+        this.productRepository = productRepository;
     }
 
     // Lấy giỏ hàng của người dùng
@@ -45,22 +48,38 @@ public class CartController {
     // Thêm sản phẩm vào giỏ hàng
     @PostMapping("/carts/addproduct")
     public RestResponse<SimplifiedCartDetailDTO> addProductToCartJson(@RequestBody AddToCartRequest request) {
-        Product product = new Product();
-        product.setId(request.getProductId());
+        // Lấy product từ DB
+        Product product = productRepository.findById(request.getProductId())
+                .orElseThrow(() -> new RuntimeException("Product not found"));
 
+        // Nếu có discountPrice > 0 thì lấy discountPrice, còn không thì lấy price
+        double finalPrice;
+        try {
+            if (product.getDiscountPrice() != null && !product.getDiscountPrice().isEmpty()
+                    && Double.parseDouble(product.getDiscountPrice()) > 0) {
+                finalPrice = Double.parseDouble(product.getDiscountPrice());
+            } else {
+                finalPrice = Double.parseDouble(product.getPrice());
+            }
+        } catch (NumberFormatException e) {
+            throw new RuntimeException(
+                    "Giá sản phẩm không hợp lệ: " + product.getPrice() + " / " + product.getDiscountPrice());
+        }
+
+        // Gọi service addCartDetail
         CartDetail cartDetail = cartService.addCartDetail(
                 request.getUserId(),
                 product,
                 request.getQuantity(),
-                request.getPrice());
+                finalPrice);
 
         SimplifiedCartDetailDTO dto = convertCartDetailToDTO(cartDetail);
 
         RestResponse<SimplifiedCartDetailDTO> response = new RestResponse<>();
-        response.setStatusCode(200); // hoặc HttpStatus.OK.value()
+        response.setStatusCode(200);
         response.setMessage("Thêm sản phẩm vào giỏ hàng thành công!");
         response.setData(dto);
-        System.out.println("Received request: " + request);
+
         return response;
     }
 

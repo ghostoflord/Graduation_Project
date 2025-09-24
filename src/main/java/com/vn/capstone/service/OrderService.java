@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +44,7 @@ import com.vn.capstone.repository.UserRepository;
 import com.vn.capstone.repository.VoucherRepository;
 import com.vn.capstone.util.constant.OrderStatus;
 import com.vn.capstone.util.constant.PaymentMethod;
+import com.vn.capstone.util.constant.PaymentStatus;
 import com.vn.capstone.util.error.AccessDeniedException;
 import com.vn.capstone.util.error.NotFoundException;
 
@@ -398,6 +400,10 @@ public class OrderService {
             throw new IllegalStateException("Cart is empty");
         }
 
+        String trackingCode = "M"
+                + UUID.randomUUID().toString().replace("-", "").substring(0, 6).toUpperCase()
+                + (System.currentTimeMillis() % 10000);
+
         // Tạo Order
         Order order = new Order();
         order.setUser(cart.getUser());
@@ -409,6 +415,9 @@ public class OrderService {
         order.setReceiverName(receiverName);
         order.setReceiverAddress(receiverAddress);
         order.setReceiverPhone(receiverPhone);
+        order.setPaymentStatus(PaymentStatus.PAID);
+
+        order.setTrackingCode(trackingCode);
         order = orderRepository.save(order); // lưu để có ID
 
         // Chuyển CartDetail thành OrderDetail
