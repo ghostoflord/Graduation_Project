@@ -84,6 +84,18 @@ public class Product {
     @JsonBackReference
     private List<FlashSaleItem> flashSaleItems;
 
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<ProductImage> images;
+
+    public List<ProductImage> getImages() {
+        return images;
+    }
+
+    public void setImages(List<ProductImage> images) {
+        this.images = images;
+    }
+
     public List<Review> getReviews() {
         return reviews;
     }

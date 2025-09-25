@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.turkraft.springfilter.boot.Filter;
 
@@ -291,5 +292,19 @@ public class ProductController {
         response.setData(result);
 
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/products/{id}/images")
+    public ResponseEntity<List<String>> uploadImages(
+            @PathVariable Long id,
+            @RequestParam("images") MultipartFile[] files) {
+        List<String> urls = productService.uploadProductImages(id, files);
+        return ResponseEntity.ok(urls);
+    }
+
+    @DeleteMapping("/products/images/{imageId}")
+    public ResponseEntity<Void> deleteImage(@PathVariable Long imageId) {
+        productService.deleteProductImage(imageId);
+        return ResponseEntity.noContent().build();
     }
 }

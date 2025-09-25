@@ -5,14 +5,17 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.vn.capstone.domain.Order;
 import com.vn.capstone.domain.Product;
 import com.vn.capstone.domain.ProductDetail;
+import com.vn.capstone.domain.ProductImage;
 import com.vn.capstone.domain.response.CreateProductDTO;
 import com.vn.capstone.domain.response.ResProductDTO;
 import com.vn.capstone.domain.response.ResultPaginationDTO;
@@ -20,13 +23,13 @@ import com.vn.capstone.domain.response.compare.CompareProductDTO;
 import com.vn.capstone.domain.response.product.ProductDTO;
 import com.vn.capstone.domain.response.product.ProductDetailDTO;
 import com.vn.capstone.domain.response.product.ProductSuggestionDTO;
-import com.vn.capstone.domain.response.product.ProductUpdateRequest;
 import com.vn.capstone.domain.specification.ProductSpecifications;
 import com.vn.capstone.repository.CommentRepository;
 import com.vn.capstone.repository.FlashSaleItemRepository;
 import com.vn.capstone.repository.LikeRepository;
 import com.vn.capstone.repository.OrderDetailRepository;
 import com.vn.capstone.repository.OrderRepository;
+import com.vn.capstone.repository.ProductImageRepository;
 import com.vn.capstone.repository.ProductRepository;
 import com.vn.capstone.repository.ReviewRepository;
 import com.vn.capstone.util.SlugUtils;
@@ -34,16 +37,10 @@ import com.vn.capstone.util.constant.PaymentStatus;
 
 import jakarta.transaction.Transactional;
 
-import jakarta.validation.Valid;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.http.*;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.*;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Base64;
-import java.io.*;
 
 @Service
 public class ProductService {
@@ -54,11 +51,15 @@ public class ProductService {
     private final ReviewRepository reviewRepository;
     private final LikeRepository likeRepository;
     private final FlashSaleItemRepository flashSaleItemRepository;
+    private ProductImageRepository productImageRepository;
+
+    @Value("${upload.product-dir}")
+    private String productUploadDir;
 
     public ProductService(ProductRepository productRepository, CommentRepository commentRepository,
             OrderDetailRepository orderDetailRepository, OrderRepository orderRepository,
             ReviewRepository reviewRepository, LikeRepository likeRepository,
-            FlashSaleItemRepository flashSaleItemRepository) {
+            FlashSaleItemRepository flashSaleItemRepository, ProductImageRepository productImageRepository) {
         this.productRepository = productRepository;
         this.commentRepository = commentRepository;
         this.orderDetailRepository = orderDetailRepository;
@@ -66,6 +67,7 @@ public class ProductService {
         this.reviewRepository = reviewRepository;
         this.likeRepository = likeRepository;
         this.flashSaleItemRepository = flashSaleItemRepository;
+        this.productImageRepository = productImageRepository;
     }
 
     public ResultPaginationDTO fetchAllProduct(Specification<Product> spec, Pageable pageable) {
@@ -326,6 +328,40 @@ public class ProductService {
                                         : p.getDiscountPrice(),
                         p.getImage()))
                 .collect(Collectors.toList());
+    }
+
+    public List<String> uploadProductImages(Long productId, MultipartFile[] files) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+
+        List<String> urls = new ArrayList<>();
+
+        try {
+            for (MultipartFile file : files) {
+                String fileName = UUID.randomUUID() + "-" + file.getOriginalFilename();
+                Path uploadPath = Paths.get(productUploadDir + productId);
+                Files.createDirectories(uploadPath);
+
+                Path filePath = uploadPath.resolve(fileName);
+                file.transferTo(filePath.toFile());
+
+                String url = "/" + productUploadDir + productId + "/" + fileName;
+                urls.add(url);
+
+                ProductImage img = new ProductImage();
+                img.setProduct(product);
+                img.setImageUrl(url);
+                productImageRepository.save(img);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Error saving images", e);
+        }
+
+        return urls;
+    }
+
+    public void deleteProductImage(Long imageId) {
+        productImageRepository.deleteById(imageId);
     }
 
 }
