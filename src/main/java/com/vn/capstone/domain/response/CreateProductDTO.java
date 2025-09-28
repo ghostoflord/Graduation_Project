@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 
 import com.vn.capstone.domain.response.product.ProductDetailDTO;
 import com.vn.capstone.util.constant.BestsellEnum;
+import com.vn.capstone.util.constant.FactoryEnum;
 import com.vn.capstone.util.constant.GenderEnum;
 import com.vn.capstone.util.constant.GuaranteeEnum;
 import com.vn.capstone.util.constant.ProductCategoryEnum;
@@ -20,7 +21,8 @@ public class CreateProductDTO {
     private GuaranteeEnum guarantee;
     @Enumerated(EnumType.STRING)
     private ProductCategoryEnum category;
-    private String factory;
+    @Enumerated(EnumType.STRING)
+    private FactoryEnum factory;
     private String price;
     private String sold;
     private String quantity;
@@ -98,14 +100,6 @@ public class CreateProductDTO {
         this.shortDescription = shortDescription;
     }
 
-    public String getFactory() {
-        return factory;
-    }
-
-    public void setFactory(String factory) {
-        this.factory = factory;
-    }
-
     public String getSold() {
         return sold;
     }
@@ -152,6 +146,14 @@ public class CreateProductDTO {
 
     public void setCategory(ProductCategoryEnum category) {
         this.category = category;
+    }
+
+    public FactoryEnum getFactory() {
+        return factory;
+    }
+
+    public void setFactory(FactoryEnum factory) {
+        this.factory = factory;
     }
 
 }

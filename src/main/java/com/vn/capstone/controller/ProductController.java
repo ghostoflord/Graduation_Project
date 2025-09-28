@@ -28,6 +28,7 @@ import com.vn.capstone.domain.response.CreateProductDTO;
 import com.vn.capstone.domain.response.RestResponse;
 import com.vn.capstone.domain.response.ResultPaginationDTO;
 import com.vn.capstone.domain.response.product.ProductDTO;
+import com.vn.capstone.domain.response.product.ProductImageDTO;
 import com.vn.capstone.domain.response.product.ProductSuggestionDTO;
 import com.vn.capstone.domain.response.product.ProductUpdateRequest;
 import com.vn.capstone.service.ProductService;
@@ -269,13 +270,29 @@ public class ProductController {
     }
 
     @GetMapping("/products/low-stock")
-    public ResponseEntity<RestResponse<List<Product>>> getLowStockProducts() {
-        List<Product> products = productService.getLowStockProducts(5); // hoặc truyền threshold qua param
+    public ResponseEntity<RestResponse<List<Product>>> getLowStockProducts(
+            @RequestParam(defaultValue = "5") int threshold) {
+
+        // lấy tất cả products
+        List<Product> allProducts = productService.getAllProducts();
+
+        // lọc theo quantity < threshold (ép kiểu sang int)
+        List<Product> lowStockProducts = allProducts.stream()
+                .filter(p -> {
+                    try {
+                        return Integer.parseInt(p.getQuantity()) < threshold;
+                    } catch (NumberFormatException e) {
+                        return false; // nếu quantity bị null hoặc không phải số thì bỏ qua
+                    }
+                })
+                .toList();
+
+        // build response
         RestResponse<List<Product>> response = new RestResponse<>();
         response.setStatusCode(200);
         response.setError(null);
         response.setMessage("Lấy danh sách sản phẩm sắp hết hàng thành công");
-        response.setData(products);
+        response.setData(lowStockProducts);
 
         return ResponseEntity.ok(response);
     }
@@ -307,6 +324,12 @@ public class ProductController {
     public ResponseEntity<Void> deleteImage(@PathVariable Long imageId) {
         productService.deleteProductImage(imageId);
         return ResponseEntity.noContent().build();
-
     }
+
+    @GetMapping("/products/{productId}/images")
+    public ResponseEntity<List<ProductImageDTO>> getProductImages(@PathVariable Long productId) {
+        List<ProductImageDTO> images = productService.getImagesByProductId(productId);
+        return ResponseEntity.ok(images);
+    }
+
 }

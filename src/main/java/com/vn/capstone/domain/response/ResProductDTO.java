@@ -3,6 +3,7 @@ package com.vn.capstone.domain.response;
 import java.util.List;
 
 import com.vn.capstone.util.constant.BestsellEnum;
+import com.vn.capstone.util.constant.FactoryEnum;
 import com.vn.capstone.util.constant.GuaranteeEnum;
 import com.vn.capstone.util.constant.ProductCategoryEnum;
 
@@ -27,7 +28,9 @@ public class ResProductDTO {
     private GuaranteeEnum guarantee;
     private String image;
     private String slide;
-    private String factory;
+
+    @Enumerated(EnumType.STRING)
+    private FactoryEnum factory;
     private String price;
     private String sold;
     private String quantity;

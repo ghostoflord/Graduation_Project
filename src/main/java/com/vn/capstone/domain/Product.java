@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.vn.capstone.util.SecurityUtil;
 import com.vn.capstone.util.constant.BestsellEnum;
+import com.vn.capstone.util.constant.FactoryEnum;
 import com.vn.capstone.util.constant.GuaranteeEnum;
 import com.vn.capstone.util.constant.ProductCategoryEnum;
 
@@ -43,7 +44,8 @@ public class Product {
     @Enumerated(EnumType.STRING)
     private BestsellEnum bestsell;
 
-    private String factory;
+    @Enumerated(EnumType.STRING)
+    private FactoryEnum factory;
     private String price;
     private String discountPrice;
     private String sold;
@@ -176,14 +178,6 @@ public class Product {
         this.image = image;
     }
 
-    public String getFactory() {
-        return factory;
-    }
-
-    public void setFactory(String factory) {
-        this.factory = factory;
-    }
-
     public String getPrice() {
         return price;
     }
@@ -297,15 +291,6 @@ public class Product {
         this.updatedAt = Instant.now();
     }
 
-    @Override
-    public String toString() {
-        return "Product [name=" + name + ", productCode=" + productCode + ", detailDescription=" + detailDescription
-                + ", guarantee=" + guarantee + ", image=" + image + ", factory=" + factory + ", price=" + price
-                + ", sold=" + sold + ", quantity=" + quantity + ", shortDescription=" + shortDescription
-                + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + ", createdBy=" + createdBy + ", updatedBy="
-                + updatedBy + "]";
-    }
-
     public String getSku() {
         return sku;
     }
@@ -329,4 +314,25 @@ public class Product {
     public void setDiscountPrice(String discountPrice) {
         this.discountPrice = discountPrice;
     }
+
+    public FactoryEnum getFactory() {
+        return factory;
+    }
+
+    public void setFactory(FactoryEnum factory) {
+        this.factory = factory;
+    }
+
+    @Override
+    public String toString() {
+        return "Product [id=" + id + ", name=" + name + ", productCode=" + productCode + ", detailDescription="
+                + detailDescription + ", guarantee=" + guarantee + ", image=" + image + ", bestsell=" + bestsell
+                + ", factory=" + factory + ", price=" + price + ", discountPrice=" + discountPrice + ", sold=" + sold
+                + ", quantity=" + quantity + ", shortDescription=" + shortDescription + ", slug=" + slug + ", sell="
+                + sell + ", sku=" + sku + ", category=" + category + ", createdAt=" + createdAt + ", updatedAt="
+                + updatedAt + ", createdBy=" + createdBy + ", updatedBy=" + updatedBy + ", comments=" + comments
+                + ", productDetail=" + productDetail + ", reviews=" + reviews + ", likes=" + likes + ", flashSaleItems="
+                + flashSaleItems + ", images=" + images + "]";
+    }
+
 }

@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -22,6 +23,7 @@ import com.vn.capstone.domain.response.ResultPaginationDTO;
 import com.vn.capstone.domain.response.compare.CompareProductDTO;
 import com.vn.capstone.domain.response.product.ProductDTO;
 import com.vn.capstone.domain.response.product.ProductDetailDTO;
+import com.vn.capstone.domain.response.product.ProductImageDTO;
 import com.vn.capstone.domain.response.product.ProductSuggestionDTO;
 import com.vn.capstone.domain.specification.ProductSpecifications;
 import com.vn.capstone.repository.CommentRepository;
@@ -312,7 +314,7 @@ public class ProductService {
             throw new IllegalArgumentException("Chi tiết sản phẩm không được null để tạo SKU");
         }
 
-        String brand = dto.getFactory().toUpperCase(); // factory tương ứng brand
+        String brand = dto.getFactory().name().toUpperCase();// factory tương ứng brand
         String model = dto.getName().toUpperCase();
         String cpu = detail.getCpu().toUpperCase().replaceAll("\\s+", "");
         String ram = detail.getRam().toUpperCase();
@@ -373,6 +375,19 @@ public class ProductService {
 
     public void deleteProductImage(Long imageId) {
         productImageRepository.deleteById(imageId);
+    }
+
+    /// get all product user low-stock
+    public List<Product> getAllProducts() {
+        return productRepository.findAll();
+    }
+
+    /// get all list image by productID
+    public List<ProductImageDTO> getImagesByProductId(Long productId) {
+        List<ProductImage> images = productImageRepository.findByProductId(productId);
+        return images.stream()
+                .map(img -> new ProductImageDTO(img.getId(), img.getImageUrl()))
+                .collect(Collectors.toList());
     }
 
 }

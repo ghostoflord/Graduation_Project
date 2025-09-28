@@ -24,7 +24,7 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
 
     List<Product> findAllByIdIn(List<Long> ids);
 
-    @Query("SELECT p FROM Product p WHERE CAST(p.quantity AS int) - CAST(p.sold AS int) <= :threshold")
+    @Query("SELECT p FROM Product p WHERE CAST(p.quantity AS int) < :threshold")
     List<Product> findLowStockProducts(@Param("threshold") int threshold);
 
     @Query(value = "SELECT * FROM products p " +
