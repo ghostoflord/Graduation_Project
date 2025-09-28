@@ -116,6 +116,7 @@ public class ProductController {
         product.setShortDescription(dto.getShortDescription());
         product.setGuarantee(dto.getGuarantee());
         product.setFactory(dto.getFactory());
+        product.setCategory(dto.getCategory());
         product.setPrice(dto.getPrice());
         product.setSold(dto.getSold());
         product.setQuantity(dto.getQuantity());
@@ -306,5 +307,6 @@ public class ProductController {
     public ResponseEntity<Void> deleteImage(@PathVariable Long imageId) {
         productService.deleteProductImage(imageId);
         return ResponseEntity.noContent().build();
+
     }
 }

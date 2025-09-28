@@ -1,10 +1,10 @@
 package com.vn.capstone.domain.response;
 
-import java.time.Instant;
+import java.util.List;
 
 import com.vn.capstone.util.constant.BestsellEnum;
-import com.vn.capstone.util.constant.GenderEnum;
 import com.vn.capstone.util.constant.GuaranteeEnum;
+import com.vn.capstone.util.constant.ProductCategoryEnum;
 
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -34,9 +34,13 @@ public class ResProductDTO {
     private String shortDescription;
     @Enumerated(EnumType.STRING)
     private BestsellEnum bestsell;
+    @Enumerated(EnumType.STRING)
+    private ProductCategoryEnum category;
     private String sell;
     private String discountPrice;
     //
     private Double averageRating;
     private Long totalReviews;
+
+    private List<String> images;
 }

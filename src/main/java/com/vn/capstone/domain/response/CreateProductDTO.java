@@ -6,6 +6,7 @@ import com.vn.capstone.domain.response.product.ProductDetailDTO;
 import com.vn.capstone.util.constant.BestsellEnum;
 import com.vn.capstone.util.constant.GenderEnum;
 import com.vn.capstone.util.constant.GuaranteeEnum;
+import com.vn.capstone.util.constant.ProductCategoryEnum;
 
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -17,6 +18,8 @@ public class CreateProductDTO {
     private String shortDescription;
     @Enumerated(EnumType.STRING)
     private GuaranteeEnum guarantee;
+    @Enumerated(EnumType.STRING)
+    private ProductCategoryEnum category;
     private String factory;
     private String price;
     private String sold;
@@ -141,6 +144,14 @@ public class CreateProductDTO {
 
     public void setDiscountPrice(String discountPrice) {
         this.discountPrice = discountPrice;
+    }
+
+    public ProductCategoryEnum getCategory() {
+        return category;
+    }
+
+    public void setCategory(ProductCategoryEnum category) {
+        this.category = category;
     }
 
 }

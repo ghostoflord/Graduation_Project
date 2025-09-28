@@ -185,6 +185,13 @@ public class ProductService {
         res.setSell(product.getSell());
         res.setDiscountPrice(product.getDiscountPrice());
 
+        if (product.getImages() != null) {
+            res.setImages(
+                    product.getImages().stream()
+                            .map(ProductImage::getImageUrl) // đổi thành field đúng trong ProductImage
+                            .collect(Collectors.toList()));
+        }
+
         Double avgRating = reviewRepository.getAverageRatingByProductId(product.getId());
         Long totalReview = likeRepository.countByProductId(product.getId());
 
@@ -337,21 +344,25 @@ public class ProductService {
         List<String> urls = new ArrayList<>();
 
         try {
-            for (MultipartFile file : files) {
-                String fileName = UUID.randomUUID() + "-" + file.getOriginalFilename();
-                Path uploadPath = Paths.get(productUploadDir + productId);
-                Files.createDirectories(uploadPath);
+            // Tạo thư mục upload chung cho tất cả sản phẩm
+            Path uploadPath = Paths.get(productUploadDir);
+            Files.createDirectories(uploadPath);
 
+            for (MultipartFile file : files) {
+                // Tạo tên file duy nhất
+                String fileName = "product_" + UUID.randomUUID() + "-" + file.getOriginalFilename();
+
+                // Nơi lưu file
                 Path filePath = uploadPath.resolve(fileName);
                 file.transferTo(filePath.toFile());
 
-                String url = "/" + productUploadDir + productId + "/" + fileName;
-                urls.add(url);
-
+                // Lưu vào DB chỉ tên file, không lưu full path
                 ProductImage img = new ProductImage();
                 img.setProduct(product);
-                img.setImageUrl(url);
+                img.setImageUrl(fileName); // chỉ lưu tên file
                 productImageRepository.save(img);
+
+                urls.add(fileName); // nếu cần return list tên file
             }
         } catch (Exception e) {
             throw new RuntimeException("Error saving images", e);
