@@ -229,11 +229,27 @@ public class OrderService {
         return orderRepository.findAll();
     }
 
-    public List<OrderSummaryDTO> getAllOrderSummaries() {
-        return orderRepository.findAll() // trả về List<Order>
+    public ResultPaginationDTO fetchAllOrders(Specification<Order> spec, Pageable pageable) {
+        Page<Order> pageOrder = this.orderRepository.findAll(spec, pageable);
+
+        ResultPaginationDTO rs = new ResultPaginationDTO();
+        ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
+
+        mt.setPage(pageable.getPageNumber() + 1); // số trang hiện tại (bắt đầu từ 1)
+        mt.setPageSize(pageable.getPageSize()); // số phần tử mỗi trang
+        mt.setPages(pageOrder.getTotalPages()); // tổng số trang
+        mt.setTotal(pageOrder.getTotalElements()); // tổng số bản ghi
+
+        rs.setMeta(mt);
+
+        // Chỉ dùng DTO, không set raw entity
+        List<OrderSummaryDTO> listOrder = pageOrder.getContent()
                 .stream()
-                .map(this::toDto) // map sang DTO
-                .toList();
+                .map(this::toDto) // chuyển sang OrderSummaryDTO
+                .collect(Collectors.toList());
+
+        rs.setResult(listOrder);
+        return rs;
     }
 
     public OrderSummaryDTO toDto(Order order) {

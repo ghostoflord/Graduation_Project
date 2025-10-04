@@ -102,16 +102,19 @@ public class OrderController {
     }
 
     @GetMapping("/orders/all")
-    public ResponseEntity<RestResponse<List<OrderSummaryDTO>>> getAllOrders() {
-        List<OrderSummaryDTO> orders = orderService.getAllOrderSummaries();
+    @ApiMessage("fetch all orders")
+    public ResponseEntity<RestResponse<ResultPaginationDTO>> getAllOrders(
+            @Filter Specification<Order> spec,
+            Pageable pageable) {
 
-        RestResponse<List<OrderSummaryDTO>> response = new RestResponse<>();
-        response.setStatusCode(200);
-        response.setMessage("Lấy danh sách đơn hàng thành công");
-        response.setData(orders);
-        response.setError(null); // không có lỗi
+        ResultPaginationDTO result = this.orderService.fetchAllOrders(spec, pageable);
 
-        return ResponseEntity.ok(response);
+        RestResponse<ResultPaginationDTO> response = new RestResponse<>();
+        response.setStatusCode(HttpStatus.OK.value());
+        response.setMessage("fetch all orders");
+        response.setData(result);
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     // người dùng khi đặt hàng xong có thể hủy đơn hàng đó .
