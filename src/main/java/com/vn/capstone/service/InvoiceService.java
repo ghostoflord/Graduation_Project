@@ -9,13 +9,17 @@ import com.itextpdf.text.Font.FontFamily;
 import com.itextpdf.text.Chunk;
 import com.itextpdf.text.Image;
 import com.itextpdf.text.pdf.BarcodeQRCode;
+import com.itextpdf.text.pdf.BaseFont;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
 
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.text.DecimalFormat;
 
 import com.vn.capstone.domain.Order;
 import com.vn.capstone.domain.response.order.OrderItemDTO;
@@ -31,6 +35,23 @@ public class InvoiceService {
         this.orderRepository = orderRepository;
     }
 
+    // Thêm hàm tiện ích để load font Unicode
+    private Font loadFont(float size, int style) throws Exception {
+        // Chỉ ghi từ trong resources trở đi
+        ClassPathResource fontResource = new ClassPathResource("fonts/Roboto-Italic-VariableFont_wdth,wght.ttf");
+
+        try (InputStream is = fontResource.getInputStream()) {
+            BaseFont bf = BaseFont.createFont(
+                    fontResource.getFilename(), // tên file
+                    BaseFont.IDENTITY_H, // hỗ trợ Unicode (tiếng Việt)
+                    BaseFont.EMBEDDED,
+                    false,
+                    is.readAllBytes(), // load từ InputStream
+                    null);
+            return new Font(bf, size, style);
+        }
+    }
+
     public byte[] generateInvoicePdf(Long orderId) throws Exception {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
@@ -41,42 +62,34 @@ public class InvoiceService {
         document.open();
 
         // Fonts
-        Font titleFont = new Font(Font.FontFamily.HELVETICA, 16, Font.BOLD);
-        Font boldFont = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD);
-        Font normalFont = new Font(Font.FontFamily.HELVETICA, 12);
+        Font titleFont = loadFont(16, Font.BOLD);
+        Font boldFont = loadFont(12, Font.BOLD);
+        Font normalFont = loadFont(12, Font.NORMAL);
 
-        // Header
-        Paragraph header = new Paragraph("PhongVu", titleFont);
-        header.setAlignment(Element.ALIGN_LEFT);
-        document.add(header);
-        document.add(new Paragraph("Địa chỉ: ", normalFont)); // + order.getShopAddress()
-        document.add(new Paragraph("Điện thoại: ", normalFont)); // + order.getShopPhone()
-        document.add(new Paragraph("Website: ", normalFont));// + order.getShopWebsite()
+        // Header: Shop info + QR code
+        PdfPTable headerTable = new PdfPTable(2);
+        headerTable.setWidthPercentage(100);
+        headerTable.setWidths(new float[] { 70, 30 });
 
-        document.add(Chunk.NEWLINE);
+        // Left cell: Shop info
+        PdfPCell shopCell = new PdfPCell();
+        shopCell.setBorder(Rectangle.NO_BORDER);
+        shopCell.addElement(new Paragraph("LAPTOPSHOP", titleFont));
+        shopCell.addElement(new Paragraph("Địa chỉ: Cầu Giấy - Hà Nội", normalFont));
+        shopCell.addElement(new Paragraph("Điện thoại: 0123456789", normalFont));
+        shopCell.addElement(new Paragraph("Website: laptopshop.demo", normalFont));
+        headerTable.addCell(shopCell);
 
-        // QR + Order info (dùng 2 cột)
-        PdfPTable qrTable = new PdfPTable(2);
-        qrTable.setWidthPercentage(100);
-        qrTable.setWidths(new float[] { 70, 30 });
-
-        // Left: ngày đặt hàng
-        PdfPCell leftCell = new PdfPCell();
-        leftCell.setBorder(Rectangle.NO_BORDER);
-        leftCell.addElement(new Paragraph("Ngày đặt hàng: ", normalFont)); // + order.getCreatedDate()
-        qrTable.addCell(leftCell);
-
-        // Right: QR code
+        // Right cell: QR code
         String qrContent = "http://localhost:3000/orders/view/" + order.getId();
         BarcodeQRCode qrCode = new BarcodeQRCode(qrContent, 150, 150, null);
         Image qrImage = qrCode.getImage();
         PdfPCell qrCell = new PdfPCell(qrImage, true);
         qrCell.setBorder(Rectangle.NO_BORDER);
         qrCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
-        qrTable.addCell(qrCell);
+        headerTable.addCell(qrCell);
 
-        document.add(qrTable);
-
+        document.add(headerTable);
         document.add(Chunk.NEWLINE);
 
         // Chi tiết đơn hàng
@@ -107,7 +120,8 @@ public class InvoiceService {
         document.add(payTitle);
         document.add(new Paragraph("Tổng giá sản phẩm: " + " VND", normalFont)); // + order.getTotalProductPrice()
         document.add(new Paragraph("Phí vận chuyển: " + " VND", normalFont)); /// order.getShippingFee() +
-        document.add(new Paragraph("Tổng tiền: " + order.getTotalPrice() + " VND", boldFont));
+        DecimalFormat df = new DecimalFormat("#,###");
+        document.add(new Paragraph("Tổng tiền: " + df.format(order.getTotalPrice()) + " VND", boldFont));
 
         document.add(Chunk.NEWLINE);
 
@@ -120,8 +134,8 @@ public class InvoiceService {
         PdfPCell orderInfo = new PdfPCell();
         orderInfo.setBorder(Rectangle.BOX);
         orderInfo.addElement(new Paragraph("Thông tin đơn hàng", boldFont));
-        orderInfo.addElement(new Paragraph("Mã đơn hàng: #", normalFont)); // + order.getCode()
-        orderInfo.addElement(new Paragraph("Ngày đặt: ", normalFont)); // + order.getCreatedDate()
+        orderInfo.addElement(new Paragraph("Mã đơn hàng: #" + order.getTrackingCode(), normalFont)); // order.getCode()
+        orderInfo.addElement(new Paragraph("Ngày đặt: " + order.getCreatedAt(), normalFont)); // order.getCreatedDate()
         orderInfo.addElement(new Paragraph("Phương thức thanh toán: " + order.getPaymentMethod(), normalFont));
         orderInfo.addElement(new Paragraph("Phương thức vận chuyển: " + order.getShippingMethod(), normalFont));
         infoTable.addCell(orderInfo);
@@ -130,10 +144,9 @@ public class InvoiceService {
         PdfPCell buyerInfo = new PdfPCell();
         buyerInfo.setBorder(Rectangle.BOX);
         buyerInfo.addElement(new Paragraph("Thông tin mua hàng", boldFont));
-        buyerInfo.addElement(new Paragraph(order.getReceiverName(), normalFont));
-        buyerInfo.addElement(new Paragraph(order.getReceiverAddress(), normalFont));
+        buyerInfo.addElement(new Paragraph("Tên khách hàng:" + order.getReceiverName(), normalFont));
+        buyerInfo.addElement(new Paragraph("Địa chỉ:" + order.getReceiverAddress(), normalFont));
         buyerInfo.addElement(new Paragraph("Điện thoại: " + order.getReceiverPhone(), normalFont));
-        buyerInfo.addElement(new Paragraph("Email: ", normalFont)); // + order.getReceiverEmail()
         infoTable.addCell(buyerInfo);
 
         document.add(infoTable);
