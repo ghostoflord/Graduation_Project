@@ -22,6 +22,7 @@ import java.io.InputStream;
 import java.text.DecimalFormat;
 
 import com.vn.capstone.domain.Order;
+import com.vn.capstone.domain.OrderDetail;
 import com.vn.capstone.domain.response.order.OrderItemDTO;
 import com.vn.capstone.repository.OrderRepository;
 import com.itextpdf.text.Element;
@@ -93,35 +94,46 @@ public class InvoiceService {
         document.add(Chunk.NEWLINE);
 
         // Chi tiết đơn hàng
+        // Chi tiết đơn hàng
         Paragraph detailTitle = new Paragraph("Chi tiết đơn hàng", boldFont);
+        detailTitle.setSpacingAfter(10f);
         document.add(detailTitle);
 
         PdfPTable itemTable = new PdfPTable(4);
         itemTable.setWidthPercentage(100);
         itemTable.setWidths(new float[] { 10, 50, 20, 20 });
-        itemTable.addCell("STT");
-        itemTable.addCell("Sản phẩm");
-        itemTable.addCell("Số lượng");
-        itemTable.addCell("Giá");
 
-        // int i = 1;
-        // for (OrderItemDTO item : order.getItems()) {
-        // itemTable.addCell(String.valueOf(i++));
-        // itemTable.addCell(item.getProductName());
-        // itemTable.addCell(String.valueOf(item.getQuantity()));
-        // itemTable.addCell(String.valueOf(item.getPrice()));
-        // }
-        // document.add(itemTable);
+        // Header
+        itemTable.addCell(new Paragraph("STT", boldFont));
+        itemTable.addCell(new Paragraph("Sản phẩm", boldFont));
+        itemTable.addCell(new Paragraph("Số lượng", boldFont));
+        itemTable.addCell(new Paragraph("Giá", boldFont));
 
+        int i = 1;
+        DecimalFormat df = new DecimalFormat("#,###"); // format tiền
+        for (OrderDetail detail : order.getOrderDetails()) {
+            itemTable.addCell(new Paragraph(String.valueOf(i++), normalFont));
+
+            // lấy product name snapshot (tránh mất tên khi xoá product)
+            String productName = detail.getProductNameSnapshot() != null
+                    ? detail.getProductNameSnapshot()
+                    : (detail.getProduct() != null ? detail.getProduct().getName() : "N/A");
+            itemTable.addCell(new Paragraph(productName, normalFont));
+
+            itemTable.addCell(new Paragraph(String.valueOf(detail.getQuantity()), normalFont));
+            itemTable.addCell(new Paragraph(df.format(detail.getPrice()) + " VND", normalFont));
+        }
+
+        document.add(itemTable);
         document.add(Chunk.NEWLINE);
 
         // Thông tin thanh toán
         Paragraph payTitle = new Paragraph("Thông tin thanh toán", boldFont);
         document.add(payTitle);
-        document.add(new Paragraph("Tổng giá sản phẩm: " + " VND", normalFont)); // + order.getTotalProductPrice()
-        document.add(new Paragraph("Phí vận chuyển: " + " VND", normalFont)); /// order.getShippingFee() +
-        DecimalFormat df = new DecimalFormat("#,###");
-        document.add(new Paragraph("Tổng tiền: " + df.format(order.getTotalPrice()) + " VND", boldFont));
+        DecimalFormat dfl = new DecimalFormat("#,###");
+        document.add(new Paragraph("Tổng giá sản phẩm: " + dfl.format(order.getTotalPrice()) + " VND", normalFont)); // order.getTotalProductPrice()
+        document.add(new Paragraph("Phí vận chuyển: " + "0" + " VND", normalFont)); /// order.getShippingFee() +
+        document.add(new Paragraph("Tổng tiền: " + dfl.format(order.getTotalPrice()) + " VND", boldFont));
 
         document.add(Chunk.NEWLINE);
 
@@ -151,6 +163,15 @@ public class InvoiceService {
 
         document.add(infoTable);
 
+        // Footer note
+        Paragraph footerNote = new Paragraph(
+                "Nếu có thắc mắc, vui lòng liên hệ chúng tôi qua email laptopshop@gmail.com và số điện thoại 0123456789.",
+                normalFont);
+        footerNote.setAlignment(Element.ALIGN_CENTER);
+        footerNote.setSpacingBefore(20f);
+        document.add(footerNote);
+
+        // đóng document
         document.close();
         return baos.toByteArray();
     }
