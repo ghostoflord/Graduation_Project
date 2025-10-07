@@ -285,7 +285,7 @@ public class ProductService {
             dto.setId(product.getId());
             dto.setName(product.getName());
             dto.setImage(product.getImage());
-
+            dto.setSlug(product.getSlug());
             dto.setCpu(detail.getCpu());
             dto.setRam(detail.getRam());
             dto.setStorage(detail.getStorage());
