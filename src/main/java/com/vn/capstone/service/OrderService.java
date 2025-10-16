@@ -1,9 +1,13 @@
 package com.vn.capstone.service;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.Month;
+import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -31,6 +35,8 @@ import com.vn.capstone.domain.response.order.OrderItemDTO;
 import com.vn.capstone.domain.response.order.OrderShipperDTO;
 import com.vn.capstone.domain.response.order.OrderStatusHistoryDTO;
 import com.vn.capstone.domain.response.order.OrderSummaryDTO;
+import com.vn.capstone.domain.response.order.RevenueDTO;
+import com.vn.capstone.domain.response.order.TopSellingProductDTO;
 import com.vn.capstone.domain.response.order.UpdateOrderRequest;
 import com.vn.capstone.domain.response.shipper.ShipperStatsResponse;
 import com.vn.capstone.mapping.OrderMapper;
@@ -666,6 +672,29 @@ public class OrderService {
         response.setCodAmount(codAmount);
 
         return response;
+    }
+
+    public List<RevenueDTO> getMonthlyRevenue() {
+        List<Object[]> results = orderRepository.getMonthlyRevenue();
+        return results.stream()
+                .map(row -> new RevenueDTO(
+                        getMonthName(((Number) row[0]).intValue()),
+                        BigDecimal.valueOf(((Number) row[1]).doubleValue())))
+                .collect(Collectors.toList());
+    }
+
+    private String getMonthName(int month) {
+        return Month.of(month).getDisplayName(TextStyle.SHORT, Locale.ENGLISH);
+    }
+
+    public List<TopSellingProductDTO> getTopSellingProducts() {
+        List<Object[]> results = orderDetailRepository.getTopSellingProducts();
+        return results.stream()
+                .map(row -> new TopSellingProductDTO(
+                        (String) row[0],
+                        ((Number) row[1]).longValue(),
+                        ((Number) row[2]).doubleValue()))
+                .collect(Collectors.toList());
     }
 
 }

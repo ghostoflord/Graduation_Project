@@ -49,4 +49,20 @@ public interface OrderRepository extends JpaRepository<Order, Long>, JpaSpecific
 
         List<Order> findAllByUserId(Long userId);
 
+        @Query(value = """
+                            SELECT
+                                m.month AS month,
+                                COALESCE(SUM(o.total_price), 0) AS revenue
+                            FROM (
+                                SELECT 1 AS month UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6
+                                UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10 UNION SELECT 11 UNION SELECT 12
+                            ) AS m
+                            LEFT JOIN orders o
+                                ON MONTH(o.created_at) = m.month
+                                AND o.status = 'DELIVERED'
+                            GROUP BY m.month
+                            ORDER BY m.month
+                        """, nativeQuery = true)
+        List<Object[]> getMonthlyRevenue();
+
 }

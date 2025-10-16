@@ -28,6 +28,8 @@ import com.vn.capstone.domain.response.order.OrderResponse;
 import com.vn.capstone.domain.response.order.OrderShipperDTO;
 import com.vn.capstone.domain.response.order.OrderSummaryDTO;
 import com.vn.capstone.domain.response.order.PlaceOrderRequest;
+import com.vn.capstone.domain.response.order.RevenueDTO;
+import com.vn.capstone.domain.response.order.TopSellingProductDTO;
 import com.vn.capstone.domain.response.order.UpdateOrderRequest;
 import com.vn.capstone.domain.response.shipper.ShipperStatsResponse;
 import com.vn.capstone.service.OrderService;
@@ -279,4 +281,27 @@ public class OrderController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/orders/revenue/monthly")
+    public ResponseEntity<RestResponse<List<RevenueDTO>>> getMonthlyRevenue() {
+        List<RevenueDTO> data = orderService.getMonthlyRevenue();
+
+        RestResponse<List<RevenueDTO>> response = new RestResponse<>();
+        response.setStatusCode(200);
+        response.setMessage("Lấy doanh thu theo tháng thành công");
+        response.setData(data);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/orders/products/top-selling")
+    public ResponseEntity<RestResponse<List<TopSellingProductDTO>>> getTopSellingProducts() {
+        List<TopSellingProductDTO> data = orderService.getTopSellingProducts();
+
+        RestResponse<List<TopSellingProductDTO>> response = new RestResponse<>();
+        response.setStatusCode(200);
+        response.setMessage("Lấy top sản phẩm bán chạy thành công");
+        response.setData(data);
+
+        return ResponseEntity.ok(response);
+    }
 }
