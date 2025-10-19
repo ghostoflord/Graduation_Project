@@ -187,15 +187,23 @@ public class FlashSaleService {
     }
 
     // update
+    @Transactional
     public void updateFlashSale(Long id, FlashSaleUpdateDTO dto) {
-        // Lấy flashSale từ DB
         FlashSale flashSale = flashSaleRepo.findById(id)
                 .orElseThrow(() -> new NotFoundException("Không tìm thấy Flash Sale"));
 
-        // Xóa hết item cũ (Hibernate sẽ tự xoá trong DB do orphanRemoval = true)
+        // Cập nhật các field cơ bản
+        flashSale.setName(dto.getName());
+        flashSale.setStartTime(dto.getStartTime());
+        flashSale.setEndTime(dto.getEndTime());
+
+        if (dto.getStatus() != null) {
+            flashSale.setStatus(dto.getStatus().trim());
+        }
+
+        // Xóa item cũ & thêm item mới
         flashSale.getItems().clear();
 
-        // Tạo danh sách mới
         List<FlashSaleItem> newItems = dto.getItems().stream()
                 .map(itemDto -> {
                     Product product = productRepository.findById(itemDto.getProductId())
@@ -205,30 +213,14 @@ public class FlashSaleService {
                     item.setProduct(product);
                     item.setSalePrice(itemDto.getSalePrice());
                     item.setQuantity(itemDto.getQuantity());
-                    String priceStr = item.getProduct().getPrice();
-                    Double originalPrice = null;
-                    try {
-                        originalPrice = (priceStr != null) ? Double.valueOf(priceStr) : null;
-                    } catch (NumberFormatException e) {
-                        originalPrice = 0.0;
-                    }
                     item.setFlashSale(flashSale);
-
                     return item;
                 })
                 .collect(Collectors.toList());
 
-        // Thêm lại từng item mới vào danh sách cũ
         flashSale.getItems().addAll(newItems);
 
-        // Cập nhật thông tin flash sale
-        flashSale.setName(dto.getName());
-        flashSale.setStartTime(dto.getStartTime());
-        flashSale.setEndTime(dto.getEndTime());
-        flashSale.setStatus(dto.getStatus() != null ? dto.getStatus().trim() : null);
-
-        // Lưu lại flash sale
-        flashSaleRepo.save(flashSale);
+        flashSaleRepo.saveAndFlush(flashSale);
     }
 
     @Transactional
