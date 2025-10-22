@@ -139,7 +139,7 @@ public class SlideController {
     }
 
     @PutMapping("/slides/{id}")
-    public ResponseEntity<RestResponse<Slide>> updateProduct(
+    public ResponseEntity<RestResponse<Slide>> updateSlide(
             @PathVariable Long id,
             @RequestBody SlideUpdateRequest request) throws IOException {
 
@@ -148,7 +148,7 @@ public class SlideController {
             throw new RuntimeException("Không tìm thấy sản phẩm với ID: " + id);
         }
 
-        // cập nhật các field
+        // cập nhật thông tin cơ bản
         slide.setTitle(request.getTitle());
         slide.setDescription(request.getDescription());
         slide.setRedirectUrl(request.getRedirectUrl());
@@ -156,14 +156,16 @@ public class SlideController {
         slide.setOrderIndex(request.getOrderIndex());
         slide.setType(request.getType());
 
-        // xử lý ảnh
-        if (request.getImageUrl() != null && !request.getImageUrl().trim().isEmpty()) {
+        // xử lý ảnh nếu có
+        if (request.getImageBase64() != null && !request.getImageBase64().trim().isEmpty()) {
+            // xóa ảnh cũ
             if (slide.getImageUrl() != null) {
                 File oldImage = new File(slideUploadDir + File.separator + slide.getImageUrl());
                 if (oldImage.exists())
                     oldImage.delete();
             }
-            String savedImage = saveSlideImage(request.getImageUrl());
+            // lưu ảnh mới
+            String savedImage = saveSlideImage(request.getImageBase64());
             slide.setImageUrl(savedImage);
         }
 
@@ -171,7 +173,7 @@ public class SlideController {
 
         RestResponse<Slide> response = new RestResponse<>();
         response.setStatusCode(HttpStatus.OK.value());
-        response.setMessage("Cập nhật sản phẩm thành công");
+        response.setMessage("Cập nhật slide thành công");
         response.setData(updatedSlide);
         return ResponseEntity.ok(response);
     }

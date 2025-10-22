@@ -15,7 +15,7 @@ public class SlideUpdateRequest {
     private boolean active;
     private int orderIndex;
     private SlideType type;
-    private String imageUrl;
+    private String imageBase64;
 
     public String getTitle() {
         return title;
@@ -65,20 +65,20 @@ public class SlideUpdateRequest {
         this.type = type;
     }
 
-    public String getImageUrl() {
-        return imageUrl;
-    }
-
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
-    }
-
     public long getId() {
         return id;
     }
 
     public void setId(long id) {
         this.id = id;
+    }
+
+    public String getImageBase64() {
+        return imageBase64;
+    }
+
+    public void setImageBase64(String imageBase64) {
+        this.imageBase64 = imageBase64;
     }
 
 }
