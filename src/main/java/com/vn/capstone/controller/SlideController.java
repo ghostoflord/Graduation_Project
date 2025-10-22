@@ -1,7 +1,14 @@
 package com.vn.capstone.controller;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.time.Instant;
+import java.util.Base64;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,12 +21,16 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.vn.capstone.domain.Slide;
 import com.vn.capstone.domain.response.RestResponse;
+import com.vn.capstone.domain.response.slide.CreateSlideDTO;
 import com.vn.capstone.service.SlideService;
 import com.vn.capstone.util.constant.SlideType;
 
 @RestController
 @RequestMapping("/api/v1")
 public class SlideController {
+
+    @Value("${upload.slide-dir}")
+    private String slideUploadDir;
 
     private final SlideService slideService;
 
@@ -52,20 +63,75 @@ public class SlideController {
     }
 
     @PostMapping("/slides")
-    public ResponseEntity<RestResponse<Slide>> createSlide(@RequestBody Slide slide) {
+    public ResponseEntity<RestResponse<Slide>> createSlide(@RequestBody CreateSlideDTO dto) throws IOException {
         RestResponse<Slide> response = new RestResponse<>();
+
         try {
+            // Decode ảnh base64 và lưu vào thư mục
+            String savedImage = dto.getImageUrl() != null ? saveSlideImage(dto.getImageUrl()) : null;
+
+            if (savedImage != null) {
+                System.out.println("Slide image saved: " + savedImage);
+            } else {
+                System.out.println("Không có ảnh hoặc Base64 rỗng.");
+            }
+            // Gán dữ liệu vào entity Slide
+            Slide slide = new Slide();
+            slide.setTitle(dto.getTitle());
+            slide.setDescription(dto.getDescription());
+            slide.setImageUrl(savedImage);
+            slide.setRedirectUrl(dto.getRedirectUrl());
+            slide.setActive(dto.getActive() != null ? dto.getActive() : true);
+            slide.setOrderIndex(dto.getOrderIndex() != null ? dto.getOrderIndex() : 0);
+            slide.setType(dto.getType());
+            slide.setCreatedAt(Instant.now());
+            slide.setUpdatedAt(Instant.now());
+
+            // Lưu DB qua service
             Slide createdSlide = slideService.createSlide(slide);
-            response.setStatusCode(201);
+
+            response.setStatusCode(HttpStatus.CREATED.value());
             response.setMessage("Tạo slide thành công");
             response.setData(createdSlide);
-            return ResponseEntity.status(201).body(response); // 201 Created
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+
         } catch (Exception e) {
-            response.setStatusCode(500);
+            e.printStackTrace();
+            response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
             response.setError("Lỗi tạo slide");
             response.setMessage(e.getMessage());
-            response.setData(null);
-            return ResponseEntity.status(500).body(response);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+    private String saveSlideImage(String imageBase64) throws IOException {
+        if (imageBase64 == null || imageBase64.trim().isEmpty()) {
+            return null;
+        }
+        String base64Image = imageBase64.contains(",")
+                ? imageBase64.substring(imageBase64.indexOf(",") + 1)
+                : imageBase64;
+
+        try {
+            byte[] decoded = Base64.getDecoder().decode(base64Image);
+
+            String fileName = "slide_" + System.currentTimeMillis() + ".jpg";
+
+            File uploadDir = new File(slideUploadDir);
+            if (!uploadDir.exists()) {
+                uploadDir.mkdirs();
+            }
+
+            String fullPath = slideUploadDir + File.separator + fileName;
+            try (FileOutputStream fos = new FileOutputStream(fullPath)) {
+                fos.write(decoded);
+            }
+
+            return fileName;
+
+        } catch (IllegalArgumentException e) {
+            return null;
         }
     }
 

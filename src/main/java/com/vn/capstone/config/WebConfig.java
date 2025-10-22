@@ -17,6 +17,8 @@ public class WebConfig implements WebMvcConfigurer {
                 .addResourceLocations("file:D:/Graduation_Project/upload/avatars/");
         registry.addResourceHandler("/upload/products/**")
                 .addResourceLocations("file:D:/Graduation_Project/upload/products/");
+        registry.addResourceHandler("/upload/slides/**")
+                .addResourceLocations("file:D:/Graduation_Project/upload/slides/");
     }
 
     @Override
