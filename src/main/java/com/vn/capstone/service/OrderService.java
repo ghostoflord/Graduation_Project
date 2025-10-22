@@ -339,6 +339,8 @@ public class OrderService {
         dto.setReceiverPhone(order.getReceiverPhone());
         dto.setStatus(order.getStatus());
         dto.setUserId(order.getUser().getId());
+        dto.setCreatedAt(order.getCreatedAt());
+        dto.setUpdatedAt(order.getUpdatedAt());
 
         // Tổng số lượng sản phẩm
         long totalQuantity = orderDetailRepository.findByOrder(order).stream()

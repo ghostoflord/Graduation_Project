@@ -1,5 +1,6 @@
 package com.vn.capstone.domain.response;
 
+import java.time.Instant;
 import java.util.List;
 
 import com.vn.capstone.util.constant.BestsellEnum;
@@ -46,4 +47,5 @@ public class ResProductDTO {
     private Long totalReviews;
 
     private List<String> images;
+    private Instant updatedAt;
 }

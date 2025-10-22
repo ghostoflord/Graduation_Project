@@ -186,6 +186,7 @@ public class ProductService {
         res.setBestsell(product.getBestsell());
         res.setSell(product.getSell());
         res.setDiscountPrice(product.getDiscountPrice());
+        res.setUpdatedAt(product.getUpdatedAt());
 
         if (product.getImages() != null) {
             res.setImages(
