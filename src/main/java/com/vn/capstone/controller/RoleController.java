@@ -17,6 +17,8 @@ import com.turkraft.springfilter.boot.Filter;
 import com.vn.capstone.domain.Role;
 import com.vn.capstone.domain.response.RestResponse;
 import com.vn.capstone.domain.response.ResultPaginationDTO;
+import com.vn.capstone.domain.response.role.RoleMapper;
+import com.vn.capstone.domain.response.role.RoleResponseDTO;
 import com.vn.capstone.service.RoleService;
 import com.vn.capstone.util.annotation.ApiMessage;
 import com.vn.capstone.util.error.IdInvalidException;
@@ -51,12 +53,14 @@ public class RoleController {
 
     @GetMapping("/roles/{id}")
     @ApiMessage("Fetch Role by id")
-    public ResponseEntity<RestResponse<Role>> getRoleById(@PathVariable("id") long id) {
+    public ResponseEntity<RestResponse<RoleResponseDTO>> getRoleById(@PathVariable("id") long id) {
         Role role = roleService.fetchRoleById(id);
-        RestResponse<Role> response = new RestResponse<>();
+        RoleResponseDTO roleDTO = RoleMapper.toDTO(role);
+
+        RestResponse<RoleResponseDTO> response = new RestResponse<>();
         response.setStatusCode(HttpStatus.OK.value());
         response.setMessage("Lấy thông tin role thành công");
-        response.setData(role);
+        response.setData(roleDTO);
         return ResponseEntity.ok(response);
     }
 
