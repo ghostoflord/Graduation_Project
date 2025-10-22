@@ -1,9 +1,11 @@
 package com.vn.capstone.service;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
+import com.vn.capstone.domain.Product;
 import com.vn.capstone.domain.Slide;
 import com.vn.capstone.repository.SlideRepository;
 import com.vn.capstone.util.constant.SlideType;
@@ -29,19 +31,28 @@ public class SlideService {
         return slideRepository.save(slide);
     }
 
-    public Slide updateSlide(Long id, Slide slide) {
-        return slideRepository.findById(id)
-                .map(existing -> {
-                    existing.setTitle(slide.getTitle());
-                    existing.setDescription(slide.getDescription());
-                    existing.setImageUrl(slide.getImageUrl());
-                    existing.setRedirectUrl(slide.getRedirectUrl());
-                    existing.setActive(slide.getActive());
-                    existing.setOrderIndex(slide.getOrderIndex());
-                    existing.setType(slide.getType());
-                    return slideRepository.save(existing);
-                })
-                .orElseThrow(() -> new RuntimeException("Slide not found with id " + id));
+    public Slide fetchSlideById(long id) {
+        Optional<Slide> SlideOptional = this.slideRepository.findById(id);
+        if (SlideOptional.isPresent()) {
+            return SlideOptional.get();
+        }
+        return null;
+    }
+
+    public Slide handleUpdateSlide(Slide reqSlide) {
+        Slide currentSlide = this.fetchSlideById(reqSlide.getId());
+        if (currentSlide != null) {
+            currentSlide.setTitle(reqSlide.getTitle());
+            currentSlide.setDescription(reqSlide.getDescription());
+            currentSlide.setImageUrl(reqSlide.getImageUrl());
+            currentSlide.setRedirectUrl(reqSlide.getRedirectUrl());
+            currentSlide.setActive(reqSlide.getActive());
+            currentSlide.setOrderIndex(reqSlide.getOrderIndex());
+            currentSlide.setType(reqSlide.getType());
+            // update
+            currentSlide = this.slideRepository.save(currentSlide);
+        }
+        return currentSlide;
     }
 
     public void deleteSlide(Long id) {

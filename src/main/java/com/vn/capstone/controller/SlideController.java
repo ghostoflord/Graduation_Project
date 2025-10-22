@@ -19,9 +19,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.vn.capstone.domain.Product;
 import com.vn.capstone.domain.Slide;
 import com.vn.capstone.domain.response.RestResponse;
+import com.vn.capstone.domain.response.product.ProductUpdateRequest;
 import com.vn.capstone.domain.response.slide.CreateSlideDTO;
+import com.vn.capstone.domain.response.slide.SlideUpdateRequest;
 import com.vn.capstone.service.SlideService;
 import com.vn.capstone.util.constant.SlideType;
 
@@ -136,21 +139,41 @@ public class SlideController {
     }
 
     @PutMapping("/slides/{id}")
-    public ResponseEntity<RestResponse<Slide>> updateSlide(@PathVariable Long id, @RequestBody Slide slide) {
-        RestResponse<Slide> response = new RestResponse<>();
-        try {
-            Slide updatedSlide = slideService.updateSlide(id, slide);
-            response.setStatusCode(200);
-            response.setMessage("Cập nhật slide thành công");
-            response.setData(updatedSlide);
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            response.setStatusCode(500);
-            response.setError("Lỗi cập nhật slide");
-            response.setMessage(e.getMessage());
-            response.setData(null);
-            return ResponseEntity.status(500).body(response);
+    public ResponseEntity<RestResponse<Slide>> updateProduct(
+            @PathVariable Long id,
+            @RequestBody SlideUpdateRequest request) throws IOException {
+
+        Slide slide = slideService.fetchSlideById(id);
+        if (slide == null) {
+            throw new RuntimeException("Không tìm thấy sản phẩm với ID: " + id);
         }
+
+        // cập nhật các field
+        slide.setTitle(request.getTitle());
+        slide.setDescription(request.getDescription());
+        slide.setRedirectUrl(request.getRedirectUrl());
+        slide.setActive(request.isActive());
+        slide.setOrderIndex(request.getOrderIndex());
+        slide.setType(request.getType());
+
+        // xử lý ảnh
+        if (request.getImageUrl() != null && !request.getImageUrl().trim().isEmpty()) {
+            if (slide.getImageUrl() != null) {
+                File oldImage = new File(slideUploadDir + File.separator + slide.getImageUrl());
+                if (oldImage.exists())
+                    oldImage.delete();
+            }
+            String savedImage = saveSlideImage(request.getImageUrl());
+            slide.setImageUrl(savedImage);
+        }
+
+        Slide updatedSlide = slideService.handleUpdateSlide(slide);
+
+        RestResponse<Slide> response = new RestResponse<>();
+        response.setStatusCode(HttpStatus.OK.value());
+        response.setMessage("Cập nhật sản phẩm thành công");
+        response.setData(updatedSlide);
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/slides/{id}")
