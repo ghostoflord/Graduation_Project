@@ -1,5 +1,6 @@
 package com.vn.capstone.domain;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 
@@ -25,6 +26,7 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 
 @Entity
 @Table(name = "products")
@@ -89,6 +91,15 @@ public class Product {
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<ProductImage> images;
+
+    @Transient
+    public BigDecimal getPriceValue() {
+        try {
+            return new BigDecimal(price);
+        } catch (NumberFormatException e) {
+            return BigDecimal.ZERO;
+        }
+    }
 
     public List<ProductImage> getImages() {
         return images;

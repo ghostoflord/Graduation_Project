@@ -83,7 +83,6 @@ public class ProductService {
         Specification<Product> finalSpec = spec.and(
                 ProductSpecifications.notInFlashSale(flashSaleProductIds));
 
-        // Lấy danh sách sản phẩm đã lọc
         Page<Product> pageProduct = this.productRepository.findAll(finalSpec, pageable);
 
         // Build response
