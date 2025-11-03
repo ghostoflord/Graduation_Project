@@ -26,7 +26,8 @@ public class ProductSpecifications {
             String cpu,
             String ram,
             String storage,
-            String gpu) {
+            String gpu,
+            String screen) {
         return (root, query, cb) -> {
             Join<Object, Object> detailJoin = root.join("productDetail", JoinType.LEFT);
             List<Predicate> predicates = new ArrayList<>();
@@ -42,6 +43,9 @@ public class ProductSpecifications {
             }
             if (gpu != null && !gpu.isEmpty()) {
                 predicates.add(cb.like(cb.lower(detailJoin.get("gpu")), "%" + gpu.toLowerCase() + "%"));
+            }
+            if (screen != null && !screen.isEmpty()) {
+                predicates.add(cb.like(cb.lower(detailJoin.get("screen")), "%" + screen.toLowerCase() + "%"));
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));

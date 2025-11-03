@@ -84,11 +84,12 @@ public class ProductService {
         String ram = ServletRequestHolder.getRequest().getParameter("ram");
         String storage = ServletRequestHolder.getRequest().getParameter("storage");
         String gpu = ServletRequestHolder.getRequest().getParameter("gpu");
-
+        String rom = ServletRequestHolder.getRequest().getParameter("rom");
+        String screen = ServletRequestHolder.getRequest().getParameter("screen");
         // Gộp tất cả spec
         Specification<Product> finalSpec = Specification
                 .where(spec)
-                .and(ProductSpecifications.matchDetail(cpu, ram, storage, gpu))
+                .and(ProductSpecifications.matchDetail(cpu, ram, storage, gpu, screen))
                 .and(ProductSpecifications.notInFlashSale(flashSaleProductIds));
 
         Page<Product> pageProduct = this.productRepository.findAll(finalSpec, pageable);
