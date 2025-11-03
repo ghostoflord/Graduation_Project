@@ -17,6 +17,7 @@ import com.vn.capstone.domain.Order;
 import com.vn.capstone.domain.Product;
 import com.vn.capstone.domain.ProductDetail;
 import com.vn.capstone.domain.ProductImage;
+import com.vn.capstone.domain.request.ServletRequestHolder;
 import com.vn.capstone.domain.response.CreateProductDTO;
 import com.vn.capstone.domain.response.ResProductDTO;
 import com.vn.capstone.domain.response.ResultPaginationDTO;
@@ -73,22 +74,27 @@ public class ProductService {
     }
 
     public ResultPaginationDTO fetchAllProduct(Specification<Product> spec, Pageable pageable) {
-        // Lấy danh sách ID của sản phẩm đang trong Flash Sale
         List<Long> flashSaleProductIds = flashSaleItemRepository.findAll()
                 .stream()
                 .map(item -> item.getProduct().getId())
                 .toList();
 
-        // Kết hợp specification hiện có với bộ lọc không flash sale
-        Specification<Product> finalSpec = spec.and(
-                ProductSpecifications.notInFlashSale(flashSaleProductIds));
+        // Lấy filter thủ công từ query param
+        String cpu = ServletRequestHolder.getRequest().getParameter("cpu");
+        String ram = ServletRequestHolder.getRequest().getParameter("ram");
+        String storage = ServletRequestHolder.getRequest().getParameter("storage");
+        String gpu = ServletRequestHolder.getRequest().getParameter("gpu");
+
+        // Gộp tất cả spec
+        Specification<Product> finalSpec = Specification
+                .where(spec)
+                .and(ProductSpecifications.matchDetail(cpu, ram, storage, gpu))
+                .and(ProductSpecifications.notInFlashSale(flashSaleProductIds));
 
         Page<Product> pageProduct = this.productRepository.findAll(finalSpec, pageable);
 
-        // Build response
         ResultPaginationDTO rs = new ResultPaginationDTO();
         ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
-
         mt.setPage(pageable.getPageNumber() + 1);
         mt.setPageSize(pageable.getPageSize());
         mt.setPages(pageProduct.getTotalPages());
