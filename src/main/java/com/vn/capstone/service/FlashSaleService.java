@@ -107,6 +107,7 @@ public class FlashSaleService {
         return dto;
     }
 
+    @Transactional
     @Scheduled(fixedRate = 60000) // chạy mỗi 60s
     public void updateFlashSaleStatuses() {
         List<FlashSale> all = flashSaleRepo.findAll();
@@ -119,6 +120,11 @@ public class FlashSaleService {
                 newStatus = "UPCOMING";
             } else if (now.isAfter(sale.getEndTime())) {
                 newStatus = "ENDED";
+
+                if (sale.getItems() != null && !sale.getItems().isEmpty()) {
+                    flashSaleItemRepo.deleteAll(sale.getItems());
+                    sale.getItems().clear();
+                }
             } else {
                 newStatus = "ACTIVE";
             }
