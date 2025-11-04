@@ -35,4 +35,5 @@ public class ProductUpdateRequest {
     @Enumerated(EnumType.STRING)
     private BestsellEnum bestsell;
     private String sell;
+    private String discountPrice;
 }

@@ -154,6 +154,7 @@ public class ProductService {
             currentProduct.setProductCode(reqProduct.getProductCode());
             currentProduct.setBestsell(reqProduct.getBestsell());
             currentProduct.setSell(reqProduct.getSell());
+            currentProduct.setDiscountPrice(reqProduct.getDiscountPrice());
             // update
             currentProduct = this.productRepository.save(currentProduct);
         }

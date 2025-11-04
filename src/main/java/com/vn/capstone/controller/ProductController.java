@@ -244,6 +244,7 @@ public class ProductController {
         product.setShortDescription(request.getShortDescription());
         product.setBestsell(request.getBestsell());
         product.setSell(request.getSell());
+        product.setDiscountPrice(request.getDiscountPrice());
 
         // Nếu có ảnh base64 mới
         if (request.getImage() != null && !request.getImage().trim().isEmpty()) {
