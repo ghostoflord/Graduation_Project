@@ -28,7 +28,7 @@ public class Slide {
     private String redirectUrl;
 
     private Boolean active = true;
-    private Integer orderIndex = 0;
+    private Integer orderIndex;
 
     @Enumerated(EnumType.STRING)
     private SlideType type; // "HOME", "ABOUT", "CONTACT"

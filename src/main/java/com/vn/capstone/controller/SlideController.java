@@ -8,6 +8,8 @@ import java.util.Base64;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -19,13 +21,17 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.turkraft.springfilter.boot.Filter;
 import com.vn.capstone.domain.Product;
 import com.vn.capstone.domain.Slide;
+import com.vn.capstone.domain.User;
 import com.vn.capstone.domain.response.RestResponse;
+import com.vn.capstone.domain.response.ResultPaginationDTO;
 import com.vn.capstone.domain.response.product.ProductUpdateRequest;
 import com.vn.capstone.domain.response.slide.CreateSlideDTO;
 import com.vn.capstone.domain.response.slide.SlideUpdateRequest;
 import com.vn.capstone.service.SlideService;
+import com.vn.capstone.util.annotation.ApiMessage;
 import com.vn.capstone.util.constant.SlideType;
 
 @RestController
@@ -42,8 +48,19 @@ public class SlideController {
     }
 
     @GetMapping("/slides")
-    public ResponseEntity<List<Slide>> getAllSlides() {
-        return ResponseEntity.ok(slideService.getAllSlides());
+    @ApiMessage("fetch all slide")
+    public ResponseEntity<RestResponse<ResultPaginationDTO>> getAllSlide(
+            @Filter Specification<Slide> spec,
+            Pageable pageable) {
+
+        ResultPaginationDTO result = this.slideService.fetchAllSlide(spec, pageable);
+
+        RestResponse<ResultPaginationDTO> response = new RestResponse<>();
+        response.setStatusCode(HttpStatus.OK.value());
+        response.setMessage("fetch all slide");
+        response.setData(result);
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     // Lấy slide theo type (ví dụ: HOME)
