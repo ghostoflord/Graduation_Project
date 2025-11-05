@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
@@ -190,6 +191,10 @@ public class FlashSaleService {
                 item.getSalePrice(),
                 item.getQuantity(),
                 item.getImageUrl());
+    }
+
+    public Optional<FlashSaleItem> getActiveFlashSaleItemForProduct(Long productId) {
+        return flashSaleItemRepo.findActiveFlashSaleItemForProduct(productId, LocalDateTime.now());
     }
 
     // update

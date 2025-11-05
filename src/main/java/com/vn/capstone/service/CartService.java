@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.vn.capstone.domain.Cart;
 import com.vn.capstone.domain.CartDetail;
+import com.vn.capstone.domain.FlashSaleItem;
 import com.vn.capstone.domain.Product;
 import com.vn.capstone.domain.User;
 import com.vn.capstone.domain.response.cart.CartItemDTO;
@@ -25,12 +26,14 @@ public class CartService {
     private final CartRepository cartRepository;
     private final CartDetailRepository cartDetailRepository;
     private final ProductRepository productRepository;
+    private final FlashSaleService flashSaleService;
 
     public CartService(CartRepository cartRepository, CartDetailRepository cartDetailRepository,
-            ProductRepository productRepository) {
+            ProductRepository productRepository, FlashSaleService flashSaleService) {
         this.cartRepository = cartRepository;
         this.cartDetailRepository = cartDetailRepository;
         this.productRepository = productRepository;
+        this.flashSaleService = flashSaleService;
     }
 
     public Cart getCartByUserId(Long userId) {
@@ -41,7 +44,30 @@ public class CartService {
         return cartRepository.save(cart);
     }
 
-    public CartDetail addCartDetail(Long userId, Product product, long quantity, double price) {
+    public CartDetail addCartDetail(Long userId, Product product, long quantity, double fallbackPrice) {
+
+        // ✅ Bước 1: Check xem product có đang trong Flash Sale không
+        Optional<FlashSaleItem> flashSaleOpt = flashSaleService.getActiveFlashSaleItemForProduct(product.getId());
+
+        double finalPrice;
+        if (flashSaleOpt.isPresent()) {
+            finalPrice = flashSaleOpt.get().getSalePrice();
+            System.out.println("⚡ Product đang Flash Sale — dùng salePrice: " + finalPrice);
+        } else {
+            // ✅ Nếu không trong Flash Sale → lấy discountPrice hoặc giá gốc
+            try {
+                if (product.getDiscountPrice() != null && !product.getDiscountPrice().isEmpty()
+                        && Double.parseDouble(product.getDiscountPrice()) > 0) {
+                    finalPrice = Double.parseDouble(product.getDiscountPrice());
+                } else {
+                    finalPrice = Double.parseDouble(product.getPrice());
+                }
+            } catch (NumberFormatException e) {
+                finalPrice = fallbackPrice;
+            }
+        }
+
+        // ✅ Bước 2: Thêm hoặc cập nhật vào giỏ hàng
         Cart cart = cartRepository.findByUserId(userId);
         if (cart == null) {
             cart = new Cart();
@@ -49,26 +75,25 @@ public class CartService {
             cart.setSum(0);
             cart = cartRepository.save(cart);
         }
+
         Optional<CartDetail> optionalDetail = cartDetailRepository.findByCartIdAndProductId(cart.getId(),
                 product.getId());
-
         CartDetail detail;
         if (optionalDetail.isPresent()) {
             detail = optionalDetail.get();
             detail.setQuantity(detail.getQuantity() + quantity);
-            detail.setPrice(price); // Cập nhật giá nếu muốn
+            detail.setPrice(finalPrice);
         } else {
             detail = new CartDetail();
             detail.setCart(cart);
             detail.setProduct(product);
             detail.setQuantity(quantity);
-            detail.setPrice(price);
+            detail.setPrice(finalPrice);
         }
 
         cartDetailRepository.save(detail);
         recalcSum(cart);
         return detail;
-
     }
 
     private void recalcSum(Cart cart) {
