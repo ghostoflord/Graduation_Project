@@ -169,8 +169,16 @@ public class OrderService {
                 throw new IllegalArgumentException("Số lượng quá lớn, không thể xử lý");
             }
             if (flashSaleItemId != null) {
-                flashSaleService.reduceFlashSaleItemQuantity(flashSaleItemId, (int) quantityLong);
+                boolean removed = flashSaleService.removeExpiredOrEndedFlashSaleItems(cd.getProduct().getId());
+                if (removed) {
+                    // Nếu Flash Sale đã hết hạn → revert giá gốc
+                    cd.setPrice(Double.parseDouble(cd.getProduct().getPrice()));
+                } else {
+                    // Nếu Flash Sale còn hiệu lực → giảm số lượng Flash Sale
+                    flashSaleService.reduceFlashSaleItemQuantity(flashSaleItemId, (int) quantityLong);
+                }
             }
+
             // Tính tổng tiền
             totalPrice += cd.getPrice() * cd.getQuantity();
 

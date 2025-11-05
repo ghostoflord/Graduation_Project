@@ -269,4 +269,29 @@ public class FlashSaleService {
         }
     }
 
+    /// trừ số lương sản phẩm trong flashsalee
+    @Transactional
+    public boolean removeExpiredOrEndedFlashSaleItems(Long productId) {
+        List<FlashSale> allSales = flashSaleRepo.findAll();
+        LocalDateTime now = LocalDateTime.now();
+        boolean removed = false;
+
+        for (FlashSale sale : allSales) {
+            // Kiểm tra Flash Sale hết hạn
+            if (now.isAfter(sale.getEndTime())) {
+                List<FlashSaleItem> expiredItems = sale.getItems().stream()
+                        .filter(item -> productId != null && productId.equals(item.getProduct().getId()))
+                        .collect(Collectors.toList());
+
+                if (!expiredItems.isEmpty()) {
+                    flashSaleItemRepo.deleteAll(expiredItems);
+                    sale.getItems().removeAll(expiredItems);
+                    flashSaleRepo.save(sale);
+                    removed = true;
+                }
+            }
+        }
+        return removed;
+    }
+
 }
