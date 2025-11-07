@@ -127,7 +127,8 @@ public class OrderService {
 
     @Transactional
     public Order placeOrder(Long userId, String receiverName,
-            String address, String phone, String voucherCode, @Nullable Long flashSaleItemId) {
+            String address, String phone, String voucherCode, @Nullable Long flashSaleItemId,
+            PaymentMethod paymentMethod, String shippingMethod) {
 
         // Lấy Cart của user, kiểm tra rỗng
         Cart cart = cartRepository.findByUserId(userId);
@@ -142,6 +143,16 @@ public class OrderService {
         order.setReceiverAddress(address);
         order.setReceiverPhone(phone);
         order.setStatus(OrderStatus.PENDING);
+        order.setTrackingCode("MC" + (System.currentTimeMillis() % 1000000) + (int) (Math.random() * 1000));
+        order.setPaymentMethod(paymentMethod);
+        order.setShippingMethod(shippingMethod);
+
+        if (paymentMethod == PaymentMethod.COD) {
+            order.setPaymentStatus(PaymentStatus.UNPAID);
+        } else {
+            order.setPaymentStatus(PaymentStatus.PAID); // hoặc UNPAID tùy vào xử lý sau khi xác nhận
+        }
+
         order = orderRepository.save(order); // Lưu trước để có ID
 
         // Tính tổng tiền từ CartDetail

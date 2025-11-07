@@ -39,7 +39,7 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
 
         @Query("SELECT od.product.name, SUM(od.quantity), SUM(od.quantity * od.price) " +
                         "FROM OrderDetail od " +
-                        "WHERE od.order.status = 'DELIVERED' " +
+                        "WHERE od.order.status = 'CONFIRMED' " +
                         "GROUP BY od.product.name " +
                         "ORDER BY SUM(od.quantity) DESC")
         List<Object[]> getTopSellingProducts();

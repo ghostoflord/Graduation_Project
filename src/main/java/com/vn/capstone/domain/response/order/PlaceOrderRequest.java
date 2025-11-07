@@ -1,5 +1,7 @@
 package com.vn.capstone.domain.response.order;
 
+import com.vn.capstone.util.constant.PaymentMethod;
+
 public class PlaceOrderRequest {
     private Long userId;
     private String name;
@@ -8,6 +10,10 @@ public class PlaceOrderRequest {
     private String voucherCode;
 
     private Long flashSaleItemId;
+
+    private PaymentMethod paymentMethod;
+
+    private String shippingMethod;
 
     public Long getUserId() {
         return userId;
@@ -55,6 +61,22 @@ public class PlaceOrderRequest {
 
     public void setFlashSaleItemId(Long flashSaleItemId) {
         this.flashSaleItemId = flashSaleItemId;
+    }
+
+    public PaymentMethod getPaymentMethod() {
+        return paymentMethod;
+    }
+
+    public void setPaymentMethod(PaymentMethod paymentMethod) {
+        this.paymentMethod = paymentMethod;
+    }
+
+    public String getShippingMethod() {
+        return shippingMethod;
+    }
+
+    public void setShippingMethod(String shippingMethod) {
+        this.shippingMethod = shippingMethod;
     }
 
 }
