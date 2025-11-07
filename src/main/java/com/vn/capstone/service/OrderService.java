@@ -520,9 +520,13 @@ public class OrderService {
     }
 
     // cập nhập order bởi admin
+    @Transactional
     public void updateOrder(Long id, UpdateOrderRequest request, String email) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
+
+        OrderStatus oldStatus = order.getStatus();
+
         order.setReceiverName(request.getReceiverName());
         order.setReceiverAddress(request.getReceiverAddress());
         order.setReceiverPhone(request.getReceiverPhone());
@@ -535,6 +539,22 @@ public class OrderService {
         order.setUpdatedAt(Instant.now());
 
         orderRepository.save(order);
+
+        // Nếu admin cập nhật thành CANCELED → hoàn lại số lượng sản phẩm
+        if (request.getStatus() == OrderStatus.CANCELED && oldStatus != OrderStatus.CANCELED) {
+            List<OrderDetail> orderDetails = orderDetailRepository.findByOrder(order);
+            for (OrderDetail detail : orderDetails) {
+                Product product = detail.getProduct();
+                long currentQuantity = Long.parseLong(product.getQuantity());
+                long refundQuantity = detail.getQuantity();
+
+                product.setQuantity(String.valueOf(currentQuantity + refundQuantity));
+                productRepository.save(product);
+            }
+        }
+
+        // Ghi lại lịch sử trạng thái
+        saveOrderStatusHistory(order, oldStatus, request.getStatus());
     }
 
     @Transactional
