@@ -58,6 +58,12 @@ public class User {
 
     private boolean activate;
 
+    @Column(name = "failed_login_attempts")
+    private int failedLoginAttempts;
+
+    @Column(name = "account_locked")
+    private boolean accountLocked;
+
     public User() {
 
     }
@@ -279,6 +285,22 @@ public class User {
 
     public void setActivate(boolean activate) {
         this.activate = activate;
+    }
+
+    public int getFailedLoginAttempts() {
+        return failedLoginAttempts;
+    }
+
+    public void setFailedLoginAttempts(int failedLoginAttempts) {
+        this.failedLoginAttempts = failedLoginAttempts;
+    }
+
+    public boolean isAccountLocked() {
+        return accountLocked;
+    }
+
+    public void setAccountLocked(boolean accountLocked) {
+        this.accountLocked = accountLocked;
     }
 
     public String getResetPasswordToken() {
