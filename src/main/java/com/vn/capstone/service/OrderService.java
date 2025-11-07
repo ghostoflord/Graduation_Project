@@ -19,6 +19,9 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.vn.capstone.domain.Cart;
 import com.vn.capstone.domain.CartDetail;
@@ -309,28 +312,43 @@ public class OrderService {
         return dto;
     }
 
-    // user delete order @PostMapping("/{id}/cancel")
-    public void cancelOrder(Long orderId, String username) {
+    @Transactional
+    @PostMapping("/{id}/cancel")
+    public void cancelOrder(@PathVariable("id") Long orderId, @RequestParam String username) {
+        // Tìm đơn hàng
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
 
-        // check user vs username
+        // Kiểm tra quyền user
         if (!order.getUser().getEmail().equals(username)) {
             throw new AccessDeniedException("Không được phép hủy đơn này");
         }
 
+        // Chỉ cho phép hủy nếu còn ở trạng thái chờ xác nhận hoặc đã xác nhận
         if (!(order.getStatus() == OrderStatus.PENDING || order.getStatus() == OrderStatus.CONFIRMED)) {
             throw new IllegalStateException("Không thể hủy đơn đã vận chuyển hoặc giao hàng");
         }
 
+        // Cập nhật trạng thái hủy
         OrderStatus oldStatus = order.getStatus();
         order.setStatus(OrderStatus.CANCELED);
         order.setUpdatedAt(Instant.now());
         order.setCancelReason("Người dùng yêu cầu hủy");
-
         orderRepository.save(order);
 
-        // Ghi lịch sử sau khi lưu
+        // Hoàn trả lại số lượng sản phẩm
+        List<OrderDetail> orderDetails = orderDetailRepository.findByOrder(order);
+        for (OrderDetail detail : orderDetails) {
+            Product product = detail.getProduct();
+            long currentQuantity = Long.parseLong(product.getQuantity());
+            long refundQuantity = detail.getQuantity();
+
+            long newQuantity = currentQuantity + refundQuantity;
+            product.setQuantity(String.valueOf(newQuantity));
+            productRepository.save(product);
+        }
+
+        // Ghi lại lịch sử thay đổi trạng thái đơn hàng
         saveOrderStatusHistory(order, oldStatus, OrderStatus.CANCELED);
     }
 
