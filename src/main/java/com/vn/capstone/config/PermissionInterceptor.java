@@ -52,9 +52,14 @@ public class PermissionInterceptor implements HandlerInterceptor {
             if (user != null) {
                 Role role = user.getRole();
                 if (role != null) {
+                    if ("SUPER_ADMIN".equalsIgnoreCase(role.getName())) {
+                        return true;
+                    }
+
                     List<Permission> permissions = role.getPermissions();
-                    boolean isAllow = permissions.stream().anyMatch(item -> item.getApiPath().equals(path)
-                            && item.getMethod().equals(httpMethod));
+                    boolean isAllow = permissions.stream()
+                            .anyMatch(item -> item.getApiPath().equals(path)
+                                    && item.getMethod().equalsIgnoreCase(httpMethod));
 
                     if (isAllow == false) {
                         throw new IdInvalidException("Bạn không có quyền truy cập endpoint này.");
