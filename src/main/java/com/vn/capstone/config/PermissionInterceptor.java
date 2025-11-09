@@ -43,6 +43,11 @@ public class PermissionInterceptor implements HandlerInterceptor {
         System.out.println(">>> requestURI= " + requestURI);
         log.debug("Request to save path : {}", path);
 
+        // cho phép các API tự cập nhật/profile của chính người dùng qua mà không cần check permission
+        if (path != null && path.startsWith("/api/v1/users/me")) {
+            return true;
+        }
+
         // check permission
         String email = SecurityUtil.getCurrentUserLogin().isPresent() == true
                 ? SecurityUtil.getCurrentUserLogin().get()
