@@ -352,9 +352,17 @@ public class UserController {
 
     @PostMapping("/users/me/update")
     public ResponseEntity<RestResponse<User>> selfUpdateUser(@RequestBody UpdateUserDTO userDTO) throws IOException {
-        // Tìm user theo id
-        User user = userService.findById(userDTO.getId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy user"));
+        String currentEmail = SecurityUtil.getCurrentUserLogin()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Bạn chưa đăng nhập."));
+
+        User user = userRepository.findByEmail(currentEmail);
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy user");
+        }
+
+        if (userDTO.getId() != null && userDTO.getId() != user.getId()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Bạn không thể cập nhật tài khoản khác.");
+        }
 
         // Cập nhật thông tin
         user.setName(userDTO.getName());
@@ -362,14 +370,9 @@ public class UserController {
         user.setAddress(userDTO.getAddress());
         user.setAge(userDTO.getAge());
 
-        // Cập nhật role nếu có
+        // Không cho phép người dùng tự đổi role
         if (userDTO.getRoleId() != null) {
-            Role role = roleService.fetchRoleById(userDTO.getRoleId());
-            if (role == null) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                        "Không tìm thấy role với id: " + userDTO.getRoleId());
-            }
-            user.setRole(role);
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Bạn không thể thay đổi vai trò của mình.");
         }
 
         // Nếu có avatar mới
@@ -397,11 +400,21 @@ public class UserController {
     @GetMapping("/users/me/{id}")
     @ApiMessage("fetch user by id")
     public ResponseEntity<RestResponse<User>> userTakeProfile(@PathVariable("id") long id) {
-        User fetchUser = this.userService.fetchUserById(id);
+        String currentEmail = SecurityUtil.getCurrentUserLogin()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Bạn chưa đăng nhập."));
+
+        User currentUser = userRepository.findByEmail(currentEmail);
+        if (currentUser == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy user.");
+        }
+
+        if (currentUser.getId() != id) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Bạn không thể xem thông tin người dùng khác.");
+        }
 
         RestResponse<User> response = new RestResponse<>();
         response.setStatusCode(HttpStatus.OK.value());
-        response.setData(fetchUser);
+        response.setData(currentUser);
         response.setMessage("Lấy thông tin người dùng thành công");
 
         return ResponseEntity.ok(response);
