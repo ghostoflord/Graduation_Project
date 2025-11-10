@@ -355,20 +355,30 @@ public class UserController {
         String currentEmail = SecurityUtil.getCurrentUserLogin()
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Bạn chưa đăng nhập."));
 
-        User user = userRepository.findByEmail(currentEmail);
-        if (user == null) {
+        User currentUser = userRepository.findByEmail(currentEmail);
+        if (currentUser == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy user");
         }
 
-        if (userDTO.getId() != null && userDTO.getId() != user.getId()) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Bạn không thể cập nhật tài khoản khác.");
+        User targetUser = currentUser;
+
+        if (userDTO.getId() != null && userDTO.getId() != currentUser.getId()) {
+            if (currentUser.getRole() != null && "SUPER_ADMIN".equalsIgnoreCase(currentUser.getRole().getName())) {
+                targetUser = userService.fetchUserById(userDTO.getId());
+                if (targetUser == null) {
+                    throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                            "Không tìm thấy user với id: " + userDTO.getId());
+                }
+            } else {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Bạn không thể cập nhật tài khoản khác.");
+            }
         }
 
         // Cập nhật thông tin
-        user.setName(userDTO.getName());
-        user.setGender(userDTO.getGender());
-        user.setAddress(userDTO.getAddress());
-        user.setAge(userDTO.getAge());
+        targetUser.setName(userDTO.getName());
+        targetUser.setGender(userDTO.getGender());
+        targetUser.setAddress(userDTO.getAddress());
+        targetUser.setAge(userDTO.getAge());
 
         // Không cho phép người dùng tự đổi role
         if (userDTO.getRoleId() != null) {
@@ -377,18 +387,18 @@ public class UserController {
 
         // Nếu có avatar mới
         if (userDTO.getAvatar() != null && !userDTO.getAvatar().trim().isEmpty()) {
-            if (user.getAvatar() != null) {
-                File oldAvatar = new File(avatarUploadDir + File.separator + user.getAvatar());
+            if (targetUser.getAvatar() != null) {
+                File oldAvatar = new File(avatarUploadDir + File.separator + targetUser.getAvatar());
                 if (oldAvatar.exists()) {
                     oldAvatar.delete();
                 }
             }
 
             String newAvatarFileName = saveAvatar(userDTO.getAvatar());
-            user.setAvatar(newAvatarFileName);
+            targetUser.setAvatar(newAvatarFileName);
         }
 
-        User updatedUser = userService.handleUpdateUser(user);
+        User updatedUser = userService.handleUpdateUser(targetUser);
 
         RestResponse<User> response = new RestResponse<>();
         response.setStatusCode(HttpStatus.OK.value());
@@ -403,18 +413,26 @@ public class UserController {
         String currentEmail = SecurityUtil.getCurrentUserLogin()
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Bạn chưa đăng nhập."));
 
-        User currentUser = userRepository.findByEmail(currentEmail);
-        if (currentUser == null) {
+        User requester = userRepository.findByEmail(currentEmail);
+        if (requester == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy user.");
         }
 
-        if (currentUser.getId() != id) {
+        User targetUser;
+        if (requester.getId() == id) {
+            targetUser = requester;
+        } else if (requester.getRole() != null && "SUPER_ADMIN".equalsIgnoreCase(requester.getRole().getName())) {
+            targetUser = this.userService.fetchUserById(id);
+            if (targetUser == null) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy user.");
+            }
+        } else {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Bạn không thể xem thông tin người dùng khác.");
         }
 
         RestResponse<User> response = new RestResponse<>();
         response.setStatusCode(HttpStatus.OK.value());
-        response.setData(currentUser);
+        response.setData(targetUser);
         response.setMessage("Lấy thông tin người dùng thành công");
 
         return ResponseEntity.ok(response);

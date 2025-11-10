@@ -174,6 +174,7 @@ public class UserService {
         commentRepository.saveAll(comments);
 
         // 6. Cuối cùng, xóa User
+        verificationTokenRepository.deleteByUser(user);
         userRepository.delete(user);
     }
 
