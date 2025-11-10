@@ -43,6 +43,11 @@ public class PermissionInterceptor implements HandlerInterceptor {
         System.out.println(">>> requestURI= " + requestURI);
         log.debug("Request to save path : {}", path);
 
+        // cho phép các API tự cập nhật/profile của chính người dùng qua mà không cần check permission
+        if (path != null && path.startsWith("/api/v1/users/me")) {
+            return true;
+        }
+
         // check permission
         String email = SecurityUtil.getCurrentUserLogin().isPresent() == true
                 ? SecurityUtil.getCurrentUserLogin().get()
@@ -52,9 +57,14 @@ public class PermissionInterceptor implements HandlerInterceptor {
             if (user != null) {
                 Role role = user.getRole();
                 if (role != null) {
+                    if ("SUPER_ADMIN".equalsIgnoreCase(role.getName())) {
+                        return true;
+                    }
+
                     List<Permission> permissions = role.getPermissions();
-                    boolean isAllow = permissions.stream().anyMatch(item -> item.getApiPath().equals(path)
-                            && item.getMethod().equals(httpMethod));
+                    boolean isAllow = permissions.stream()
+                            .anyMatch(item -> item.getApiPath().equals(path)
+                                    && item.getMethod().equalsIgnoreCase(httpMethod));
 
                     if (isAllow == false) {
                         throw new IdInvalidException("Bạn không có quyền truy cập endpoint này.");

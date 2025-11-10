@@ -352,40 +352,53 @@ public class UserController {
 
     @PostMapping("/users/me/update")
     public ResponseEntity<RestResponse<User>> selfUpdateUser(@RequestBody UpdateUserDTO userDTO) throws IOException {
-        // Tìm user theo id
-        User user = userService.findById(userDTO.getId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy user"));
+        String currentEmail = SecurityUtil.getCurrentUserLogin()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Bạn chưa đăng nhập."));
+
+        User currentUser = userRepository.findByEmail(currentEmail);
+        if (currentUser == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy user");
+        }
+
+        User targetUser = currentUser;
+
+        if (userDTO.getId() != null && userDTO.getId() != currentUser.getId()) {
+            if (currentUser.getRole() != null && "SUPER_ADMIN".equalsIgnoreCase(currentUser.getRole().getName())) {
+                targetUser = userService.fetchUserById(userDTO.getId());
+                if (targetUser == null) {
+                    throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                            "Không tìm thấy user với id: " + userDTO.getId());
+                }
+            } else {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Bạn không thể cập nhật tài khoản khác.");
+            }
+        }
 
         // Cập nhật thông tin
-        user.setName(userDTO.getName());
-        user.setGender(userDTO.getGender());
-        user.setAddress(userDTO.getAddress());
-        user.setAge(userDTO.getAge());
+        targetUser.setName(userDTO.getName());
+        targetUser.setGender(userDTO.getGender());
+        targetUser.setAddress(userDTO.getAddress());
+        targetUser.setAge(userDTO.getAge());
 
-        // Cập nhật role nếu có
+        // Không cho phép người dùng tự đổi role
         if (userDTO.getRoleId() != null) {
-            Role role = roleService.fetchRoleById(userDTO.getRoleId());
-            if (role == null) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                        "Không tìm thấy role với id: " + userDTO.getRoleId());
-            }
-            user.setRole(role);
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Bạn không thể thay đổi vai trò của mình.");
         }
 
         // Nếu có avatar mới
         if (userDTO.getAvatar() != null && !userDTO.getAvatar().trim().isEmpty()) {
-            if (user.getAvatar() != null) {
-                File oldAvatar = new File(avatarUploadDir + File.separator + user.getAvatar());
+            if (targetUser.getAvatar() != null) {
+                File oldAvatar = new File(avatarUploadDir + File.separator + targetUser.getAvatar());
                 if (oldAvatar.exists()) {
                     oldAvatar.delete();
                 }
             }
 
             String newAvatarFileName = saveAvatar(userDTO.getAvatar());
-            user.setAvatar(newAvatarFileName);
+            targetUser.setAvatar(newAvatarFileName);
         }
 
-        User updatedUser = userService.handleUpdateUser(user);
+        User updatedUser = userService.handleUpdateUser(targetUser);
 
         RestResponse<User> response = new RestResponse<>();
         response.setStatusCode(HttpStatus.OK.value());
@@ -397,11 +410,29 @@ public class UserController {
     @GetMapping("/users/me/{id}")
     @ApiMessage("fetch user by id")
     public ResponseEntity<RestResponse<User>> userTakeProfile(@PathVariable("id") long id) {
-        User fetchUser = this.userService.fetchUserById(id);
+        String currentEmail = SecurityUtil.getCurrentUserLogin()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Bạn chưa đăng nhập."));
+
+        User requester = userRepository.findByEmail(currentEmail);
+        if (requester == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy user.");
+        }
+
+        User targetUser;
+        if (requester.getId() == id) {
+            targetUser = requester;
+        } else if (requester.getRole() != null && "SUPER_ADMIN".equalsIgnoreCase(requester.getRole().getName())) {
+            targetUser = this.userService.fetchUserById(id);
+            if (targetUser == null) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy user.");
+            }
+        } else {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Bạn không thể xem thông tin người dùng khác.");
+        }
 
         RestResponse<User> response = new RestResponse<>();
         response.setStatusCode(HttpStatus.OK.value());
-        response.setData(fetchUser);
+        response.setData(targetUser);
         response.setMessage("Lấy thông tin người dùng thành công");
 
         return ResponseEntity.ok(response);
