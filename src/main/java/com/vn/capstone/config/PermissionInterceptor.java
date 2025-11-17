@@ -10,6 +10,7 @@ import org.springframework.web.servlet.HandlerMapping;
 import com.vn.capstone.domain.Permission;
 import com.vn.capstone.domain.Role;
 import com.vn.capstone.domain.User;
+import com.vn.capstone.repository.PermissionRepository;
 import com.vn.capstone.service.UserService;
 import com.vn.capstone.util.SecurityUtil;
 import com.vn.capstone.util.error.IdInvalidException;
@@ -27,6 +28,9 @@ public class PermissionInterceptor implements HandlerInterceptor {
     @Autowired
     UserService userService;
 
+    @Autowired
+    PermissionRepository permissionRepository;
+
     @Override
     @Transactional
     public boolean preHandle(
@@ -43,30 +47,35 @@ public class PermissionInterceptor implements HandlerInterceptor {
         System.out.println(">>> requestURI= " + requestURI);
         log.debug("Request to save path : {}", path);
 
+        // Allow requests that are not registered as protected permissions
+        if (path == null || httpMethod == null || !permissionRepository.existsByApiPathAndMethod(path, httpMethod)) {
+            return true;
+        }
+
         // check permission
         String email = SecurityUtil.getCurrentUserLogin().isPresent() == true
                 ? SecurityUtil.getCurrentUserLogin().get()
                 : "";
         if (email != null && !email.isEmpty()) {
             User user = this.userService.handleGetUserByUsername(email);
-                if (user != null) {
-                    Role role = user.getRole();
-                    if (role != null) {
-                        if ("SUPER_ADMIN".equalsIgnoreCase(role.getName())) {
-                            return true;
-                        }
+            if (user != null) {
+                Role role = user.getRole();
+                if (role != null) {
+                    if ("SUPER_ADMIN".equalsIgnoreCase(role.getName())) {
+                        return true;
+                    }
 
-                        List<Permission> permissions = role.getPermissions();
-                        boolean isAllow = permissions.stream().anyMatch(item -> item.getApiPath().equals(path)
-                                && item.getMethod().equals(httpMethod));
+                    List<Permission> permissions = role.getPermissions();
+                    boolean isAllow = permissions.stream().anyMatch(item -> item.getApiPath().equals(path)
+                            && item.getMethod().equals(httpMethod));
 
-                        if (isAllow == false) {
-                            throw new IdInvalidException("Bạn không có quyền truy cập endpoint này.");
-                        }
-                    } else {
+                    if (isAllow == false) {
                         throw new IdInvalidException("Bạn không có quyền truy cập endpoint này.");
                     }
+                } else {
+                    throw new IdInvalidException("Bạn không có quyền truy cập endpoint này.");
                 }
+            }
         }
 
         return true;
