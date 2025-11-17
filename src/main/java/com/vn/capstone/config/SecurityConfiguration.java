@@ -66,15 +66,6 @@ public class SecurityConfiguration {
                 "/storage/**"
         };
 
-        String[] publicUserEndpoints = {
-                "/api/v1/carts/**",
-                "/api/v1/comments/**",
-                "/api/v1/reviews/**",
-                "/api/v1/likes/**",
-                "/api/v1/orders/place",
-                "/api/v1/orders/checkout"
-        };
-
         String[] publicGetEndpoints = {
                 "/api/v1/products/**",
                 "/api/v1/product-details/**",
@@ -92,7 +83,6 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(
                         authz -> authz
                                 .requestMatchers(publicEndpoints).permitAll()
-                                .requestMatchers(publicUserEndpoints).permitAll()
                                 .requestMatchers(HttpMethod.GET, publicGetEndpoints).permitAll()
                                 .anyRequest().authenticated())
                 .oauth2Login(oauth2 -> oauth2

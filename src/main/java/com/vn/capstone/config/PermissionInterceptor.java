@@ -11,6 +11,7 @@ import org.springframework.web.servlet.HandlerMapping;
 import com.vn.capstone.domain.Permission;
 import com.vn.capstone.domain.Role;
 import com.vn.capstone.domain.User;
+import com.vn.capstone.repository.PermissionRepository;
 import com.vn.capstone.service.UserService;
 import com.vn.capstone.util.SecurityUtil;
 import com.vn.capstone.util.error.IdInvalidException;
@@ -61,6 +62,9 @@ public class PermissionInterceptor implements HandlerInterceptor {
     @Autowired
     UserService userService;
 
+    @Autowired
+    PermissionRepository permissionRepository;
+
     @Override
     @Transactional
     public boolean preHandle(
@@ -78,6 +82,14 @@ public class PermissionInterceptor implements HandlerInterceptor {
         log.debug("Request to save path : {}", path);
 
         if (isPublicEndpoint(path, httpMethod)) {
+            return true;
+        }
+
+        if (path == null || httpMethod == null) {
+            return true;
+        }
+
+        if (!permissionRepository.existsByApiPathAndMethod(path, httpMethod)) {
             return true;
         }
 
