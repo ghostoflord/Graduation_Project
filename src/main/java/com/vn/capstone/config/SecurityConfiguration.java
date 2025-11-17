@@ -57,11 +57,22 @@ public class SecurityConfiguration {
                 "/",
                 "/api/v1/auth/**",
                 "/api/v1/payment/**",
+                "/api/v1/manual-chat/**",
+                "/api/v1/manual-chats/**",
                 "/oauth2/**",
                 "/upload/avatars/**",
                 "/upload/products/**",
                 "/upload/slides/**",
                 "/storage/**"
+        };
+
+        String[] publicUserEndpoints = {
+                "/api/v1/carts/**",
+                "/api/v1/comments/**",
+                "/api/v1/reviews/**",
+                "/api/v1/likes/**",
+                "/api/v1/orders/place",
+                "/api/v1/orders/checkout"
         };
 
         String[] publicGetEndpoints = {
@@ -81,6 +92,7 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(
                         authz -> authz
                                 .requestMatchers(publicEndpoints).permitAll()
+                                .requestMatchers(publicUserEndpoints).permitAll()
                                 .requestMatchers(HttpMethod.GET, publicGetEndpoints).permitAll()
                                 .anyRequest().authenticated())
                 .oauth2Login(oauth2 -> oauth2
