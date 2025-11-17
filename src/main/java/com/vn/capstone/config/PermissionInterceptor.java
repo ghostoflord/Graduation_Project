@@ -26,22 +26,34 @@ public class PermissionInterceptor implements HandlerInterceptor {
     private final Logger log = LoggerFactory.getLogger(PermissionInterceptor.class);
 
     private static final String[] ALWAYS_ALLOWED_ENDPOINTS = {
-            "/api/v1/auth/**",
-            "/api/v1/payment/**",
-            "/api/v1/manual-chat/**",
-            "/api/v1/manual-chats/**"
+            "/api/v1/auth/**", // Auth & account lifecycle
+            "/api/v1/payment/**", // Payment provider callbacks
+            "/api/v1/manual-chat/**", // Legacy chat widget
+            "/api/v1/manual-chats/**" // New chat widget namespace
     };
 
     private static final String[] PUBLIC_GET_ENDPOINTS = {
-            "/api/v1/products/**",
-            "/api/v1/product-details/**",
-            "/api/v1/flash-sales/**",
-            "/api/v1/slides/**",
-            "/api/v1/compare/**",
-            "/api/v1/reviews/**",
-            "/api/v1/comments/**",
-            "/api/v1/likes/**",
-            "/api/v1/vouchers/**"
+            "/api/v1/products/**", // Catalog browsing
+            "/api/v1/product-details/**", // SKU detail
+            "/api/v1/flash-sales/**", // Flash-sale listings
+            "/api/v1/slides/**", // Homepage banners
+            "/api/v1/compare/**", // Product comparison
+            "/api/v1/reviews/**", // Read reviews
+            "/api/v1/comments/**", // Read comments
+            "/api/v1/likes/**", // Like counts & listings
+            "/api/v1/vouchers/**" // Voucher lookups
+    };
+
+    private static final String[] PUBLIC_USER_ENDPOINTS = {
+            "/api/v1/carts/**", // Cart CRUD for customers
+            "/api/v1/comments", // Create product comments
+            "/api/v1/reviews/**", // Write/delete reviews
+            "/api/v1/likes/**", // Toggle favourites
+            "/api/v1/orders/place", // Checkout order
+            "/api/v1/orders/checkout", // Legacy checkout flow
+            "/api/v1/orders/{id}/cancel", // Buyer cancels their order
+            "/api/v1/orders/my-orders", // Buyer order list
+            "/api/v1/orders/{orderId}/details" // Buyer order detail
     };
 
     private static final AntPathMatcher PATH_MATCHER = new AntPathMatcher();
@@ -103,20 +115,23 @@ public class PermissionInterceptor implements HandlerInterceptor {
             return true;
         }
 
-        for (String pattern : ALWAYS_ALLOWED_ENDPOINTS) {
+        if (matches(path, ALWAYS_ALLOWED_ENDPOINTS) || matches(path, PUBLIC_USER_ENDPOINTS)) {
+            return true;
+        }
+
+        if (method != null && method.equalsIgnoreCase("GET") && matches(path, PUBLIC_GET_ENDPOINTS)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean matches(String path, String[] patterns) {
+        for (String pattern : patterns) {
             if (PATH_MATCHER.match(pattern, path)) {
                 return true;
             }
         }
-
-        if (method != null && method.equalsIgnoreCase("GET")) {
-            for (String pattern : PUBLIC_GET_ENDPOINTS) {
-                if (PATH_MATCHER.match(pattern, path)) {
-                    return true;
-                }
-            }
-        }
-
         return false;
     }
 }
