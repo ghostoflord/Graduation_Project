@@ -86,11 +86,11 @@ public class PermissionInterceptor implements HandlerInterceptor {
         }
 
         if (path == null || httpMethod == null) {
-            return true;
+            throw new IdInvalidException("Đường dẫn không xác định, không thể xác thực quyền.");
         }
 
         if (!permissionRepository.existsByApiPathAndMethod(path, httpMethod)) {
-            return true;
+            throw new IdInvalidException("Endpoint chưa được khai báo quyền truy cập.");
         }
 
         // check permission
@@ -106,7 +106,7 @@ public class PermissionInterceptor implements HandlerInterceptor {
                         return true;
                     }
 
-                    boolean isAllow = permissionRepository.existsByRolesIdAndApiPathAndMethod(
+                    boolean isAllow = permissionRepository.existsByRoles_IdAndApiPathAndMethod(
                             role.getId(),
                             path,
                             httpMethod);
