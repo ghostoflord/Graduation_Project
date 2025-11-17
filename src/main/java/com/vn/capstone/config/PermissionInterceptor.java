@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.HandlerMapping;
 
@@ -24,6 +25,27 @@ public class PermissionInterceptor implements HandlerInterceptor {
 
     private final Logger log = LoggerFactory.getLogger(PermissionInterceptor.class);
 
+    private static final String[] ALWAYS_ALLOWED_ENDPOINTS = {
+            "/api/v1/auth/**",
+            "/api/v1/payment/**",
+            "/api/v1/manual-chat/**",
+            "/api/v1/manual-chats/**"
+    };
+
+    private static final String[] PUBLIC_GET_ENDPOINTS = {
+            "/api/v1/products/**",
+            "/api/v1/product-details/**",
+            "/api/v1/flash-sales/**",
+            "/api/v1/slides/**",
+            "/api/v1/compare/**",
+            "/api/v1/reviews/**",
+            "/api/v1/comments/**",
+            "/api/v1/likes/**",
+            "/api/v1/vouchers/**"
+    };
+
+    private static final AntPathMatcher PATH_MATCHER = new AntPathMatcher();
+
     @Autowired
     UserService userService;
 
@@ -43,6 +65,10 @@ public class PermissionInterceptor implements HandlerInterceptor {
         System.out.println(">>> requestURI= " + requestURI);
         log.debug("Request to save path : {}", path);
 
+        if (isPublicEndpoint(path, httpMethod)) {
+            return true;
+        }
+
         // check permission
         String email = SecurityUtil.getCurrentUserLogin().isPresent() == true
                 ? SecurityUtil.getCurrentUserLogin().get()
@@ -52,6 +78,10 @@ public class PermissionInterceptor implements HandlerInterceptor {
             if (user != null) {
                 Role role = user.getRole();
                 if (role != null) {
+                    if ("SUPER_ADMIN".equalsIgnoreCase(role.getName())) {
+                        return true;
+                    }
+
                     List<Permission> permissions = role.getPermissions();
                     boolean isAllow = permissions.stream().anyMatch(item -> item.getApiPath().equals(path)
                             && item.getMethod().equals(httpMethod));
@@ -66,5 +96,27 @@ public class PermissionInterceptor implements HandlerInterceptor {
         }
 
         return true;
+    }
+
+    private boolean isPublicEndpoint(String path, String method) {
+        if (path == null) {
+            return true;
+        }
+
+        for (String pattern : ALWAYS_ALLOWED_ENDPOINTS) {
+            if (PATH_MATCHER.match(pattern, path)) {
+                return true;
+            }
+        }
+
+        if (method != null && method.equalsIgnoreCase("GET")) {
+            for (String pattern : PUBLIC_GET_ENDPOINTS) {
+                if (PATH_MATCHER.match(pattern, path)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }
