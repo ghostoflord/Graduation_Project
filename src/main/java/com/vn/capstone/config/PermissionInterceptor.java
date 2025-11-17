@@ -106,11 +106,12 @@ public class PermissionInterceptor implements HandlerInterceptor {
                         return true;
                     }
 
-                    List<Permission> permissions = role.getPermissions();
-                    boolean isAllow = permissions.stream().anyMatch(item -> item.getApiPath().equals(path)
-                            && item.getMethod().equals(httpMethod));
+                    boolean isAllow = permissionRepository.existsByRolesIdAndApiPathAndMethod(
+                            role.getId(),
+                            path,
+                            httpMethod);
 
-                    if (isAllow == false) {
+                    if (!isAllow) {
                         throw new IdInvalidException("Bạn không có quyền truy cập endpoint này.");
                     }
                 } else {
