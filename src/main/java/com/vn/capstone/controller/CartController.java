@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -123,4 +124,15 @@ public class CartController {
         return ResponseEntity.ok(response);
     }
 
+    public record UpdateCartQuantityRequest(Long userId, Long productId, Long quantity) {
+    }
+
+    @PutMapping("/carts/update")
+    public RestResponse<Void> updateQuantity(@RequestBody UpdateCartQuantityRequest request) {
+        cartService.updateQuantity(request.userId(), request.productId(), request.quantity());
+        RestResponse<Void> res = new RestResponse<>();
+        res.setStatusCode(200);
+        res.setMessage("Cập nhật số lượng thành công");
+        return res;
+    }
 }

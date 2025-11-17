@@ -190,4 +190,45 @@ public class CartService {
         cartRepository.save(cart);
     }
 
+    @Transactional
+    public void updateQuantity(Long userId, Long productId, Long quantity) {
+        Cart cart = cartRepository.findByUserId(userId);
+        if (cart == null)
+            throw new RuntimeException("Cart not found");
+
+        CartDetail detail = cartDetailRepository
+                .findByCartIdAndProductId(cart.getId(), productId)
+                .orElseThrow(() -> new RuntimeException("Product not found in cart"));
+
+        Product product = detail.getProduct();
+
+        // chuyển quantity String sang long
+        long stock;
+        try {
+            stock = Long.parseLong(product.getQuantity());
+        } catch (NumberFormatException e) {
+            throw new RuntimeException("Product stock is invalid");
+        }
+
+        long currentQuantityInCart = detail.getQuantity();
+
+        // Chỉ kiểm tra tồn kho khi số lượng MỚI > số lượng HIỆN TẠI
+        // (tức là khi người dùng TĂNG số lượng sản phẩm)
+        boolean isIncreasingQuantity = quantity > currentQuantityInCart;
+
+        if (isIncreasingQuantity && quantity > stock) {
+            throw new RuntimeException("Số lượng vượt quá tồn kho. Tồn kho hiện tại: " + stock);
+        }
+
+        // Kiểm tra số lượng tối thiểu
+        if (quantity < 1) {
+            // Nếu muốn xóa sản phẩm khi quantity = 0, thêm logic xóa ở đây
+            throw new RuntimeException("Số lượng phải lớn hơn 0");
+        }
+
+        detail.setQuantity(quantity);
+        cartDetailRepository.save(detail);
+
+        recalcSum(cart);
+    }
 }
