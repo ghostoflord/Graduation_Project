@@ -4,13 +4,13 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.HandlerMapping;
 
 import com.vn.capstone.domain.Permission;
 import com.vn.capstone.domain.Role;
 import com.vn.capstone.domain.User;
-import com.vn.capstone.repository.PermissionRepository;
 import com.vn.capstone.service.UserService;
 import com.vn.capstone.util.SecurityUtil;
 import com.vn.capstone.util.error.IdInvalidException;
@@ -25,11 +25,29 @@ public class PermissionInterceptor implements HandlerInterceptor {
 
     private final Logger log = LoggerFactory.getLogger(PermissionInterceptor.class);
 
-    @Autowired
-    UserService userService;
+    private static final String[] ALWAYS_ALLOWED_ENDPOINTS = {
+            "/api/v1/auth/**",
+            "/api/v1/payment/**",
+            "/api/v1/manual-chat/**",
+            "/api/v1/manual-chats/**"
+    };
+
+    private static final String[] PUBLIC_GET_ENDPOINTS = {
+            "/api/v1/products/**",
+            "/api/v1/product-details/**",
+            "/api/v1/flash-sales/**",
+            "/api/v1/slides/**",
+            "/api/v1/compare/**",
+            "/api/v1/reviews/**",
+            "/api/v1/comments/**",
+            "/api/v1/likes/**",
+            "/api/v1/vouchers/**"
+    };
+
+    private static final AntPathMatcher PATH_MATCHER = new AntPathMatcher();
 
     @Autowired
-    PermissionRepository permissionRepository;
+    UserService userService;
 
     @Override
     @Transactional
@@ -47,8 +65,7 @@ public class PermissionInterceptor implements HandlerInterceptor {
         System.out.println(">>> requestURI= " + requestURI);
         log.debug("Request to save path : {}", path);
 
-        // Allow requests that are not registered as protected permissions
-        if (path == null || httpMethod == null || !permissionRepository.existsByApiPathAndMethod(path, httpMethod)) {
+        if (isPublicEndpoint(path, httpMethod)) {
             return true;
         }
 
@@ -79,5 +96,27 @@ public class PermissionInterceptor implements HandlerInterceptor {
         }
 
         return true;
+    }
+
+    private boolean isPublicEndpoint(String path, String method) {
+        if (path == null) {
+            return true;
+        }
+
+        for (String pattern : ALWAYS_ALLOWED_ENDPOINTS) {
+            if (PATH_MATCHER.match(pattern, path)) {
+                return true;
+            }
+        }
+
+        if (method != null && method.equalsIgnoreCase("GET")) {
+            for (String pattern : PUBLIC_GET_ENDPOINTS) {
+                if (PATH_MATCHER.match(pattern, path)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }
