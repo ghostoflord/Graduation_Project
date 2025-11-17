@@ -49,20 +49,24 @@ public class PermissionInterceptor implements HandlerInterceptor {
                 : "";
         if (email != null && !email.isEmpty()) {
             User user = this.userService.handleGetUserByUsername(email);
-            if (user != null) {
-                Role role = user.getRole();
-                if (role != null) {
-                    List<Permission> permissions = role.getPermissions();
-                    boolean isAllow = permissions.stream().anyMatch(item -> item.getApiPath().equals(path)
-                            && item.getMethod().equals(httpMethod));
+                if (user != null) {
+                    Role role = user.getRole();
+                    if (role != null) {
+                        if ("SUPER_ADMIN".equalsIgnoreCase(role.getName())) {
+                            return true;
+                        }
 
-                    if (isAllow == false) {
+                        List<Permission> permissions = role.getPermissions();
+                        boolean isAllow = permissions.stream().anyMatch(item -> item.getApiPath().equals(path)
+                                && item.getMethod().equals(httpMethod));
+
+                        if (isAllow == false) {
+                            throw new IdInvalidException("Bạn không có quyền truy cập endpoint này.");
+                        }
+                    } else {
                         throw new IdInvalidException("Bạn không có quyền truy cập endpoint này.");
                     }
-                } else {
-                    throw new IdInvalidException("Bạn không có quyền truy cập endpoint này.");
                 }
-            }
         }
 
         return true;
