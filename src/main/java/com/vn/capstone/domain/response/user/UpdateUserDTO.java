@@ -15,4 +15,5 @@ public class UpdateUserDTO {
     private String age;
     private String avatar; // base64 nếu có
     private Long roleId;
+    private boolean activate;
 }

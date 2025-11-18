@@ -111,6 +111,7 @@ public class UserService {
             currentUser.setAddress(reqUser.getAddress());
             currentUser.setGender(reqUser.getGender());
             currentUser.setAge(reqUser.getAge());
+            currentUser.setActivate(reqUser.isActivate());
             // check role
             if (reqUser.getRole() != null) {
                 Role r = this.roleService.fetchRoleById(reqUser.getRole().getId());

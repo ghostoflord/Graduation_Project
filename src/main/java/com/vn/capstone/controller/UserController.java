@@ -81,9 +81,16 @@ public class UserController {
 
     @GetMapping("/users/{id}")
     @ApiMessage("fetch user by id")
-    public ResponseEntity<User> getUserById(@PathVariable("id") long id, String email) {
-        User fetchUser = this.userService.fetchUserById(id);
-        return ResponseEntity.status(HttpStatus.OK).body(fetchUser);
+    public ResponseEntity<RestResponse<User>> getUserById(@PathVariable("id") long id) {
+
+        User fetchUser = userService.fetchUserById(id);
+
+        RestResponse<User> response = new RestResponse<>();
+        response.setStatusCode(HttpStatus.OK.value());
+        response.setMessage("Fetch user successfully");
+        response.setData(fetchUser);
+
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/users")
@@ -317,6 +324,7 @@ public class UserController {
         user.setGender(userDTO.getGender());
         user.setAddress(userDTO.getAddress());
         user.setAge(userDTO.getAge());
+        user.setActivate(userDTO.isActivate());
 
         // Cập nhật role nếu có
         if (userDTO.getRoleId() != null) {
