@@ -14,6 +14,7 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
@@ -69,6 +70,9 @@ public class AuthController {
         @Value("${ghost.jwt.refresh-token-validity-in-seconds}")
         private long refreshTokenExpiration;
 
+        @Value("${security.login.lockout.enabled:false}")
+        private boolean loginLockoutEnabled;
+
         public AuthController(AuthenticationManagerBuilder authenticationManagerBuilder,
                         SecurityUtil securityUtil, UserService userService, PasswordEncoder passwordEncoder,
                         EmailService emailService, VerificationTokenRepository verificationTokenRepository,
@@ -85,6 +89,20 @@ public class AuthController {
 
         @PostMapping("/auth/login")
         public ResponseEntity<RestResponse<ResLoginDTO>> login(@Valid @RequestBody ReqLoginDTO loginDto) {
+                User currentUserDB = this.userService.handleGetUserByUsername(loginDto.getUsername());
+
+                if (!loginLockoutEnabled && currentUserDB != null && currentUserDB.isAccountLocked()) {
+                        currentUserDB = this.userService.resetFailedLoginAttempts(currentUserDB);
+                }
+
+                if (loginLockoutEnabled && currentUserDB != null && currentUserDB.isAccountLocked()) {
+                        RestResponse<ResLoginDTO> response = new RestResponse<>();
+                        response.setStatusCode(HttpStatus.LOCKED.value());
+                        response.setMessage("Tài khoản đã bị khóa do đăng nhập sai quá 5 lần.");
+                        response.setData(null);
+                        return ResponseEntity.status(HttpStatus.LOCKED).body(response);
+                }
+
                 try {
                         // Nạp input gồm username/password vào Security
                         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
@@ -98,11 +116,16 @@ public class AuthController {
                         // set thông tin người dùng đăng nhập vào context (có thể sử dụng sau này)
                         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-                        // Chuẩn bị dữ liệu trả về
-                        ResLoginDTO res = new ResLoginDTO();
-                        User currentUserDB = this.userService.handleGetUserByUsername(loginDto.getUsername());
-                        if (currentUserDB != null) {
-                                ResLoginDTO.UserLogin userLogin = new ResLoginDTO.UserLogin(
+                if (loginLockoutEnabled && currentUserDB != null) {
+                        currentUserDB = this.userService.resetFailedLoginAttempts(currentUserDB);
+                } else if (currentUserDB == null) {
+                        currentUserDB = this.userService.handleGetUserByUsername(loginDto.getUsername());
+                }
+
+                // Chuẩn bị dữ liệu trả về
+                ResLoginDTO res = new ResLoginDTO();
+                if (currentUserDB != null) {
+                        ResLoginDTO.UserLogin userLogin = new ResLoginDTO.UserLogin(
                                                 currentUserDB.getId(),
                                                 currentUserDB.getEmail(),
                                                 currentUserDB.getName());
@@ -162,7 +185,33 @@ public class AuthController {
                         response.setData(res);
                         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
 
-                } catch (BadCredentialsException e) {
+        } catch (LockedException e) {
+                RestResponse<ResLoginDTO> response = new RestResponse<>();
+                response.setStatusCode(HttpStatus.LOCKED.value());
+                response.setMessage("Tài khoản đã bị khóa. Vui lòng liên hệ quản trị viên.");
+                response.setData(null);
+                return ResponseEntity.status(HttpStatus.LOCKED).body(response);
+
+        } catch (BadCredentialsException e) {
+                if (loginLockoutEnabled && currentUserDB != null) {
+                        currentUserDB = this.userService.incrementFailedLoginAttempts(currentUserDB);
+                        if (currentUserDB.isAccountLocked()) {
+                                RestResponse<ResLoginDTO> response = new RestResponse<>();
+                                response.setStatusCode(HttpStatus.LOCKED.value());
+                                response.setMessage("Tài khoản đã bị khóa do đăng nhập sai quá 5 lần.");
+                                response.setData(null);
+                                return ResponseEntity.status(HttpStatus.LOCKED).body(response);
+                        }
+                        int remainingAttempts = Math.max(
+                                        UserService.MAX_FAILED_LOGIN_ATTEMPTS - currentUserDB.getFailedLoginAttempts(), 0);
+
+                        RestResponse<ResLoginDTO> response = new RestResponse<>();
+                        response.setStatusCode(HttpStatus.UNAUTHORIZED.value());
+                        response.setMessage("Tài khoản hoặc mật khẩu không đúng. Bạn còn " + remainingAttempts
+                                        + " lần thử.");
+                        response.setData(null);
+                        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+                }
                         // Sai tài khoản hoặc mật khẩu
                         RestResponse<ResLoginDTO> response = new RestResponse<>();
                         response.setStatusCode(HttpStatus.UNAUTHORIZED.value());
