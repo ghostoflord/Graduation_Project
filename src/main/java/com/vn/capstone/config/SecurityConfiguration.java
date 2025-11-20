@@ -41,11 +41,13 @@ public class SecurityConfiguration {
 
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
+    private final PublicApiMatcher publicApiMatcher;
 
     public SecurityConfiguration(CustomOAuth2UserService customOAuth2UserService,
-            OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler) {
+            OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler, PublicApiMatcher publicApiMatcher) {
         this.customOAuth2UserService = customOAuth2UserService;
         this.oAuth2LoginSuccessHandler = oAuth2LoginSuccessHandler;
+        this.publicApiMatcher = publicApiMatcher;
     }
 
     @Bean
@@ -55,12 +57,19 @@ public class SecurityConfiguration {
 
         http
                 .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(
-                        authz -> authz
-                                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                                .requestMatchers(SecurityWhitelist.PUBLIC_ENDPOINTS).permitAll()
-                                .requestMatchers(HttpMethod.GET, SecurityWhitelist.PUBLIC_GET_ENDPOINTS).permitAll()
-                                .anyRequest().authenticated())
+                .authorizeHttpRequests(authz -> {
+                    authz.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll();
+                    String[] anyMethodPatterns = publicApiMatcher.getAnyMethodPatterns();
+                    if (anyMethodPatterns.length > 0) {
+                        authz.requestMatchers(anyMethodPatterns).permitAll();
+                    }
+                    publicApiMatcher.getMethodPatternMap().forEach((method, patterns) -> {
+                        if (patterns.length > 0) {
+                            authz.requestMatchers(method, patterns).permitAll();
+                        }
+                    });
+                    authz.anyRequest().authenticated();
+                })
                 .oauth2Login(oauth2 -> oauth2
                         .userInfoEndpoint(userInfo -> userInfo
                                 .userService(customOAuth2UserService))

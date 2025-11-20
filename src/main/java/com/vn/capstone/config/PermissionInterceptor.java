@@ -2,7 +2,7 @@ package com.vn.capstone.config;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.HandlerMapping;
@@ -20,12 +20,18 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Component
 public class PermissionInterceptor implements HandlerInterceptor {
 
     private final Logger log = LoggerFactory.getLogger(PermissionInterceptor.class);
 
-    @Autowired
-    UserService userService;
+    private final UserService userService;
+    private final PublicApiMatcher publicApiMatcher;
+
+    public PermissionInterceptor(UserService userService, PublicApiMatcher publicApiMatcher) {
+        this.userService = userService;
+        this.publicApiMatcher = publicApiMatcher;
+    }
 
     @Override
     @Transactional
@@ -39,7 +45,7 @@ public class PermissionInterceptor implements HandlerInterceptor {
         String httpMethod = request.getMethod();
 
         String pathToCheck = path != null ? path : requestURI;
-        if (SecurityWhitelist.isPublic(httpMethod, pathToCheck)) {
+        if (publicApiMatcher.isPublic(httpMethod, pathToCheck)) {
             return true;
         }
         System.out.println(">>> RUN preHandle");
