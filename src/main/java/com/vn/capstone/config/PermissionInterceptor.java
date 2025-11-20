@@ -27,10 +27,13 @@ public class PermissionInterceptor implements HandlerInterceptor {
 
     private final UserService userService;
     private final PublicApiMatcher publicApiMatcher;
+    private final PermissionBypassMatcher permissionBypassMatcher;
 
-    public PermissionInterceptor(UserService userService, PublicApiMatcher publicApiMatcher) {
+    public PermissionInterceptor(UserService userService, PublicApiMatcher publicApiMatcher,
+            PermissionBypassMatcher permissionBypassMatcher) {
         this.userService = userService;
         this.publicApiMatcher = publicApiMatcher;
+        this.permissionBypassMatcher = permissionBypassMatcher;
     }
 
     @Override
@@ -45,7 +48,8 @@ public class PermissionInterceptor implements HandlerInterceptor {
         String httpMethod = request.getMethod();
 
         String pathToCheck = path != null ? path : requestURI;
-        if (publicApiMatcher.isPublic(httpMethod, pathToCheck)) {
+        if (publicApiMatcher.isPublic(httpMethod, pathToCheck)
+                || permissionBypassMatcher.shouldBypass(httpMethod, pathToCheck)) {
             return true;
         }
         System.out.println(">>> RUN preHandle");
