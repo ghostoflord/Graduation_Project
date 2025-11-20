@@ -2,7 +2,7 @@ package com.vn.capstone.config;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.HandlerMapping;
@@ -20,12 +20,21 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Component
 public class PermissionInterceptor implements HandlerInterceptor {
 
     private final Logger log = LoggerFactory.getLogger(PermissionInterceptor.class);
 
-    @Autowired
-    UserService userService;
+    private final UserService userService;
+    private final PublicApiMatcher publicApiMatcher;
+    private final PermissionBypassMatcher permissionBypassMatcher;
+
+    public PermissionInterceptor(UserService userService, PublicApiMatcher publicApiMatcher,
+            PermissionBypassMatcher permissionBypassMatcher) {
+        this.userService = userService;
+        this.publicApiMatcher = publicApiMatcher;
+        this.permissionBypassMatcher = permissionBypassMatcher;
+    }
 
     @Override
     @Transactional
@@ -37,6 +46,12 @@ public class PermissionInterceptor implements HandlerInterceptor {
         String path = (String) request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE);
         String requestURI = request.getRequestURI();
         String httpMethod = request.getMethod();
+
+        String pathToCheck = path != null ? path : requestURI;
+        if (publicApiMatcher.isPublic(httpMethod, pathToCheck)
+                || permissionBypassMatcher.shouldBypass(httpMethod, pathToCheck)) {
+            return true;
+        }
         System.out.println(">>> RUN preHandle");
         // System.out.println(">>> path= " + path);
         System.out.println(">>> httpMethod= " + httpMethod);

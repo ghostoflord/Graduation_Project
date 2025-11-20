@@ -6,6 +6,7 @@ import javax.crypto.spec.SecretKeySpec;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -40,11 +41,13 @@ public class SecurityConfiguration {
 
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
+    private final PublicApiMatcher publicApiMatcher;
 
     public SecurityConfiguration(CustomOAuth2UserService customOAuth2UserService,
-            OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler) {
+            OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler, PublicApiMatcher publicApiMatcher) {
         this.customOAuth2UserService = customOAuth2UserService;
         this.oAuth2LoginSuccessHandler = oAuth2LoginSuccessHandler;
+        this.publicApiMatcher = publicApiMatcher;
     }
 
     @Bean
@@ -52,27 +55,21 @@ public class SecurityConfiguration {
             CustomAuthenticationEntryPoint customAuthenticationEntryPoint, OAuth2LoginSuccessHandler successHandler)
             throws Exception {
 
-        String[] whiteList = {
-                "/",
-                "/api/v1/users/**", "/api/v1/roles/**", "/api/v1/products/**", "/api/v1/permissions/**",
-                "/api/v1/comments/**", "/api/v1/carts/**", "/api/v1/orders/**", "/api/v1/carts/addproduct",
-                "/api/v1/product-details/**", "/api/v1/notifications/**", "/api/v1/auth/**",
-                "/api/v1/email/**", "/api/v1/verify/**", "/api/v1/dashboard/**", "/api/v1/auth/resend-verification",
-                "/api/v1/review/**", "/api/v1/like/**", "/api/v1/invoice/**", "/api/v1/chat/**",
-                "/api/v1/manual-chat/**", "/api/v1/vouchers/**", "/api/v1/compare/**", "/api/v1/flash-sales/**",
-                "/api/v1/auth/forgot-password", "/api/v1/auth/verify-reset-token", "/api/v1/auth/reset-password",
-                "/api/v1/auth/register", "/api/v1/auth/login", "/api/v1/auth/account", "api/v1/auth/logout",
-                "/api/v1/files", "/upload/avatars/**", "/upload/products/**", "/oauth2/authorization/github",
-                "/api/v1/payment/**", "/api/v1/manual-chats/**", "/api/v1/slides/**", "/api/v1/statistics/**",
-                "/upload/slides/**",
-        };
-
         http
                 .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(
-                        authz -> authz
-                                .requestMatchers(whiteList).permitAll()
-                                .anyRequest().authenticated())
+                .authorizeHttpRequests(authz -> {
+                    authz.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll();
+                    String[] anyMethodPatterns = publicApiMatcher.getAnyMethodPatterns();
+                    if (anyMethodPatterns.length > 0) {
+                        authz.requestMatchers(anyMethodPatterns).permitAll();
+                    }
+                    publicApiMatcher.getMethodPatternMap().forEach((method, patterns) -> {
+                        if (patterns.length > 0) {
+                            authz.requestMatchers(method, patterns).permitAll();
+                        }
+                    });
+                    authz.anyRequest().authenticated();
+                })
                 .oauth2Login(oauth2 -> oauth2
                         .userInfoEndpoint(userInfo -> userInfo
                                 .userService(customOAuth2UserService))
