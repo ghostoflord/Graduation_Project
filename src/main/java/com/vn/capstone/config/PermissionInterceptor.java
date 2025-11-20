@@ -37,6 +37,10 @@ public class PermissionInterceptor implements HandlerInterceptor {
         String path = (String) request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE);
         String requestURI = request.getRequestURI();
         String httpMethod = request.getMethod();
+
+        if ("OPTIONS".equalsIgnoreCase(httpMethod)) {
+            return true;
+        }
         System.out.println(">>> RUN preHandle");
         // System.out.println(">>> path= " + path);
         System.out.println(">>> httpMethod= " + httpMethod);
