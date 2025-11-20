@@ -38,7 +38,8 @@ public class PermissionInterceptor implements HandlerInterceptor {
         String requestURI = request.getRequestURI();
         String httpMethod = request.getMethod();
 
-        if ("OPTIONS".equalsIgnoreCase(httpMethod)) {
+        String pathToCheck = path != null ? path : requestURI;
+        if (SecurityWhitelist.isPublic(httpMethod, pathToCheck)) {
             return true;
         }
         System.out.println(">>> RUN preHandle");
