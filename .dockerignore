@@ -1,0 +1,11 @@
+.git
+.gitignore
+.gitattributes
+.gradle
+build
+/upload
+/path_to_your_directory
+*.iml
+.idea
+*.log
+**/.DS_Store
