@@ -17,52 +17,52 @@ import com.vn.capstone.util.constant.OrderStatus;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long>, JpaSpecificationExecutor<Order> {
-        List<Order> findByUser(User user);
+    List<Order> findByUser(User user);
 
-        Optional<Order> findById(long id);
-        // @Query("SELECT o FROM Order o LEFT JOIN FETCH o.orderDetails WHERE o.id =
-        // :id")
-        // Optional<Order> findWithDetailsById(@Param("id") Long id);
+    Optional<Order> findById(long id);
+    // @Query("SELECT o FROM Order o LEFT JOIN FETCH o.orderDetails WHERE o.id =
+    // :id")
+    // Optional<Order> findWithDetailsById(@Param("id") Long id);
 
-        Optional<Order> findByPaymentRef(String paymentRef);
+    Optional<Order> findByPaymentRef(String paymentRef);
 
-        @Query("SELECT SUM(o.totalPrice) FROM Order o")
-        Double sumTotalPrice();
+    @Query("SELECT SUM(o.totalPrice) FROM Order o")
+    Double sumTotalPrice();
 
-        @Query("SELECT SUM(od.quantity) FROM OrderDetail od JOIN od.order o WHERE o.status = 'CANCELED'")
-        Long sumCanceledOrderQuantity();
+    @Query("SELECT SUM(od.quantity) FROM OrderDetail od JOIN od.order o WHERE o.status = 'CANCELED'")
+    Long sumCanceledOrderQuantity();
 
-        List<Order> findByShipperAndStatus(User shipper, OrderStatus status);
+    List<Order> findByShipperAndStatus(User shipper, OrderStatus status);
 
-        // void deleteByProductId(Long productId);
+    // void deleteByProductId(Long productId);
 
-        @Query("SELECT COUNT(o) FROM Order o WHERE o.shipper.id = :shipperId AND o.status = :status")
-        long countByStatusAndShipper(@Param("shipperId") Long shipperId,
-                        @Param("status") OrderStatus status);
+    @Query("SELECT COUNT(o) FROM Order o WHERE o.shipper.id = :shipperId AND o.status = :status")
+    long countByStatusAndShipper(@Param("shipperId") Long shipperId,
+            @Param("status") OrderStatus status);
 
-        @Query("SELECT COUNT(o) FROM Order o WHERE o.shipper.id = :shipperId AND o.status IN :statuses")
-        long countByStatusesAndShipper(@Param("shipperId") Long shipperId,
-                        @Param("statuses") List<OrderStatus> statuses);
+    @Query("SELECT COUNT(o) FROM Order o WHERE o.shipper.id = :shipperId AND o.status IN :statuses")
+    long countByStatusesAndShipper(@Param("shipperId") Long shipperId,
+            @Param("statuses") List<OrderStatus> statuses);
 
-        @Query("SELECT COALESCE(SUM(o.totalPrice), 0) FROM Order o WHERE o.shipper.id = :shipperId AND o.status = 'DELIVERED'")
-        long sumCODByShipper(@Param("shipperId") Long shipperId);
+    @Query("SELECT COALESCE(SUM(o.totalPrice), 0) FROM Order o WHERE o.shipper.id = :shipperId AND o.status = 'DELIVERED'")
+    long sumCODByShipper(@Param("shipperId") Long shipperId);
 
-        List<Order> findAllByUserId(Long userId);
+    List<Order> findAllByUserId(Long userId);
 
-        @Query(value = """
-                            SELECT
-                                m.month AS month,
-                                COALESCE(SUM(o.total_price), 0) AS revenue
-                            FROM (
-                                SELECT 1 AS month UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6
-                                UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10 UNION SELECT 11 UNION SELECT 12
-                            ) AS m
-                            LEFT JOIN orders o
-                                ON MONTH(o.created_at) = m.month
-                                AND o.status = 'DELIVERED'
-                            GROUP BY m.month
-                            ORDER BY m.month
-                        """, nativeQuery = true)
-        List<Object[]> getMonthlyRevenue();
+    @Query(value = """
+                SELECT
+                    m.month AS month,
+                    COALESCE(SUM(o.total_price), 0) AS revenue
+                FROM (
+                    SELECT 1 AS month UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6
+                    UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10 UNION SELECT 11 UNION SELECT 12
+                ) AS m
+                LEFT JOIN orders o
+                    ON MONTH(o.created_at) = m.month
+                    AND o.status = 'CONFIRMED'
+                GROUP BY m.month
+                ORDER BY m.month
+            """, nativeQuery = true)
+    List<Object[]> getMonthlyRevenue();
 
 }
