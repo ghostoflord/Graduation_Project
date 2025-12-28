@@ -41,6 +41,7 @@ public class NotificationService {
                 noti.setUser(user);
                 noti.setTitle(title);
                 noti.setContent(content);
+                noti.setForAll(true);
                 notifications.add(noti);
             }
 
@@ -54,6 +55,7 @@ public class NotificationService {
             noti.setUser(user);
             noti.setTitle(title);
             noti.setContent(content);
+            noti.setForAll(false);
             notificationRepository.save(noti);
         }
     }
