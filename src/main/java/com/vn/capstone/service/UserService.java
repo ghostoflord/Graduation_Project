@@ -37,6 +37,8 @@ import jakarta.transaction.Transactional;
 
 @Service
 public class UserService {
+    public static final int MAX_FAILED_LOGIN_ATTEMPTS = 5;
+
     private final UserRepository userRepository;
     private final VerificationTokenRepository verificationTokenRepository;
     private final RoleService roleService;
@@ -236,6 +238,30 @@ public class UserService {
 
     public User getUserByRefreshTokenAndEmail(String token, String email) {
         return this.userRepository.findByRefreshTokenAndEmail(token, email);
+    }
+
+    public User incrementFailedLoginAttempts(User user) {
+        if (user == null) {
+            return null;
+        }
+        int newAttempts = user.getFailedLoginAttempts() + 1;
+        user.setFailedLoginAttempts(newAttempts);
+        if (newAttempts >= MAX_FAILED_LOGIN_ATTEMPTS) {
+            user.setAccountLocked(true);
+        }
+        return userRepository.save(user);
+    }
+
+    public User resetFailedLoginAttempts(User user) {
+        if (user == null) {
+            return null;
+        }
+        if (user.getFailedLoginAttempts() == 0 && !user.isAccountLocked()) {
+            return user;
+        }
+        user.setFailedLoginAttempts(0);
+        user.setAccountLocked(false);
+        return userRepository.save(user);
     }
 
     public boolean verifyUser(String token) {
